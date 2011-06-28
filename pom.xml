@@ -1,0 +1,185 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <description>
+    Pure Java implementation of ONC RPC protocol specification
+    (http://www.ietf.org/rfc/rfc1831.txt)
+  </description>
+
+  <groupId>org.dcache</groupId>
+  <artifactId>rpc</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <name>Grizzly Based ONC RPC implementation</name>
+  <packaging>jar</packaging>
+  <url>http://www.dCache.ORG</url>
+
+  <!--
+    CODE LICENSE
+  -->
+  <licenses>
+    <license>
+      <name>
+        GNU Lesser General Public License
+      </name>
+      <url>
+        http://www.fsf.org/licensing/licenses/lgpl.txt
+      </url>
+    </license>
+  </licenses>
+
+  <build>
+    <sourceDirectory>src</sourceDirectory>
+    <testSourceDirectory>test</testSourceDirectory>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>2.0.2</version>
+        <configuration>
+          <source>1.6</source>
+          <target>1.6</target>
+        </configuration>
+      </plugin>
+      <!--
+         start java app
+      -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.2</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>java</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <mainClass>org.dcache.xdr.SpringRunner</mainClass>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>2.2-beta-4</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>attached</goal>
+            </goals>
+            <phase>package</phase>
+            <configuration>
+              <descriptorRefs>
+                <descriptorRef>jar-with-dependencies</descriptorRef>
+              </descriptorRefs>
+              <archive>
+                <manifest>
+                  <mainClass>org.dcache.xdr.SpringRunner</mainClass>
+                  <packageName>org.dcache.rpc</packageName>
+                  <addExtensions />
+                </manifest>
+                <manifestEntries>
+                  <mode>development</mode>
+                  <Implementation-Build>${buildNumber}</Implementation-Build>
+                  <url>${project.url}</url>
+                  <Build-Time>${maven.build.timestamp}</Build-Time>
+                </manifestEntries>
+              </archive>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+    <resources>
+      <resource>
+         <directory>resources</directory>
+         <includes>
+         </includes>
+      </resource>
+    </resources>
+  </build>
+
+  <!--
+    EXTERNAL DEPENDENCIES
+  -->
+  <dependencies>
+    <dependency>
+      <groupId>com.sun.grizzly</groupId>
+      <artifactId>grizzly-framework</artifactId>
+      <version>1.9.19</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-context</artifactId>
+      <version>3.0.5.RELEASE</version>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.7</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.6.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>log4j-over-slf4j</artifactId>
+      <version>1.6.1</version>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>0.9.28</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>r09</version>
+    </dependency>
+    <dependency>
+      <groupId>org.dcache.common</groupId>
+      <artifactId>dcache-auth</artifactId>
+      <version>0.0.10-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.jna</groupId>
+      <artifactId>jna</artifactId>
+      <version>3.0.9</version>
+      </dependency>
+  </dependencies>
+
+  <!--
+    MAVEN REPOSITORIES
+  -->
+  <repositories>
+  <!-- Grizzly repository -->
+    <repository>
+      <id>download.java.net</id>
+      <name>Glassfish Repository for Maven</name>
+      <url>http://download.java.net/maven/glassfish/ </url>
+      <layout>default</layout>
+    </repository>
+    <repository>
+      <id>maven2-repository.dev.java.net</id>
+      <name>Java.net Repository for Maven</name>
+      <url>http://download.java.net/maven/2/</url>
+      <layout>default</layout>
+    </repository>
+    <repository>
+      <id>maven2-repository.dcache.org</id>
+      <name>dCache.ORG Repository for Maven</name>
+      <url>http://www.dcache.org/nexus/content/groups/public/</url>
+      <layout>default</layout>
+    </repository>
+    <repository>
+      <id>dcache-snapshots</id>
+      <name>dCache.ORG snapshots repository</name>
+      <url>http://www.dcache.org/nexus/content/repositories/snapshots</url>
+      <layout>default</layout>
+    </repository>
+  </repositories>
+</project>
