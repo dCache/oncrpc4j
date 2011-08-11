@@ -25,15 +25,15 @@ import org.dcache.xdr.XdrEncodingStream;
 /**
  * RPCGSS_SEC data body for integrity QOS as defined in RFC 2203
  */
-public class DataBodyInteg implements XdrAble {
+public class DataBodyIntegrity implements XdrAble {
 
     private byte[] data;
     private byte[] checksum;
 
-    public DataBodyInteg() {
+    public DataBodyIntegrity() {
     }
 
-    public DataBodyInteg(byte[] data, byte[] checksum) {
+    public DataBodyIntegrity(byte[] data, byte[] checksum) {
         this.data = data;
         this.checksum = checksum;
     }
