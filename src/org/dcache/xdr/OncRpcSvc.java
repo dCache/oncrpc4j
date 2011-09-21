@@ -174,6 +174,7 @@ public class OncRpcSvc {
                         _serverReady.countDown();
                     }
                 });
+        _controller.setAutoConfigure(true);
     }
 
     /**
