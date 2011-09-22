@@ -37,6 +37,7 @@ public interface XdrEncodingStream {
     void xdrEncodeBoolean(boolean bool);
     void xdrEncodeString(String str);
     void xdrEncodeLong(long value);
+    void xdrEncodeLongVector(long[] longs);
     ByteBuffer body();
     void xdrEncodeByteBuffer(ByteBuffer buf);
     /*

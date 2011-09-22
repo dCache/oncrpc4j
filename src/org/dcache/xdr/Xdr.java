@@ -149,6 +149,23 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
     }
 
     /**
+     * Get next array of long.
+     *
+     * @return the array on integers
+     */
+    public long[] xdrDecodeLongVector() {
+
+        int len = xdrDecodeInt();
+        _log.log(Level.FINEST, "Decoding long array with len = {0}", len);
+
+        long[] longs = new long[len];
+        for (int i = 0; i < len; i++) {
+            longs[i] = xdrDecodeLong();
+        }
+        return longs;
+    }
+
+    /**
      * Get next opaque data.  The decoded data
      * is always padded to be a multiple of four.
      *
@@ -269,6 +286,21 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
         _body.putInt(values.length);
         for (int value: values) {
             _body.putInt( value );
+        }
+    }
+
+    /**
+     * Encodes (aka "serializes") a vector of longs and writes it down
+     * this XDR stream.
+     *
+     * @param values long vector to be encoded.
+     *
+     */
+    public void xdrEncodeLongVector(long[] values) {
+        _log.log(Level.FINEST, "Ecoding int array {0}", Arrays.toString(values));
+        _body.putInt(values.length);
+        for (long value : values) {
+            _body.putLong(value);
         }
     }
 

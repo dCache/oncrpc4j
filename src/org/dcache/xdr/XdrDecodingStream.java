@@ -38,6 +38,7 @@ public interface XdrDecodingStream {
     boolean xdrDecodeBoolean();
     String xdrDecodeString();
     long xdrDecodeLong();
+    long[] xdrDecodeLongVector();
     ByteBuffer xdrDecodeByteBuffer();
 
     /*
