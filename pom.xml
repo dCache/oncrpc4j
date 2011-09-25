@@ -8,7 +8,7 @@
   </description>
 
   <groupId>org.dcache</groupId>
-  <artifactId>nio-rpc</artifactId>
+  <artifactId>nio-jrpc</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <name>Grizzly NIO framework based ONC RPC implementation</name>
   <packaging>jar</packaging>
@@ -182,4 +182,19 @@
       <layout>default</layout>
     </repository>
   </repositories>
+
+    <!--
+                 MAVEN DEPLOYMENT REPOSITORY
+    -->
+  <distributionManagement>
+      <repository>
+          <id>dcache.org</id>
+          <url>http://www.dcache.org/nexus/content/repositories/releases</url>
+      </repository>
+      <snapshotRepository>
+          <id>dcache.org-snapshot</id>
+          <url>http://www.dcache.org/nexus/content/repositories/snapshots</url>
+      </snapshotRepository>
+  </distributionManagement>
+
 </project>
