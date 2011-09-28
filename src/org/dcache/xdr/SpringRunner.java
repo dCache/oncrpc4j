@@ -17,7 +17,6 @@
 
 package org.dcache.xdr;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
@@ -38,5 +37,6 @@ public class SpringRunner {
         OncRpcSvc service = (OncRpcSvc)context.getBean("oncrpcsvc");
         service.start();
 
+        System.in.read();
     }
 }

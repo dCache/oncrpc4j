@@ -17,8 +17,6 @@
 package org.dcache.xdr;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class RpcReply {
@@ -118,8 +116,7 @@ public class RpcReply {
         reply.xdrEncode(_xdr);
         _xdr.endEncoding();
 
-        ByteBuffer message = _xdr.body();
-        _transport.send(message);
+        _transport.send(_xdr);
     }
 
     @Override

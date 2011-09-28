@@ -14,21 +14,19 @@
  * details); if not, write to the Free Software Foundation, Inc.,
  * 675 Mass Ave, Cambridge, MA 02139, USA.
  */
-
 package org.dcache.xdr;
 
 import java.io.IOException;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.glassfish.grizzly.filterchain.BaseFilter;
+import org.glassfish.grizzly.filterchain.FilterChainContext;
+import org.glassfish.grizzly.filterchain.NextAction;
 
-import com.sun.grizzly.Context;
-import com.sun.grizzly.ProtocolFilter;
-
-public class RpcDispatcher implements ProtocolFilter {
+public class RpcDispatcher extends BaseFilter {
 
     private final static Logger _log = Logger.getLogger(RpcDispatcher.class.getName());
-
     /**
      * List of registered RPC services
      *
@@ -44,30 +42,30 @@ public class RpcDispatcher implements ProtocolFilter {
      *
      * @throws NullPointerException if programs is null
      */
-    public RpcDispatcher(  Map<OncRpcProgram, RpcDispatchable> programs  )
-        throws NullPointerException{
+    public RpcDispatcher(Map<OncRpcProgram, RpcDispatchable> programs)
+            throws NullPointerException {
 
-        if( programs == null)
+        if (programs == null) {
             throw new NullPointerException("Programs is NULL");
+        }
 
         _programs = programs;
     }
 
     @Override
-    public boolean execute(Context context) throws IOException {
+    public NextAction handleRead(FilterChainContext ctx) throws IOException {
 
-        RpcCall call = (RpcCall)context.getAttribute(RpcProtocolFilter.RPC_CALL);
-
+        RpcCall call = ctx.getMessage();
         int prog = call.getProgram();
         int vers = call.getProgramVersion();
         int proc = call.getProcedure();
 
         _log.log(Level.FINE, "processing request {0}", call);
 
-        RpcDispatchable program = _programs.get( new OncRpcProgram(prog, vers));
-        if( program == null ) {
+        RpcDispatchable program = _programs.get(new OncRpcProgram(prog, vers));
+        if (program == null) {
             call.failProgramUnavailable();
-        }else{
+        } else {
             try {
                 program.dispatchOncRpcCall(call);
             } catch (RpcException e) {
@@ -77,13 +75,6 @@ public class RpcDispatcher implements ProtocolFilter {
                 _log.log(Level.SEVERE, "Failed to process RPC request:", e);
             }
         }
-
-        return true;
+        return ctx.getInvokeAction();
     }
-
-    @Override
-    public boolean postExecute(Context context) throws IOException {
-        return true;
-    }
-
 }

@@ -14,51 +14,44 @@
  * details); if not, write to the Free Software Foundation, Inc.,
  * 675 Mass Ave, Cambridge, MA 02139, USA.
  */
-
 package org.dcache.xdr;
 
-import com.sun.grizzly.ConnectorHandler;
-import com.sun.grizzly.Controller;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
-import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.glassfish.grizzly.Buffer;
+import org.glassfish.grizzly.Connection;
+import org.glassfish.grizzly.memory.ByteBufferWrapper;
 
 public class ClientTransport implements XdrTransport {
 
     private final static Logger _log = Logger.getLogger(ClientTransport.class.getName());
-
-    private final ConnectorHandler _connectorHandler;
+    private final Connection<InetSocketAddress> _connection;
     private final ReplyQueue<Integer, RpcReply> _replyQueue;
-    private final InetSocketAddress _remote;
 
-    public ClientTransport(InetSocketAddress remote, ConnectorHandler connectorHandler ,
-            ReplyQueue<Integer, RpcReply> replyQueue ) {
+    public ClientTransport(Connection<InetSocketAddress> connection,
+            ReplyQueue<Integer, RpcReply> replyQueue) {
         _replyQueue = replyQueue;
-        _connectorHandler = connectorHandler;
-        _remote = remote;
+        _connection = connection;
     }
 
-    public void send(ByteBuffer data) throws IOException {
-        if( _connectorHandler.protocol() == Controller.Protocol.UDP ) {
-            // skip fragment marker
-            data.getInt();
-        }
-            long n = _connectorHandler.write(data, true);
-            _log.log(Level.FINEST, "Send {0} bytes", n);
+    @Override
+    public void send(Xdr data) throws IOException {
+        Buffer buffer = new ByteBufferWrapper(data.body());
+        _connection.write(buffer);
     }
 
+    @Override
     public InetSocketAddress getLocalSocketAddress() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return _connection.getLocalAddress();
     }
 
+    @Override
     public InetSocketAddress getRemoteSocketAddress() {
-        return _remote;
+        return _connection.getPeerAddress();
     }
 
     public ReplyQueue<Integer, RpcReply> getReplyQueue() {
         return _replyQueue;
     }
-
 }
