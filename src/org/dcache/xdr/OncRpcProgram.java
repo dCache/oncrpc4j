@@ -80,4 +80,8 @@ public class OncRpcProgram {
         return _number ^ _version;
     }
 
+    @Override
+    public String toString() {
+        return "[" + getNumber() + ":" + getVersion() + "]";
+    }
 }
