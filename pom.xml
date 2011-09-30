@@ -9,7 +9,7 @@
 
   <groupId>org.dcache</groupId>
   <artifactId>nio-jrpc</artifactId>
-  <version>1.0</version>
+  <version>2.0-SNAPSHOT</version>
   <name>Grizzly NIO framework based ONC RPC implementation</name>
   <packaging>jar</packaging>
   <url>http://www.dCache.ORG</url>
