@@ -148,7 +148,7 @@
     <dependency>
       <groupId>org.dcache.common</groupId>
       <artifactId>dcache-auth</artifactId>
-      <version>0.0.10-SNAPSHOT</version>
+      <version>0.0.10</version>
     </dependency>
     <dependency>
       <groupId>com.sun.jna</groupId>
