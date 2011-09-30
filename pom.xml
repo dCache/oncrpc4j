@@ -15,8 +15,8 @@
   <url>http://www.dCache.ORG</url>
 
     <scm>
-        <connection>scm:hg:https://code.google.com/p/nio-jrpc</connection>
-        <developerConnection>scm:hg:https://kofemann@code.google.com/p/nio-jrpc</developerConnection>
+        <connection>scm:hg:../nio-jrpc-release</connection>
+        <developerConnection>scm:hg:../nio-jrpc-release</developerConnection>
     </scm>
 
   <!--
