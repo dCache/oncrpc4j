@@ -14,6 +14,11 @@
   <packaging>jar</packaging>
   <url>http://www.dCache.ORG</url>
 
+    <scm>
+        <connection>scm:hg:https://code.google.com/p/nio-jrpc</connection>
+        <developerConnection>scm:hg:https://kofemann@code.google.com/p/nio-jrpc</developerConnection>
+    </scm>
+
   <!--
     CODE LICENSE
   -->
