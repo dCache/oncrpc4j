@@ -119,11 +119,13 @@ public class OncRpcSvc {
 
         if ((protocol & IpProtocolType.TCP) != 0) {
             final TCPNIOTransport tcpTransport = TCPNIOTransportBuilder.newInstance().build();
+            tcpTransport.setReuseAddress(true);
             _transports.add(tcpTransport);
         }
 
         if ((protocol & IpProtocolType.UDP) != 0) {
             final UDPNIOTransport udpTransport = UDPNIOTransportBuilder.newInstance().build();
+            udpTransport.setReuseAddress(true);
             _transports.add(udpTransport);
         }
         _portRange = portRange;
