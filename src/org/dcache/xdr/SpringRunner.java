@@ -18,6 +18,7 @@
 package org.dcache.xdr;
 
 import java.io.IOException;
+import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 
@@ -28,15 +29,20 @@ public class SpringRunner {
     }
 
     public static void main(String[] args) throws IOException {
-        if( args.length != 1 ) {
+        if (args.length != 1) {
             System.err.println("Usage: SpringRunner <config>");
             System.exit(1);
         }
 
-        ApplicationContext context = new FileSystemXmlApplicationContext(args[0]);
-        OncRpcSvc service = (OncRpcSvc)context.getBean("oncrpcsvc");
-        service.start();
+        try {
+            ApplicationContext context = new FileSystemXmlApplicationContext(args[0]);
+            OncRpcSvc service = (OncRpcSvc) context.getBean("oncrpcsvc");
+            service.start();
 
-        System.in.read();
+            System.in.read();
+        } catch (BeansException e) {
+            System.err.println("Spring: " + e.getMessage());
+            System.exit(1);
+        }
     }
 }
