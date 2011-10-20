@@ -54,4 +54,10 @@ public class ClientTransport implements XdrTransport {
     public ReplyQueue<Integer, RpcReply> getReplyQueue() {
         return _replyQueue;
     }
+
+    @Override
+    public XdrTransport getPeerTransport() {
+        return null;
+    }
+
 }

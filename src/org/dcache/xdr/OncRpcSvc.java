@@ -57,6 +57,7 @@ public class OncRpcSvc {
     private final Set<Connection<InetSocketAddress>> _boundConnections =
             new HashSet<Connection<InetSocketAddress>>();
 
+    private final ReplyQueue<Integer, RpcReply> _replyQueue = new ReplyQueue<Integer, RpcReply>();
     /**
      * Handle RPCSEC_GSS
      */
@@ -215,7 +216,7 @@ public class OncRpcSvc {
             FilterChainBuilder filterChain = FilterChainBuilder.stateless();
             filterChain.add(new TransportFilter());
             filterChain.add(rpcMessageReceiverFor(t));
-            filterChain.add(new RpcProtocolFilter());
+            filterChain.add(new RpcProtocolFilter(_replyQueue));
             // use GSS if configures
             if (_gssSessionManager != null) {
                 filterChain.add(new GssProtocolFilter(_gssSessionManager));

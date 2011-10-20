@@ -51,4 +51,12 @@ public interface XdrTransport {
      */
     public InetSocketAddress getRemoteSocketAddress();
 
+    /**
+     * Get {@link XdrTransport} for to sent/receive requests in opposite direction.
+     * The returned transport can be used by servers to send rpc calls to clients and
+     * can be used by clients to receive rpc calls from servers.
+     * 
+     * @return 
+     */
+    public XdrTransport getPeerTransport();
 }

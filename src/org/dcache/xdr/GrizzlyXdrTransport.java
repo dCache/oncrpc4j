@@ -23,6 +23,7 @@ import java.net.InetSocketAddress;
 import java.util.logging.Logger;
 import org.glassfish.grizzly.Buffer;
 import org.glassfish.grizzly.CompletionHandler;
+import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.WriteResult;
 import org.glassfish.grizzly.filterchain.FilterChainContext;
 import org.glassfish.grizzly.memory.ByteBufferWrapper;
@@ -30,11 +31,19 @@ import org.glassfish.grizzly.memory.ByteBufferWrapper;
 public class GrizzlyXdrTransport implements XdrTransport {
 
     private final FilterChainContext _context;
+    private final Connection<InetSocketAddress> _connection;
+    private final ReplyQueue<Integer, RpcReply> _replyQueue;
 
     private final static Logger _log = Logger.getLogger(GrizzlyXdrTransport.class.getName());
 
-    public GrizzlyXdrTransport(FilterChainContext context) {
+    public GrizzlyXdrTransport(FilterChainContext context, ReplyQueue<Integer, RpcReply> replyQueue) {
         _context = context;
+        _connection = context.getConnection();
+        _replyQueue = replyQueue;
+    }
+
+    public GrizzlyXdrTransport(FilterChainContext context) {
+        this(context, null);
     }
 
     @Override
@@ -58,7 +67,7 @@ public class GrizzlyXdrTransport implements XdrTransport {
 
     @Override
     public ReplyQueue<Integer, RpcReply> getReplyQueue() {
-        return null;
+        return _replyQueue;
     }
 
     private class DisposeXdrBuffer implements CompletionHandler<WriteResult> {
@@ -93,4 +102,10 @@ public class GrizzlyXdrTransport implements XdrTransport {
             _xdr.close();
         }
     }
+
+    @Override
+    public XdrTransport getPeerTransport() {
+        return new ClientTransport(_connection, getReplyQueue());
+    }
+    
 }

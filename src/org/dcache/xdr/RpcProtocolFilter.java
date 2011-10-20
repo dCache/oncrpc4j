@@ -49,7 +49,7 @@ public class RpcProtocolFilter extends BaseFilter {
         xdr.beginDecoding();
 
         RpcMessage message = new RpcMessage(xdr);
-        XdrTransport transport = new GrizzlyXdrTransport(ctx);
+        XdrTransport transport = new GrizzlyXdrTransport(ctx, _replyQueue);
 
         if (message.type() == RpcMessageType.CALL) {
             RpcCall call = new RpcCall(message.xid(), xdr, transport);
@@ -65,6 +65,7 @@ public class RpcProtocolFilter extends BaseFilter {
                 _log.log(Level.INFO, "failed to process RPC request: {0}", e.getMessage());
                 return ctx.getStopAction();
             }
+            return ctx.getInvokeAction();
         } else {
             /*
              * For now I do not expect to receive a reply message over
@@ -79,7 +80,7 @@ public class RpcProtocolFilter extends BaseFilter {
             } catch (OncRpcException e) {
                 _log.log(Level.WARNING, "failed to decode reply:", e);
             }
+            return ctx.getStopAction();
         }
-        return ctx.getInvokeAction();
     }
 }
