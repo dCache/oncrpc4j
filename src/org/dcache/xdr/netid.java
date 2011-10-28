@@ -17,9 +17,8 @@
 
 package org.dcache.xdr;
 
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.UnknownHostException;
+import org.dcache.utils.net.InetSocketAddresses;
 
 public class netid {
 
@@ -32,36 +31,14 @@ public class netid {
         return "0.0.0.0." + (0xFF & port_part[0]) + "." + (0xFF & port_part[1]);
     }
 
-    public static InetSocketAddress toInetSocketAddress(String str)
-            throws UnknownHostException {
+    public static InetSocketAddress toInetSocketAddress(String str) {
 
-        String[] cb_addr = str.trim().split("[.]");
-
-        byte[] addr = new byte[4];
-        addr[0] = (byte) Integer.parseInt(cb_addr[0]);
-        addr[1] = (byte) Integer.parseInt(cb_addr[1]);
-        addr[2] = (byte) Integer.parseInt(cb_addr[2]);
-        addr[3] = (byte) Integer.parseInt(cb_addr[3]);
-
-        InetAddress inetAddr = InetAddress.getByAddress(addr);
-
-        int p1 = Integer.parseInt(cb_addr[4]);
-        int p2 = Integer.parseInt(cb_addr[5]);
-
-        int port = (p1 << 8) + p2;
-
-        return new InetSocketAddress(inetAddr, port);
+        return InetSocketAddresses.forUaddrString(str);
 
     }
 
     public static int getPort(String str) {
-
-        String[] cb_addr = str.trim().split("[.]");
-
-        int p1 = Integer.parseInt(cb_addr[4]);
-        int p2 = Integer.parseInt(cb_addr[5]);
-
-        return (p1 << 8) + p2;
+        return toInetSocketAddress(str).getPort();
     }
 
     public static int idOf(String id) {
