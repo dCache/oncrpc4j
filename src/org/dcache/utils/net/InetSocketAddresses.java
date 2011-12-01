@@ -16,10 +16,11 @@
  */
 package org.dcache.utils.net;
 
+import com.google.common.net.HostAndPort;
+import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.UnknownHostException;
 import static com.google.common.net.InetAddresses.*;
 
 /**
@@ -90,13 +91,9 @@ public class InetSocketAddresses {
      * @return socketAddress
      */
     public static InetSocketAddress inetAddressOf(String address) {
-        int colom = address.indexOf(":");
-        if (colom < 0) {
-            throw new IllegalArgumentException("invalid host:port format");
-        }
 
-        return new InetSocketAddress(address.substring(0, colom),
-                Integer.parseInt(address.substring(colom + 1)));
+        HostAndPort hostAndPort = HostAndPort.fromString(address);
+        return new InetSocketAddress(hostAndPort.getHostText(), hostAndPort.getPort());
     }
 
     private static String stripScopeId(String s) {
@@ -134,5 +131,21 @@ public class InetSocketAddresses {
      */
     public static String uaddrOf(String host, int port) {
         return uaddrOf( new InetSocketAddress(host, port));
+    }
+
+    /**
+     * Get netid type for given {@link InetAddress}.
+     *
+     * @param address
+     * @return string corresponding to netid.
+     * @throws IllegalArgumentException in case of address type is unsupported.
+     */
+    public static String tcpNetidOf(InetAddress address) {
+        if (address instanceof Inet4Address) {
+            return "tcp";
+        } else if (address instanceof Inet6Address) {
+            return "tcp6";
+        }
+        throw new IllegalArgumentException("unsupported inet type: " + address.getClass().getName());
     }
 }
