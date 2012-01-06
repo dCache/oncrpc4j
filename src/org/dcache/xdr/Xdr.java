@@ -31,7 +31,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
     /**
      * Maximal size of a XDR message.
      */
-    public final static int MAX_XDR_SIZE = 128 * 1024;
+    public final static int MAX_XDR_SIZE = 512 * 1024;
 
     private final static Logger _log = Logger.getLogger(Xdr.class.getName());
 
