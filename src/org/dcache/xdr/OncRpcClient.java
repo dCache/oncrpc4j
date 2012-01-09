@@ -34,6 +34,7 @@ import org.glassfish.grizzly.nio.transport.TCPNIOTransportBuilder;
 import org.glassfish.grizzly.nio.transport.UDPNIOTransport;
 import org.glassfish.grizzly.nio.transport.UDPNIOTransportBuilder;
 import static org.dcache.xdr.GrizzlyUtils.*;
+import org.glassfish.grizzly.strategies.SameThreadIOStrategy;
 
 public class OncRpcClient {
 
@@ -63,6 +64,7 @@ public class OncRpcClient {
         filterChain.add(new RpcProtocolFilter(_replyQueue));
 
         _transport.setProcessor(filterChain.build());
+        _transport.setIOStrategy(SameThreadIOStrategy.getInstance());
     }
 
     public XdrTransport connect() throws IOException {
