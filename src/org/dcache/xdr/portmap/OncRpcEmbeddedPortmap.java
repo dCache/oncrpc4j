@@ -47,7 +47,8 @@ public class OncRpcEmbeddedPortmap {
         OncRpcClient rpcClient = null;
         boolean localPortmapperRunning = false;
         try {
-            rpcClient = new OncRpcClient(InetAddress.getLocalHost(), IpProtocolType.UDP, OncRpcPortmap.PORTMAP_PORT);
+            rpcClient = new OncRpcClient(InetAddress.getByName("localhost"),
+                    IpProtocolType.UDP, OncRpcPortmap.PORTMAP_PORT);
             XdrTransport transport = rpcClient.connect();
             /* check for version 2, 3 and 4 */
             for (int i = 2; i < 5; i++) {
