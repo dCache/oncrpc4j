@@ -16,7 +16,6 @@
  */
 package org.dcache.xdr;
 
-import com.google.common.primitives.Ints;
 import java.io.IOException;
 
 import java.nio.ByteBuffer;
@@ -111,11 +110,11 @@ public class RpcMessageParserTCP extends BaseFilter {
         return false;
     }
 
-    private int getMessageSize(int marker) {
+    private static int getMessageSize(int marker) {
         return marker & RPC_SIZE_MASK;
     }
 
-    private boolean isLastFragment(int marker) {
+    private static boolean isLastFragment(int marker) {
         return (marker & RPC_LAST_FRAG) != 0;
     }
 
