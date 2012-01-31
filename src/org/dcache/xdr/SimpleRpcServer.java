@@ -52,6 +52,7 @@ public class SimpleRpcServer {
                 .withTCP()
                 .withAutoPublish()
                 .withPort(port)
+                .withSameThreadIoStrategy()
                 .build();
 
         svc.register(new OncRpcProgram(PROG_NUMBER, PROG_VERS), dummy);

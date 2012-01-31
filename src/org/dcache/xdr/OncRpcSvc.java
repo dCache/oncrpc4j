@@ -46,6 +46,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import static org.dcache.xdr.GrizzlyUtils.*;
+import org.glassfish.grizzly.*;
+import org.glassfish.grizzly.strategies.SameThreadIOStrategy;
+import org.glassfish.grizzly.strategies.WorkerThreadIOStrategy;
 
 public class OncRpcSvc {
 
@@ -56,6 +59,23 @@ public class OncRpcSvc {
     private final List<Transport> _transports = new ArrayList<Transport>();
     private final Set<Connection<InetSocketAddress>> _boundConnections =
             new HashSet<Connection<InetSocketAddress>>();
+
+    public enum IoStrategy {
+        SAME_THREAD {
+            @Override
+            IOStrategy getStrategy() {
+                return SameThreadIOStrategy.getInstance();
+            }
+        },
+        WORKER_THREAD {
+            @Override
+            IOStrategy getStrategy() {
+                return WorkerThreadIOStrategy.getInstance();
+            }
+        };
+
+        abstract IOStrategy getStrategy();
+    };
 
     private final ReplyQueue<Integer, RpcReply> _replyQueue = new ReplyQueue<Integer, RpcReply>();
     /**
@@ -100,7 +120,7 @@ public class OncRpcSvc {
      * @param publish all services if <i>true</i>
      */
     public OncRpcSvc(int port, int protocol, boolean publish) {
-        this(new PortRange(port), protocol, publish);
+        this(new PortRange(port), protocol, publish, IoStrategy.WORKER_THREAD);
     }
 
     /**
@@ -111,17 +131,19 @@ public class OncRpcSvc {
      * @param protocol to bind
      * @param publish all services if <i>true</i>
      */
-    public OncRpcSvc(PortRange portRange, int protocol, boolean publish) {
+    public OncRpcSvc(PortRange portRange, int protocol, boolean publish, IoStrategy ioStrategy) {
         _publish = publish;
 
         if ((protocol & (IpProtocolType.TCP | IpProtocolType.UDP)) == 0) {
             throw new IllegalArgumentException("TCP or UDP protocol have to be defined");
         }
 
+        IOStrategy grizzlyIoStrategy = ioStrategy.getStrategy();
         if ((protocol & IpProtocolType.TCP) != 0) {
             final TCPNIOTransport tcpTransport = TCPNIOTransportBuilder
                     .newInstance()
                     .setReuseAddress(true)
+                    .setIOStrategy(grizzlyIoStrategy)
                     .build();
             _transports.add(tcpTransport);
         }
@@ -130,6 +152,7 @@ public class OncRpcSvc {
             final UDPNIOTransport udpTransport = UDPNIOTransportBuilder
                     .newInstance()
                     .setReuseAddress(true)
+                    .setIOStrategy(grizzlyIoStrategy)
                     .build();
             _transports.add(udpTransport);
         }
