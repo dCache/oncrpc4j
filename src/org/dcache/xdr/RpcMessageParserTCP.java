@@ -81,7 +81,6 @@ public class RpcMessageParserTCP extends BaseFilter {
         final Buffer buffer = messageBuffer.duplicate();
         buffer.order(ByteOrder.BIG_ENDIAN);
 
-        int fragments = 0;
         while (buffer.remaining() >= 4) {
 
             int messageMarker = buffer.getInt();
@@ -93,7 +92,7 @@ public class RpcMessageParserTCP extends BaseFilter {
             if (size > buffer.remaining()) {
                 return false;
             }
-            ++fragments;
+
             /*
              * complete fragment received
              */
