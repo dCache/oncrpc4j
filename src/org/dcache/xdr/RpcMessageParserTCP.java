@@ -122,7 +122,7 @@ public class RpcMessageParserTCP extends BaseFilter {
         buffer.order(ByteOrder.BIG_ENDIAN);
 
         int pos = messageBuffer.position();
-        Xdr xdr = new Xdr(Xdr.MAX_XDR_SIZE);
+        Xdr xdr = new Xdr(messageBuffer.remaining());
 
         boolean messageComplete = false;
         while (!messageComplete) {
