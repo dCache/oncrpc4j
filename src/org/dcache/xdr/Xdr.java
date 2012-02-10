@@ -26,6 +26,9 @@ import java.util.logging.Logger;
 
 public class Xdr implements XdrDecodingStream, XdrEncodingStream {
 
+    private final static int SIZE_OF_LONG = Long.SIZE / 8;
+    private final static int SIZE_OF_INT = Integer.SIZE / 8;
+
     private final static ByteBufferFactory POOL = new ByteBufferFactory(100);
 
     /**
@@ -255,7 +258,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      */
     public void xdrEncodeInt(int value) {
         _log.log(Level.FINEST, "Ecoding int {0}", value);
-        ensureCapacity(4);
+        ensureCapacity(SIZE_OF_INT);
         _body.putInt(value);
     }
 
@@ -274,7 +277,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      */
     public void xdrEncodeIntVector(int[] values) {
         _log.log(Level.FINEST, "Ecoding int array {0}", Arrays.toString(values));
-        ensureCapacity(4+4*values.length);
+        ensureCapacity(SIZE_OF_INT+SIZE_OF_INT*values.length);
         _body.putInt(values.length);
         for (int value: values) {
             _body.putInt( value );
@@ -290,7 +293,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      */
     public void xdrEncodeLongVector(long[] values) {
         _log.log(Level.FINEST, "Ecoding int array {0}", Arrays.toString(values));
-        ensureCapacity(8+8*values.length);
+        ensureCapacity(SIZE_OF_INT+SIZE_OF_LONG*values.length);
         _body.putInt(values.length);
         for (long value : values) {
             _body.putLong(value);
@@ -351,7 +354,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      * babble and is 64&nbsp;bits wide) and write it down this XDR stream.
      */
     public void xdrEncodeLong(long value) {
-        ensureCapacity(8);
+        ensureCapacity(SIZE_OF_LONG);
        _body.putLong(value);
     }
 
