@@ -38,7 +38,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
     /**
      * Byte buffer used by XDR record.
      */
-    protected final ByteBuffer _body;
+    protected ByteBuffer _body;
 
     /**
      * First position in <code>_body</code> which is used by this
@@ -255,6 +255,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      */
     public void xdrEncodeInt(int value) {
         _log.log(Level.FINEST, "Ecoding int {0}", value);
+        ensureCapacity(4);
         _body.putInt(value);
     }
 
@@ -273,6 +274,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      */
     public void xdrEncodeIntVector(int[] values) {
         _log.log(Level.FINEST, "Ecoding int array {0}", Arrays.toString(values));
+        ensureCapacity(4+4*values.length);
         _body.putInt(values.length);
         for (int value: values) {
             _body.putInt( value );
@@ -288,6 +290,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      */
     public void xdrEncodeLongVector(long[] values) {
         _log.log(Level.FINEST, "Ecoding int array {0}", Arrays.toString(values));
+        ensureCapacity(8+8*values.length);
         _body.putInt(values.length);
         for (long value : values) {
             _body.putLong(value);
@@ -317,6 +320,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
     public void xdrEncodeOpaque(byte[] bytes, int offset, int len) {
         _log.log(Level.FINEST, "Encode Opaque, len = {0}", len);
         int padding = (4 - (len & 3)) & 3;
+        ensureCapacity(len+padding);
         _body.put(bytes, offset, len);
         _body.put(paddingZeros, 0, padding);
     }
@@ -347,6 +351,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      * babble and is 64&nbsp;bits wide) and write it down this XDR stream.
      */
     public void xdrEncodeLong(long value) {
+        ensureCapacity(8);
        _body.putLong(value);
     }
 
@@ -355,11 +360,22 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
         int len = buf.remaining();
         int padding = (4 - (len & 3)) & 3;
         xdrEncodeInt(len);
+        ensureCapacity(len+padding);
         _body.put(buf);
         _body.position(_body.position() + padding);
     }
 
     public void close() {
         POOL.recycle(_body);
+    }
+
+    private void ensureCapacity(int size) {
+        if(_body.remaining() < size) {
+            final ByteBuffer b = POOL.allocate((int)((_body.capacity() + size)*1.5));
+            _body.flip();
+            b.put(_body);
+            POOL.recycle(_body);
+            _body = b;
+        }
     }
 }

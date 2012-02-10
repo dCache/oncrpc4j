@@ -227,4 +227,12 @@ public class XdrTest {
 
         assertEquals("encode/decode buffer size mismatch", 1024, _buffer.capacity());
     }
+
+    @Test
+    public void testAutoGrow() {
+        Xdr xdr = new Xdr(10);
+        xdr.beginEncoding();
+        xdr.xdrEncodeLong(1);
+        xdr.xdrEncodeLong(1);
+    }
 }
