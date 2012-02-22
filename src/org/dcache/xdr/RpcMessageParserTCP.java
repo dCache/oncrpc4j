@@ -118,24 +118,18 @@ public class RpcMessageParserTCP extends BaseFilter {
     }
 
     private Xdr assembleXdr(Buffer messageBuffer) {
-        final Buffer buffer = messageBuffer.duplicate();
-        buffer.order(ByteOrder.BIG_ENDIAN);
 
-        int pos = messageBuffer.position();
         Xdr xdr = new Xdr( Math.max(messageBuffer.remaining(), Xdr.MAX_XDR_SIZE));
 
         boolean messageComplete = false;
         while (!messageComplete) {
-            int messageMarker = buffer.getInt();
-            pos += 4;
+            int messageMarker = messageBuffer.getInt();
 
             int size = getMessageSize(messageMarker);
             messageComplete = isLastFragment(messageMarker);
-
-            ByteBuffer bb = buffer.toByteBuffer(pos, pos + size);
-            xdr.fill(bb);
-
-            messageBuffer.position(size + pos);
+            ByteBuffer bb = xdr.body().duplicate();
+            bb.limit(bb.position() + size);
+            messageBuffer.get(bb);
         }
 
         return xdr;
