@@ -71,7 +71,7 @@ public class ByteBufferFactory {
         /*
          * no cached blocks available
          */
-        return ByteBuffer.allocateDirect(size);
+        return ByteBuffer.allocate(size);
     }
 
     /**
