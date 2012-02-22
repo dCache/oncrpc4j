@@ -47,7 +47,7 @@ public class OncRpcSvcBuilder {
     private int _minPort = 0;
     private int _maxPort = 0;
     private boolean _autoPublish = true;
-    private OncRpcSvc.IoStrategy _ioStrategy = OncRpcSvc.IoStrategy.WORKER_THREAD;
+    private OncRpcSvc.IoStrategy _ioStrategy = OncRpcSvc.IoStrategy.SAME_THREAD;
 
     public OncRpcSvcBuilder withAutoPublish() {
         _autoPublish = true;

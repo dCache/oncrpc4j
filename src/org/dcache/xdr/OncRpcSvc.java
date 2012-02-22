@@ -120,7 +120,7 @@ public class OncRpcSvc {
      * @param publish all services if <i>true</i>
      */
     public OncRpcSvc(int port, int protocol, boolean publish) {
-        this(new PortRange(port), protocol, publish, IoStrategy.WORKER_THREAD);
+        this(new PortRange(port), protocol, publish, IoStrategy.SAME_THREAD);
     }
 
     /**
