@@ -24,7 +24,6 @@ import org.glassfish.grizzly.Buffer;
 import org.glassfish.grizzly.filterchain.BaseFilter;
 import org.glassfish.grizzly.filterchain.FilterChainContext;
 import org.glassfish.grizzly.filterchain.NextAction;
-import org.glassfish.grizzly.memory.Buffers;
 import org.glassfish.grizzly.memory.BuffersBuffer;
 import org.glassfish.grizzly.memory.MemoryManager;
 
@@ -66,8 +65,7 @@ public class RpcMessageParserTCP extends BaseFilter {
         Buffer b = ctx.getMessage();
         int len = b.remaining() | RPC_LAST_FRAG;
 
-        byte[] bytes = new byte[4];
-        Buffer marker = Buffers.wrap(MemoryManager.DEFAULT_MEMORY_MANAGER, bytes);
+        Buffer marker = MemoryManager.DEFAULT_MEMORY_MANAGER.allocate(4);
         marker.order(ByteOrder.BIG_ENDIAN);
         marker.putInt(len);
         marker.flip();
