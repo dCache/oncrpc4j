@@ -60,4 +60,8 @@ public class ClientTransport implements XdrTransport {
         return null;
     }
 
+    @Override
+    public String toString() {
+        return getRemoteSocketAddress() + " <=> " + getLocalSocketAddress();
+    }
 }

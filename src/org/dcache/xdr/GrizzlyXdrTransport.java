@@ -107,5 +107,9 @@ public class GrizzlyXdrTransport implements XdrTransport {
     public XdrTransport getPeerTransport() {
         return new ClientTransport(_connection, getReplyQueue());
     }
-    
+
+    @Override
+    public String toString() {
+        return getRemoteSocketAddress() + " <=> " + getLocalSocketAddress();
+    }
 }
