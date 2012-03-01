@@ -17,19 +17,18 @@
 
 package org.dcache.xdr;
 
-import org.dcache.utils.ByteBufferFactory;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.glassfish.grizzly.Buffer;
+import org.glassfish.grizzly.memory.MemoryManager;
 
 public class Xdr implements XdrDecodingStream, XdrEncodingStream {
 
     private final static int SIZE_OF_LONG = Long.SIZE / 8;
     private final static int SIZE_OF_INT = Integer.SIZE / 8;
-
-    private final static ByteBufferFactory POOL = new ByteBufferFactory(100);
 
     /**
      * Maximal size of a XDR message.
@@ -41,7 +40,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
     /**
      * Byte buffer used by XDR record.
      */
-    protected ByteBuffer _body;
+    protected volatile Buffer _body;
 
     /**
      * First position in <code>_body</code> which is used by this
@@ -55,14 +54,14 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      * @param size of the buffer in bytes
      */
     public Xdr(int size) {
-        this(POOL.allocate(size));
+        this(MemoryManager.DEFAULT_MEMORY_MANAGER.allocate(size));
     }
 
     /**
      * Create a new XDR back ended with given {@link ByteBuffer}.
      * @param body buffer to use
      */
-    public Xdr(ByteBuffer body) {
+    public Xdr(Buffer body) {
         this(body, 0);
     }
 
@@ -74,7 +73,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      * @param body buffer to use.
      * @param position position within buffer which indicates beginning of this XDR.
      */
-    public Xdr(ByteBuffer body, int position) {
+    public Xdr(Buffer body, int position) {
         _body = body;
         _body.order(ByteOrder.BIG_ENDIAN);
         _position = position;
@@ -84,29 +83,19 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
         /*
          * Set potision to the begginnig of this XDR in back end buffer.
          */
-        _body.position(_position);
+        _body.rewind();
     }
 
     public void endDecoding() {
-        // NOP
+        _body.rewind();
     }
 
     public void beginEncoding() {
-        _body.clear().position(_position);
+        _body.clear();
     }
 
     public void endEncoding() {
-        _body.limit(_body.position());
-        _body.position(_position);
-    }
-
-
-    /**
-     * Add bytes from provided buffer into internal byte buffer.
-     * @param b {@link ByteBuffer} with data to be added
-     */
-    void fill(ByteBuffer b) {
-        _body.put(b);
+        _body.flip();
     }
 
     /**
@@ -239,7 +228,14 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
     public ByteBuffer xdrDecodeByteBuffer() {
         int len = this.xdrDecodeInt();
         int padding = (4 - (len & 3)) & 3;
-        ByteBuffer slice = _body.slice();
+
+       /*
+        * as of grizzly 2.2.1 toByteBuffer returns a ByteBuffer view of
+        * the backended heap. To be able to use rewind, flip and so on
+        * we have to use slice of it.
+        */
+        ByteBuffer slice = _body.toByteBuffer().slice();
+        slice.rewind();
         slice.limit(len);
         _body.position(_body.position() + len + padding);
         return slice;
@@ -262,9 +258,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
         _body.putInt(value);
     }
 
-
-    @Override
-    public ByteBuffer body() {
+    public Buffer body() {
         return _body;
     }
 
@@ -369,16 +363,14 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
     }
 
     public void close() {
-        POOL.recycle(_body);
+        _body.tryDispose();
     }
 
     private void ensureCapacity(int size) {
         if(_body.remaining() < size) {
-            final ByteBuffer b = POOL.allocate((int)((_body.capacity() + size)*1.5));
-            _body.flip();
-            b.put(_body);
-            POOL.recycle(_body);
-            _body = b;
+           _body = MemoryManager.
+                    DEFAULT_MEMORY_MANAGER.
+                    reallocate(_body, ((_body.capacity() + size) * 3) / 2 + 1);
         }
     }
 }

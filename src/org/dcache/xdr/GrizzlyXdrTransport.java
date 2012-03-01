@@ -26,7 +26,6 @@ import org.glassfish.grizzly.CompletionHandler;
 import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.WriteResult;
 import org.glassfish.grizzly.filterchain.FilterChainContext;
-import org.glassfish.grizzly.memory.ByteBufferWrapper;
 
 public class GrizzlyXdrTransport implements XdrTransport {
 
@@ -49,7 +48,8 @@ public class GrizzlyXdrTransport implements XdrTransport {
     @Override
     public void send(Xdr xdr) throws IOException {
         DisposeXdrBuffer disposeXdr = new DisposeXdrBuffer(xdr);
-        Buffer buffer = new ByteBufferWrapper(xdr.body());
+        Buffer buffer = xdr.body();
+        buffer.allowBufferDispose(true);
 
         // pass destination address to handle UDP connections as well
         _context.write(_context.getAddress(), buffer, disposeXdr);

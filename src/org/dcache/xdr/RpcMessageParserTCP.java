@@ -18,7 +18,6 @@ package org.dcache.xdr;
 
 import java.io.IOException;
 
-import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import org.glassfish.grizzly.Buffer;
 import org.glassfish.grizzly.filterchain.BaseFilter;
@@ -55,7 +54,6 @@ public class RpcMessageParserTCP extends BaseFilter {
         final Buffer reminder = messageBuffer.hasRemaining()
                 ? messageBuffer.split(messageBuffer.position()) : null;
 
-        messageBuffer.dispose();
         return ctx.getInvokeAction(reminder);
     }
 
@@ -69,8 +67,11 @@ public class RpcMessageParserTCP extends BaseFilter {
         marker.order(ByteOrder.BIG_ENDIAN);
         marker.putInt(len);
         marker.flip();
+        marker.allowBufferDispose(true);
+        b.allowBufferDispose(true);
         Buffer composite = BuffersBuffer.create(MemoryManager.DEFAULT_MEMORY_MANAGER,
                 marker, b );
+        composite.allowBufferDispose(true);
         ctx.setMessage(composite);
         return ctx.getInvokeAction();
     }
@@ -117,19 +118,34 @@ public class RpcMessageParserTCP extends BaseFilter {
 
     private Xdr assembleXdr(Buffer messageBuffer) {
 
-        Xdr xdr = new Xdr( Math.max(messageBuffer.remaining(), Xdr.MAX_XDR_SIZE));
+        Buffer currentFragment = null;
+        BuffersBuffer multipleFarments = null;
 
-        boolean messageComplete = false;
-        while (!messageComplete) {
+        boolean messageComplete;
+        do {
             int messageMarker = messageBuffer.getInt();
 
             int size = getMessageSize(messageMarker);
             messageComplete = isLastFragment(messageMarker);
-            ByteBuffer bb = xdr.body().duplicate();
-            bb.limit(bb.position() + size);
-            messageBuffer.get(bb);
-        }
 
-        return xdr;
+            int pos = messageBuffer.position();
+            currentFragment = messageBuffer.slice(pos, pos + size);
+            currentFragment.limit(size);
+
+            messageBuffer.position(pos + size);
+            if (!messageComplete & multipleFarments == null) {
+                /*
+                 * we use composite buffer only if required
+                 * as they not for free.
+                 */
+                multipleFarments = BuffersBuffer.create();
+            }
+
+            if (multipleFarments != null) {
+                multipleFarments.append(currentFragment);
+            }
+        } while (!messageComplete);
+
+        return new Xdr(multipleFarments == null ? currentFragment : messageBuffer);
     }
 }

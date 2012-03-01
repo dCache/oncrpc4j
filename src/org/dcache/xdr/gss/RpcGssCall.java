@@ -17,21 +17,12 @@
 package org.dcache.xdr.gss;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.logging.Logger;
 import org.ietf.jgss.GSSException;
 import org.ietf.jgss.MessageProp;
 import java.util.logging.Level;
-import org.dcache.xdr.OncRpcException;
-import org.dcache.xdr.RpcAuthError;
-import org.dcache.xdr.RpcAuthException;
-import org.dcache.xdr.RpcAuthStat;
-import org.dcache.xdr.RpcCall;
-import org.dcache.xdr.RpcRejectStatus;
-import org.dcache.xdr.XdrAble;
-import org.dcache.xdr.XdrBuffer;
-import org.dcache.xdr.XdrDecodingStream;
-import org.dcache.xdr.XdrEncodingStream;
+import org.dcache.xdr.*;
+import org.glassfish.grizzly.Buffer;
 import org.ietf.jgss.GSSContext;
 
 /**
@@ -71,7 +62,7 @@ public class RpcGssCall extends RpcCall {
                     _gssContext.verifyMIC(checksum, 0, checksum.length,
                             integBytes, 0, integBytes.length, _mop);
 
-                    xdr = new XdrBuffer(ByteBuffer.wrap(integBytes, 0, integBytes.length));
+                    xdr = new XdrBuffer(integBytes);
                     xdr.beginDecoding();
                     xdr.xdrDecodeInt(); // first 4 bytes of data is the sequence number. Skip it.
                     args.xdrDecode(xdr);
@@ -83,7 +74,7 @@ public class RpcGssCall extends RpcCall {
                     byte[] privacyBytes = privacyData.getData();
                     byte[] rawData = _gssContext.unwrap(privacyBytes, 0, privacyBytes.length, _mop);
 
-                    xdr = new XdrBuffer(ByteBuffer.wrap(rawData, 0, rawData.length));
+                    xdr = new XdrBuffer(rawData);
                     xdr.beginDecoding();
                     xdr.xdrDecodeInt(); // first 4 bytes of data is the sequence number. Skip it.
                     args.xdrDecode(xdr);
@@ -112,7 +103,7 @@ public class RpcGssCall extends RpcCall {
                     xdr.xdrEncodeInt(authGss.getSequence());
                     reply.xdrEncode(xdr);
                     xdr.endEncoding();
-                    ByteBuffer b = xdr.body();
+                    Buffer b = ((Xdr)xdr).body();
                     byte[] integBytes = new byte[b.limit()];
                     b.get(integBytes);
 
@@ -126,7 +117,7 @@ public class RpcGssCall extends RpcCall {
                     xdr.xdrEncodeInt(authGss.getSequence());
                     reply.xdrEncode(xdr);
                     xdr.endEncoding();
-                    ByteBuffer bp = xdr.body();
+                    Buffer bp = ((Xdr)xdr).body();
                     byte[] rawData = new byte[bp.limit()];
                     bp.get(rawData);
 

@@ -21,7 +21,6 @@ import java.net.InetSocketAddress;
 import java.util.logging.Logger;
 import org.glassfish.grizzly.Buffer;
 import org.glassfish.grizzly.Connection;
-import org.glassfish.grizzly.memory.ByteBufferWrapper;
 
 public class ClientTransport implements XdrTransport {
 
@@ -37,7 +36,7 @@ public class ClientTransport implements XdrTransport {
 
     @Override
     public void send(Xdr data) throws IOException {
-        Buffer buffer = new ByteBufferWrapper(data.body());
+        Buffer buffer = data.body();
         _connection.write(buffer);
     }
 
