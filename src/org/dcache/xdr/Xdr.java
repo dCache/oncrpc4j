@@ -43,12 +43,6 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
     protected volatile Buffer _body;
 
     /**
-     * First position in <code>_body</code> which is used by this
-     * XDR. This is used for record sharing single {@link ByteBuffer}.
-     */
-    private final int _position;
-
-    /**
      * Create a new Xdr object with a buffer of given size.
      *
      * @param size of the buffer in bytes
@@ -62,26 +56,13 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      * @param body buffer to use
      */
     public Xdr(Buffer body) {
-        this(body, 0);
-    }
-
-    /**
-     * Create a new XDR back ended with given {@link ByteBuffer}.
-     * The new XDR will use buffer from the offset specified by
-     * <code>position</code>.
-     *
-     * @param body buffer to use.
-     * @param position position within buffer which indicates beginning of this XDR.
-     */
-    public Xdr(Buffer body, int position) {
         _body = body;
         _body.order(ByteOrder.BIG_ENDIAN);
-        _position = position;
     }
 
     public void beginDecoding() {
         /*
-         * Set potision to the begginnig of this XDR in back end buffer.
+         * Set potision to the beginning of this XDR in back end buffer.
          */
         _body.rewind();
     }
