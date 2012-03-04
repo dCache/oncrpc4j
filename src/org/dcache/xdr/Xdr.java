@@ -234,7 +234,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      * methods can rely on.
      */
     public void xdrEncodeInt(int value) {
-        _log.log(Level.FINEST, "Ecoding int {0}", value);
+        _log.log(Level.FINEST, "Encode int {0}", value);
         ensureCapacity(SIZE_OF_INT);
         _body.putInt(value);
     }
@@ -251,7 +251,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      *
      */
     public void xdrEncodeIntVector(int[] values) {
-        _log.log(Level.FINEST, "Ecoding int array {0}", Arrays.toString(values));
+        _log.log(Level.FINEST, "Encode int array {0}", Arrays.toString(values));
         ensureCapacity(SIZE_OF_INT+SIZE_OF_INT*values.length);
         _body.putInt(values.length);
         for (int value: values) {
@@ -267,7 +267,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      *
      */
     public void xdrEncodeLongVector(long[] values) {
-        _log.log(Level.FINEST, "Ecoding int array {0}", Arrays.toString(values));
+        _log.log(Level.FINEST, "Encode int array {0}", Arrays.toString(values));
         ensureCapacity(SIZE_OF_INT+SIZE_OF_LONG*values.length);
         _body.putInt(values.length);
         for (long value : values) {
@@ -349,9 +349,9 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
 
     private void ensureCapacity(int size) {
         if(_body.remaining() < size) {
-           _body = MemoryManager.
-                    DEFAULT_MEMORY_MANAGER.
-                    reallocate(_body, ((_body.capacity() + size) * 3) / 2 + 1);
+            int oldCapacity = _body.capacity();
+            int newCapacity = Math.max((oldCapacity * 3) / 2 + 1, oldCapacity + size);
+            _body = MemoryManager.DEFAULT_MEMORY_MANAGER.reallocate(_body, newCapacity);
         }
     }
 }
