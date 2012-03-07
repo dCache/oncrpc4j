@@ -48,6 +48,7 @@ public class OncRpcSvcBuilder {
     private int _maxPort = 0;
     private boolean _autoPublish = true;
     private OncRpcSvc.IoStrategy _ioStrategy = OncRpcSvc.IoStrategy.SAME_THREAD;
+    private boolean _withJMX = false;
 
     public OncRpcSvcBuilder withAutoPublish() {
         _autoPublish = true;
@@ -99,12 +100,20 @@ public class OncRpcSvcBuilder {
         return this;
     }
 
+    public OncRpcSvcBuilder withJMX() {
+        _withJMX = true;
+        return this;
+    }
+
     public OncRpcSvc build() {
 
         if (_protocol == 0) {
             throw new IllegalArgumentException("invalid protocol");
         }
 
-        return new OncRpcSvc(new PortRange(_minPort, _maxPort), _protocol, _autoPublish, _ioStrategy);
+        OncRpcSvc svc = new OncRpcSvc(new PortRange(_minPort, _maxPort), _protocol, _autoPublish, _ioStrategy);
+        if(_withJMX)
+            svc.enableJMX();
+        return svc;
     }
 }

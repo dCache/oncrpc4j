@@ -35,6 +35,7 @@ import org.glassfish.grizzly.Transport;
 import org.glassfish.grizzly.filterchain.FilterChain;
 import org.glassfish.grizzly.filterchain.FilterChainBuilder;
 import org.glassfish.grizzly.filterchain.TransportFilter;
+import org.glassfish.grizzly.monitoring.jmx.GrizzlyJmxManager;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransportBuilder;
 import org.glassfish.grizzly.nio.transport.UDPNIOTransport;
@@ -268,6 +269,13 @@ public class OncRpcSvc {
     public void stop() throws IOException {
         for (Transport t : _transports) {
             t.stop();
+        }
+    }
+
+    public void enableJMX() {
+        final GrizzlyJmxManager jmxManager = GrizzlyJmxManager.instance();
+        for (Transport t : _transports) {
+            jmxManager.registerAtRoot(t.getMonitoringConfig().createManagementObject(), t.getName() + "-" + _portRange);
         }
     }
 

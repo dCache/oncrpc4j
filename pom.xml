@@ -163,6 +163,11 @@
       <artifactId>jna</artifactId>
       <version>3.0.9</version>
       </dependency>
+    <dependency>
+        <groupId>org.glassfish.gmbal</groupId>
+        <artifactId>gmbal</artifactId>
+        <version>3.0.0-b023</version>
+    </dependency>
   </dependencies>
 
   <!--
