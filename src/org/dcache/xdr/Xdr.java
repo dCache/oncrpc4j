@@ -23,7 +23,6 @@ import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.glassfish.grizzly.Buffer;
-import org.glassfish.grizzly.memory.MemoryManager;
 
 public class Xdr implements XdrDecodingStream, XdrEncodingStream {
 
@@ -48,7 +47,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      * @param size of the buffer in bytes
      */
     public Xdr(int size) {
-        this(MemoryManager.DEFAULT_MEMORY_MANAGER.allocate(size));
+        this(GrizzlyMemoryManager.allocate(size));
     }
 
     /**
@@ -351,7 +350,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
         if(_buffer.remaining() < size) {
             int oldCapacity = _buffer.capacity();
             int newCapacity = Math.max((oldCapacity * 3) / 2 + 1, oldCapacity + size);
-            _buffer = MemoryManager.DEFAULT_MEMORY_MANAGER.reallocate(_buffer, newCapacity);
+            _buffer = GrizzlyMemoryManager.reallocate(_buffer, newCapacity);
         }
     }
 }

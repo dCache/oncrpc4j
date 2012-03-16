@@ -18,9 +18,6 @@
 package org.dcache.xdr;
 
 import org.glassfish.grizzly.Buffer;
-import org.glassfish.grizzly.memory.Buffers;
-import org.glassfish.grizzly.memory.MemoryManager;
-
 
 /**
  *
@@ -30,7 +27,7 @@ import org.glassfish.grizzly.memory.MemoryManager;
 public class XdrBuffer extends Xdr {
 
     public XdrBuffer(byte[] bytes) {
-        this(Buffers.wrap(MemoryManager.DEFAULT_MEMORY_MANAGER, bytes));
+        this(GrizzlyMemoryManager.wrap(bytes));
     }
     /**
      * Build a new Xdr object with a buffer of given size.

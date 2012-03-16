@@ -24,7 +24,7 @@ import org.glassfish.grizzly.filterchain.BaseFilter;
 import org.glassfish.grizzly.filterchain.FilterChainContext;
 import org.glassfish.grizzly.filterchain.NextAction;
 import org.glassfish.grizzly.memory.BuffersBuffer;
-import org.glassfish.grizzly.memory.MemoryManager;
+import org.glassfish.grizzly.memory.CompositeBuffer;
 
 public class RpcMessageParserTCP extends BaseFilter {
 
@@ -63,14 +63,13 @@ public class RpcMessageParserTCP extends BaseFilter {
         Buffer b = ctx.getMessage();
         int len = b.remaining() | RPC_LAST_FRAG;
 
-        Buffer marker = MemoryManager.DEFAULT_MEMORY_MANAGER.allocate(4);
+        Buffer marker = GrizzlyMemoryManager.allocate(4);
         marker.order(ByteOrder.BIG_ENDIAN);
         marker.putInt(len);
         marker.flip();
         marker.allowBufferDispose(true);
         b.allowBufferDispose(true);
-        Buffer composite = BuffersBuffer.create(MemoryManager.DEFAULT_MEMORY_MANAGER,
-                marker, b );
+        Buffer composite = GrizzlyMemoryManager.createComposite(marker, b);
         composite.allowBufferDispose(true);
         ctx.setMessage(composite);
         return ctx.getInvokeAction();
@@ -138,7 +137,7 @@ public class RpcMessageParserTCP extends BaseFilter {
                  * we use composite buffer only if required
                  * as they not for free.
                  */
-                multipleFarments = BuffersBuffer.create();
+                multipleFarments = GrizzlyMemoryManager.create();
             }
 
             if (multipleFarments != null) {

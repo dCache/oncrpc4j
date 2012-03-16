@@ -1,10 +1,10 @@
 package org.dcache.xdr;
 
-import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
 import org.glassfish.grizzly.Buffer;
-import org.glassfish.grizzly.memory.MemoryManager;
+import org.glassfish.grizzly.memory.BuffersBuffer;
+import org.glassfish.grizzly.memory.CompositeBuffer;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -16,7 +16,7 @@ public class XdrTest {
 
     @Before
     public void setUp() {
-        _buffer = MemoryManager.DEFAULT_MEMORY_MANAGER.allocate(1024);
+        _buffer = allocateBuffer(1024);
         _buffer.order(ByteOrder.BIG_ENDIAN);
     }
 
@@ -156,7 +156,7 @@ public class XdrTest {
     @Test
     public void testEncodeDecodeLong() {
 
-        long value = 7 << 32;
+        long value = 7L << 32;
         XdrEncodingStream encoder = new Xdr(_buffer);
         encoder.beginEncoding();
         encoder.xdrEncodeLong(value);
@@ -235,5 +235,19 @@ public class XdrTest {
         xdr.beginEncoding();
         xdr.xdrEncodeLong(1);
         xdr.xdrEncodeLong(1);
+    }
+
+    @Test
+    public void testAutoGrowWthCompositeBuffer() {
+        CompositeBuffer buffer = BuffersBuffer.create();
+        buffer.append( allocateBuffer(10));
+        Xdr xdr = new Xdr(buffer);
+        xdr.beginEncoding();
+        xdr.xdrEncodeLong(1);
+        xdr.xdrEncodeLong(1);
+    }
+
+    private static Buffer allocateBuffer(int size) {
+        return GrizzlyMemoryManager.allocate(size);
     }
 }
