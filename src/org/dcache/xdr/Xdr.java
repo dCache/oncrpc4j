@@ -40,7 +40,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
     /**
      * Byte buffer used by XDR record.
      */
-    protected volatile Buffer _body;
+    protected volatile Buffer _buffer;
 
     /**
      * Create a new Xdr object with a buffer of given size.
@@ -56,27 +56,27 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      * @param body buffer to use
      */
     public Xdr(Buffer body) {
-        _body = body;
-        _body.order(ByteOrder.BIG_ENDIAN);
+        _buffer = body;
+        _buffer.order(ByteOrder.BIG_ENDIAN);
     }
 
     public void beginDecoding() {
         /*
          * Set potision to the beginning of this XDR in back end buffer.
          */
-        _body.rewind();
+        _buffer.rewind();
     }
 
     public void endDecoding() {
-        _body.rewind();
+        _buffer.rewind();
     }
 
     public void beginEncoding() {
-        _body.clear();
+        _buffer.clear();
     }
 
     public void endEncoding() {
-        _body.flip();
+        _buffer.flip();
     }
 
     /**
@@ -89,7 +89,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      * @return The decoded int value.
      */
     public int xdrDecodeInt() {
-        int val = _body.getInt();
+        int val = _buffer.getInt();
         _log.log(Level.FINEST, "Decoding int {0}", val);
         return val;
     }
@@ -139,8 +139,8 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
     public void xdrDecodeOpaque(byte[] buf, int offset, int len) {
         int padding = (4 - (len & 3)) & 3;
         _log.log(Level.FINEST, "padding zeros: {0}", padding);
-        _body.get(buf, offset, len);
-        _body.position(_body.position() + padding);
+        _buffer.get(buf, offset, len);
+        _buffer.position(_buffer.position() + padding);
     }
 
     public void xdrDecodeOpaque(byte[] buf,  int len) {
@@ -203,7 +203,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      * @return Decoded long value.
      */
     public long xdrDecodeLong() {
-        return _body.getLong();
+        return _buffer.getLong();
     }
 
     public ByteBuffer xdrDecodeByteBuffer() {
@@ -215,10 +215,10 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
         * the backended heap. To be able to use rewind, flip and so on
         * we have to use slice of it.
         */
-        ByteBuffer slice = _body.toByteBuffer().slice();
+        ByteBuffer slice = _buffer.toByteBuffer().slice();
         slice.rewind();
         slice.limit(len);
-        _body.position(_body.position() + len + padding);
+        _buffer.position(_buffer.position() + len + padding);
         return slice;
     }
     ////////////////////////////////////////////////////////////////////////////
@@ -236,11 +236,11 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
     public void xdrEncodeInt(int value) {
         _log.log(Level.FINEST, "Encode int {0}", value);
         ensureCapacity(SIZE_OF_INT);
-        _body.putInt(value);
+        _buffer.putInt(value);
     }
 
     public Buffer body() {
-        return _body;
+        return _buffer;
     }
 
     /**
@@ -253,9 +253,9 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
     public void xdrEncodeIntVector(int[] values) {
         _log.log(Level.FINEST, "Encode int array {0}", Arrays.toString(values));
         ensureCapacity(SIZE_OF_INT+SIZE_OF_INT*values.length);
-        _body.putInt(values.length);
+        _buffer.putInt(values.length);
         for (int value: values) {
-            _body.putInt( value );
+            _buffer.putInt( value );
         }
     }
 
@@ -269,9 +269,9 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
     public void xdrEncodeLongVector(long[] values) {
         _log.log(Level.FINEST, "Encode int array {0}", Arrays.toString(values));
         ensureCapacity(SIZE_OF_INT+SIZE_OF_LONG*values.length);
-        _body.putInt(values.length);
+        _buffer.putInt(values.length);
         for (long value : values) {
-            _body.putLong(value);
+            _buffer.putLong(value);
         }
     }
 
@@ -299,8 +299,8 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
         _log.log(Level.FINEST, "Encode Opaque, len = {0}", len);
         int padding = (4 - (len & 3)) & 3;
         ensureCapacity(len+padding);
-        _body.put(bytes, offset, len);
-        _body.put(paddingZeros, 0, padding);
+        _buffer.put(bytes, offset, len);
+        _buffer.put(paddingZeros, 0, padding);
     }
 
     public void xdrEncodeOpaque(byte[] bytes, int len) {
@@ -330,7 +330,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      */
     public void xdrEncodeLong(long value) {
         ensureCapacity(SIZE_OF_LONG);
-       _body.putLong(value);
+       _buffer.putLong(value);
     }
 
     public void xdrEncodeByteBuffer(ByteBuffer buf) {
@@ -339,19 +339,19 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
         int padding = (4 - (len & 3)) & 3;
         xdrEncodeInt(len);
         ensureCapacity(len+padding);
-        _body.put(buf);
-        _body.position(_body.position() + padding);
+        _buffer.put(buf);
+        _buffer.position(_buffer.position() + padding);
     }
 
     public void close() {
-        _body.tryDispose();
+        _buffer.tryDispose();
     }
 
     private void ensureCapacity(int size) {
-        if(_body.remaining() < size) {
-            int oldCapacity = _body.capacity();
+        if(_buffer.remaining() < size) {
+            int oldCapacity = _buffer.capacity();
             int newCapacity = Math.max((oldCapacity * 3) / 2 + 1, oldCapacity + size);
-            _body = MemoryManager.DEFAULT_MEMORY_MANAGER.reallocate(_body, newCapacity);
+            _buffer = MemoryManager.DEFAULT_MEMORY_MANAGER.reallocate(_buffer, newCapacity);
         }
     }
 }
