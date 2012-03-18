@@ -24,7 +24,6 @@ import org.glassfish.grizzly.filterchain.BaseFilter;
 import org.glassfish.grizzly.filterchain.FilterChainContext;
 import org.glassfish.grizzly.filterchain.NextAction;
 import org.glassfish.grizzly.memory.BuffersBuffer;
-import org.glassfish.grizzly.memory.CompositeBuffer;
 
 public class RpcMessageParserTCP extends BaseFilter {
 
