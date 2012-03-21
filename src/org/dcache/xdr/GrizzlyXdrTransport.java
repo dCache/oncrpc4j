@@ -47,12 +47,11 @@ public class GrizzlyXdrTransport implements XdrTransport {
 
     @Override
     public void send(Xdr xdr) throws IOException {
-        DisposeXdrBuffer disposeXdr = new DisposeXdrBuffer(xdr);
         Buffer buffer = xdr.body();
         buffer.allowBufferDispose(true);
 
         // pass destination address to handle UDP connections as well
-        _context.write(_context.getAddress(), buffer, disposeXdr);
+        _context.write(_context.getAddress(), buffer, null);
     }
 
     @Override
@@ -68,39 +67,6 @@ public class GrizzlyXdrTransport implements XdrTransport {
     @Override
     public ReplyQueue<Integer, RpcReply> getReplyQueue() {
         return _replyQueue;
-    }
-
-    private class DisposeXdrBuffer implements CompletionHandler<WriteResult> {
-
-        private final Xdr _xdr;
-
-        public DisposeXdrBuffer(Xdr xdr) {
-            _xdr = xdr;
-        }
-
-        @Override
-        public void cancelled() {
-            disposeXdr();
-        }
-
-        @Override
-        public void completed(WriteResult e) {
-            disposeXdr();
-        }
-
-        @Override
-        public void failed(Throwable thrwbl) {
-            disposeXdr();
-        }
-
-        @Override
-        public void updated(WriteResult e) {
-            disposeXdr();
-        }
-
-        private void disposeXdr() {
-            _xdr.close();
-        }
     }
 
     @Override
