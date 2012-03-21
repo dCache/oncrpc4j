@@ -144,6 +144,6 @@ public class RpcMessageParserTCP extends BaseFilter {
             }
         } while (!messageComplete);
 
-        return new Xdr(multipleFarments == null ? currentFragment : messageBuffer);
+        return new Xdr(multipleFarments == null ? currentFragment : multipleFarments);
     }
 }
