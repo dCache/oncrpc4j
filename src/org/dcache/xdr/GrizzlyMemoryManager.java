@@ -35,7 +35,7 @@ public class GrizzlyMemoryManager {
     }
 
     public static Buffer reallocate(Buffer oldBuffer, int newSize) {
-        if (oldBuffer instanceof CompositeBuffer) {
+        if (oldBuffer.isComposite()) {
             Buffer addon = allocate(newSize-oldBuffer.capacity());
             ((CompositeBuffer)oldBuffer).append(addon);
             return oldBuffer;
