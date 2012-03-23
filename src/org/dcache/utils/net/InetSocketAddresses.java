@@ -70,7 +70,7 @@ public class InetSocketAddresses {
         }
 
         int firstPort = uaddr.lastIndexOf('.', secondPort -1);
-        if( secondPort == -1 ) {
+        if( firstPort == -1 ) {
             throw new IllegalArgumentException("address " + uaddr + " doesn't match rfc5665");
         }
 
