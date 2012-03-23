@@ -49,11 +49,9 @@ public class OncRpcClient {
         _socketAddress = new InetSocketAddress(address, port);
 
         if (protocol == IpProtocolType.TCP) {
-            final TCPNIOTransport tcpTransport = TCPNIOTransportBuilder.newInstance().build();
-            _transport = tcpTransport;
+            _transport = TCPNIOTransportBuilder.newInstance().build();
         } else if (protocol == IpProtocolType.UDP) {
-            final UDPNIOTransport udpTransport = UDPNIOTransportBuilder.newInstance().build();
-            _transport = udpTransport;
+            _transport = UDPNIOTransportBuilder.newInstance().build();
         } else {
             throw new IllegalArgumentException("Unsupported protocol type: " + protocol);
         }

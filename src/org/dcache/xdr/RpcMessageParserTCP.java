@@ -116,7 +116,7 @@ public class RpcMessageParserTCP extends BaseFilter {
 
     private Xdr assembleXdr(Buffer messageBuffer) {
 
-        Buffer currentFragment = null;
+        Buffer currentFragment;
         BuffersBuffer multipleFragments = null;
 
         boolean messageComplete;

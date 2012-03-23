@@ -76,7 +76,7 @@ public class OncRpcSvc {
         };
 
         abstract IOStrategy getStrategy();
-    };
+    }
 
     private final ReplyQueue<Integer, RpcReply> _replyQueue = new ReplyQueue<Integer, RpcReply>();
     /**

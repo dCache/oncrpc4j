@@ -627,8 +627,7 @@ public class jrpcgen {
                 }
             }
 
-            JrpcgenEnDecodingInfo result = new JrpcgenEnDecodingInfo(syllable, encodingOpts, decodingOpts);
-            return result;
+            return new JrpcgenEnDecodingInfo(syllable, encodingOpts, decodingOpts);
         }
         return null;
     }
@@ -1925,7 +1924,7 @@ public class jrpcgen {
                 //
                 //
                 //
-                StringBuffer paramsBuff = new StringBuffer();
+                StringBuilder paramsBuff = new StringBuilder();
 
                 out.println("                class XdrAble$ implements XdrAble {");
 
