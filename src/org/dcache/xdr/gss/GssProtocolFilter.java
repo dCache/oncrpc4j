@@ -141,16 +141,16 @@ public class GssProtocolFilter extends BaseFilter {
 
         } catch (RpcException e) {
             call.reject(e.getStatus(), e.getRpcReply());
-            _log.log(Level.INFO, "GSS mechanism failed {0}", e.getMessage());
+            _log.log(Level.WARNING, "GSS mechanism failed {0}", e.getMessage());
         } catch (IOException e) {
             call.reject(RpcRejectStatus.AUTH_ERROR, new RpcAuthError(RpcAuthStat.RPCSEC_GSS_CTXPROBLEM));
-            _log.log(Level.INFO, "GSS mechanism failed {0}", e.getMessage());
+            _log.log(Level.WARNING, "GSS mechanism failed {0}", e.getMessage());
         } catch (OncRpcException e) {
             call.reject(RpcRejectStatus.AUTH_ERROR, new RpcAuthError(RpcAuthStat.RPCSEC_GSS_CTXPROBLEM));
-            _log.log(Level.INFO, "RPC request rejected: {0}", e.getMessage());
+            _log.log(Level.WARNING, "RPC request rejected: {0}", e.getMessage());
         } catch (GSSException e) {
             call.reject(RpcRejectStatus.AUTH_ERROR, new RpcAuthError(RpcAuthStat.RPCSEC_GSS_CTXPROBLEM));
-            _log.log(Level.INFO, "GSS mechanism failed {0}", e.getMessage());
+            _log.log(Level.WARNING, "GSS mechanism failed {0}", e.getMessage());
         }
 
         if(hasContext)
