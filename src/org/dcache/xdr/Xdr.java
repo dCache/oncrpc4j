@@ -17,6 +17,7 @@
 
 package org.dcache.xdr;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
@@ -125,6 +126,84 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
             longs[i] = xdrDecodeLong();
         }
         return longs;
+    }
+
+    /**
+     * Decodes (aka "deserializes") a float (which is a 32 bits wide floating
+     * point entity) read from a XDR stream.
+     *
+     * @return Decoded float value.rs.
+     */
+    public float xdrDecodeFloat() {
+        return Float.intBitsToFloat(xdrDecodeInt());
+    }
+
+    /**
+     * Decodes (aka "deserializes") a double (which is a 64 bits wide floating
+     * point entity) read from a XDR stream.
+     *
+     * @return Decoded double value.rs.
+     */
+    public double xdrDecodeDouble() {
+        return Double.longBitsToDouble(xdrDecodeLong());
+    }
+
+    /**
+     * Decodes (aka "deserializes") a vector of doubles read from a XDR stream.
+     *
+     * @return Decoded double vector.
+     */
+    public double[] xdrDecodeDoubleVector() {
+        int length = xdrDecodeInt();
+        double[] value = new double[length];
+        for (int i = 0; i < length; ++i) {
+            value[i] = xdrDecodeDouble();
+        }
+        return value;
+    }
+
+    /**
+     * Decodes (aka "deserializes") a vector of doubles read from a XDR stream.
+     *
+     * @param length of vector to read.
+     *
+     * @return Decoded double vector..
+     */
+    public double[] xdrDecodeDoubleFixedVector(int length) {
+        double[] value = new double[length];
+        for (int i = 0; i < length; ++i) {
+            value[i] = xdrDecodeDouble();
+        }
+        return value;
+    }
+
+    /**
+     * Decodes (aka "deserializes") a vector of floats read from a XDR stream.
+     *
+     * @return Decoded float vector.
+     */
+    public float[] xdrDecodeFloatVector() {
+        int length = xdrDecodeInt();
+        float[] value = new float[length];
+        for (int i = 0; i < length; ++i) {
+            value[i] = xdrDecodeFloat();
+        }
+        return value;
+    }
+
+    /**
+     * Decodes (aka "deserializes") a vector of floats read from a XDR stream.
+     *
+     * @param length of vector to read.
+     *
+     * @return Decoded float vector.
+     */
+    public float[] xdrDecodeFloatFixedVector(int length) {
+        float[] value = new float[length];
+        for (int i = 0; i < length; ++i) {
+            value[i] = xdrDecodeFloat();
+        }
+        return value;
     }
 
     /**
@@ -271,6 +350,88 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
         _buffer.putInt(values.length);
         for (long value : values) {
             _buffer.putLong(value);
+        }
+    }
+
+    /**
+     * Encodes (aka "serializes") a float (which is a 32 bits wide floating
+     * point quantity) and write it down this XDR stream.
+     *
+     * @param value Float value to encode.
+     */
+    public void xdrEncodeFloat(float value) {
+        xdrEncodeInt(Float.floatToIntBits(value));
+    }
+
+    /**
+     * Encodes (aka "serializes") a double (which is a 64 bits wide floating
+     * point quantity) and write it down this XDR stream.
+     *
+     * @param value Double value to encode.
+     */
+    public void xdrEncodeDouble(double value) {
+        xdrEncodeLong(Double.doubleToLongBits(value));
+    }
+
+    /**
+     * Encodes (aka "serializes") a vector of floats and writes it down this XDR
+     * stream.
+     *
+     * @param value float vector to be encoded.
+     */
+    public void xdrEncodeFloatVector(float[] value) {
+        int size = value.length;
+        xdrEncodeInt(size);
+        for (int i = 0; i < size; i++) {
+            xdrEncodeFloat(value[i]);
+        }
+    }
+
+    /**
+     * Encodes (aka "serializes") a vector of floats and writes it down this XDR
+     * stream.
+     *
+     * @param value float vector to be encoded.
+     * @param length of vector to write. This parameter is used as a sanity
+     * check.
+     */
+    public void xdrEncodeFloatFixedVector(float[] value, int length) {
+        if (value.length != length) {
+            throw (new IllegalArgumentException("array size does not match protocol specification"));
+        }
+        for (int i = 0; i < length; i++) {
+            xdrEncodeFloat(value[i]);
+        }
+    }
+
+    /**
+     * Encodes (aka "serializes") a vector of doubles and writes it down this
+     * XDR stream.
+     *
+     * @param value double vector to be encoded.
+     */
+    public void xdrEncodeDoubleVector(double[] value) {
+        int size = value.length;
+        xdrEncodeInt(size);
+        for (int i = 0; i < size; i++) {
+            xdrEncodeDouble(value[i]);
+        }
+    }
+
+    /**
+     * Encodes (aka "serializes") a vector of doubles and writes it down this
+     * XDR stream.
+     *
+     * @param value double vector to be encoded.
+     * @param length of vector to write. This parameter is used as a sanity
+     * check.
+     */
+    public void xdrEncodeDoubleFixedVector(double[] value, int length) {
+        if (value.length != length) {
+            throw (new IllegalArgumentException("array size does not match protocol specification"));
+        }
+        for (int i = 0; i < length; i++) {
+            xdrEncodeDouble(value[i]);
         }
     }
 

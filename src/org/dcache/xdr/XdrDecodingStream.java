@@ -40,6 +40,12 @@ public interface XdrDecodingStream {
     long xdrDecodeLong();
     long[] xdrDecodeLongVector();
     ByteBuffer xdrDecodeByteBuffer();
+    float xdrDecodeFloat();
+    double xdrDecodeDouble();
+    double[] xdrDecodeDoubleVector();
+    double[] xdrDecodeDoubleFixedVector(int length);
+    float[] xdrDecodeFloatVector();
+    float[] xdrDecodeFloatFixedVector(int length);
 
     /*
      * Fake interface for compatibility with Remote Tea RPC library
