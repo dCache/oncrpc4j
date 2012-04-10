@@ -120,11 +120,7 @@ public class jrpcgen {
      * x-file.
      */
     public static List<JrpcgenProgramInfo> programInfos = null;
-    /**
-     * Clamp version and program number in client method stubs to the
-     * version and program number specified in the x-file.
-     */
-    public static boolean clampProgAndVers = true;
+
     /**
      * Enable diagnostic messages when parsing the x-file.
      */
@@ -1620,17 +1616,10 @@ public class jrpcgen {
             // Now emit the real ONC/RPC call using the (optionally
             // wrapped) parameter and (optionally wrapped) result.
             //
-            if (clampProgAndVers) {
-                out.println("        client.call("
-                        + baseClassname + "." + proc.procedureId
-                        + ", " + baseClassname + "." + versionInfo.versionId
-                        + ", " + xdrParamsName + ", result$);");
-            } else {
-                out.println("        client.call("
-                        + baseClassname + "." + proc.procedureId
-                        + ", client.getVersion(), "
-                        + xdrParamsName + ", result$);");
-            }
+
+            out.println("        client.call("
+                    + baseClassname + "." + proc.procedureId
+                    + ", " + xdrParamsName + ", result$);");
             //
             // In case of a wrapped result we need to return the value
             // of the wrapper, otherwise we can return the result
@@ -1710,96 +1699,62 @@ public class jrpcgen {
         out.println(" * for the " + programInfo.programId + " remote program. It provides method stubs");
         out.println(" * which, when called, in turn call the appropriate remote method (procedure).");
         out.println(" */");
-        out.println("public class " + clientClass
-                + " extends OncRpcClientStub {");
+        out.println("public class " + clientClass + " {");
         out.println();
+
+        // generated class fields
+        out.println("    private final OncRpcClient rpcClient;");
+        out.println("    private final RpcCall client;");
+        out.println();
+
         //
         // Generate constructors...
         //
         out.println("    /**");
         out.println("     * Constructs a <code>" + clientClass + "</code> client stub proxy object");
         out.println("     * from which the " + programInfo.programId + " remote program can be accessed.");
+        out.println("     * The AuthNone is used for client authentication.");
         out.println("     * @param host Internet address of host where to contact the remote program.");
-        out.println("     * @param protocol {@link org.acplt.oncrpc.OncRpcProtocols Protocol} to be");
+        out.println("     * @param port Port number at host where the remote program can be reached.");
+        out.println("     * @param program Remote program number.");
+        out.println("     * @param version Remote program version number.");
+        out.println("     * @param protocol {@link org.dcache.xdr.IpProtocolType} to be");
         out.println("     *   used for ONC/RPC calls.");
         out.println("     * @throws OncRpcException if an ONC/RPC error occurs.");
         out.println("     * @throws IOException if an I/O error occurs.");
         out.println("     */");
-        out.println("    public " + clientClass + "(InetAddress host, int protocol)");
+        out.println("    public " + clientClass + "(InetAddress host, int port, int program, int version, int protocol)");
         out.println("           throws OncRpcException, IOException {");
-        out.println("        super(host, "
-                + baseClassname + "." + programInfo.programId + ", "
-                + version + ", 0, protocol);");
+        out.println("        this(host, port, new RpcAuthTypeNone(), program, version, protocol);");
         out.println("    }");
-        out.println();
 
         out.println("    /**");
         out.println("     * Constructs a <code>" + clientClass + "</code> client stub proxy object");
         out.println("     * from which the " + programInfo.programId + " remote program can be accessed.");
         out.println("     * @param host Internet address of host where to contact the remote program.");
         out.println("     * @param port Port number at host where the remote program can be reached.");
-        out.println("     * @param protocol {@link org.acplt.oncrpc.OncRpcProtocols Protocol} to be");
-        out.println("     *   used for ONC/RPC calls.");
-        out.println("     * @throws OncRpcException if an ONC/RPC error occurs.");
-        out.println("     * @throws IOException if an I/O error occurs.");
-        out.println("     */");
-        out.println("    public " + clientClass + "(InetAddress host, int port, int protocol)");
-        out.println("           throws OncRpcException, IOException {");
-        out.println("        super(host, "
-                + baseClassname + "." + programInfo.programId + ", "
-                + version + ", port, protocol);");
-        out.println("    }");
-        out.println();
-
-        out.println("    /**");
-        out.println("     * Constructs a <code>" + clientClass + "</code> client stub proxy object");
-        out.println("     * from which the " + programInfo.programId + " remote program can be accessed.");
-        out.println("     * @param client ONC/RPC client connection object implementing a particular");
-        out.println("     *   protocol.");
-        out.println("     * @throws OncRpcException if an ONC/RPC error occurs.");
-        out.println("     * @throws IOException if an I/O error occurs.");
-        out.println("     */");
-        out.println("    public " + clientClass + "(OncRpcClient client)");
-        out.println("           throws OncRpcException, IOException {");
-        out.println("        super(client);");
-        out.println("    }");
-        out.println();
-
-        out.println("    /**");
-        out.println("     * Constructs a <code>" + clientClass + "</code> client stub proxy object");
-        out.println("     * from which the " + programInfo.programId + " remote program can be accessed.");
-        out.println("     * @param host Internet address of host where to contact the remote program.");
+        out.println("     * @param auth {@link RpcAuth} to be used for RPC client authentication.");
         out.println("     * @param program Remote program number.");
         out.println("     * @param version Remote program version number.");
-        out.println("     * @param protocol {@link org.acplt.oncrpc.OncRpcProtocols Protocol} to be");
+        out.println("     * @param protocol {@link org.dcache.xdr.IpProtocolType} to be");
         out.println("     *   used for ONC/RPC calls.");
         out.println("     * @throws OncRpcException if an ONC/RPC error occurs.");
         out.println("     * @throws IOException if an I/O error occurs.");
         out.println("     */");
-        out.println("    public " + clientClass + "(InetAddress host, int program, int version, int protocol)");
+        out.println("    public " + clientClass + "(InetAddress host, int port, RpcAuth auth, int program, int version, int protocol)");
         out.println("           throws OncRpcException, IOException {");
-        out.println("        super(host, program, version, 0, protocol);");
+        out.println("        rpcClient = new OncRpcClient(host, protocol, port);");
+        out.println("        client = new RpcCall(program, version, auth, rpcClient.connect());");
         out.println("    }");
         out.println();
-
-        out.println("    /**");
-        out.println("     * Constructs a <code>" + clientClass + "</code> client stub proxy object");
-        out.println("     * from which the " + programInfo.programId + " remote program can be accessed.");
-        out.println("     * @param host Internet address of host where to contact the remote program.");
-        out.println("     * @param program Remote program number.");
-        out.println("     * @param version Remote program version number.");
-        out.println("     * @param port Port number at host where the remote program can be reached.");
-        out.println("     * @param protocol {@link org.acplt.oncrpc.OncRpcProtocols Protocol} to be");
-        out.println("     *   used for ONC/RPC calls.");
-        out.println("     * @throws OncRpcException if an ONC/RPC error occurs.");
-        out.println("     * @throws IOException if an I/O error occurs.");
+        out.println("   /**");
+        out.println("     * Shutdown client connection.");
+        out.println("     *");
+        out.println("     * @throws IOException");
         out.println("     */");
-        out.println("    public " + clientClass + "(InetAddress host, int program, int version, int port, int protocol)");
-        out.println("           throws OncRpcException, IOException {");
-        out.println("        super(host, program, version, port, protocol);");
+        out.println("    public void shutdown() throws IOException {");
+        out.println("        rpcClient.close();");
         out.println("    }");
-        out.println();
-
         //
         // Generate method stubs... This is getting hairy in case someone
         // uses basic data types as parameters or the procedure's result.
@@ -2220,8 +2175,6 @@ public class jrpcgen {
                 makeBean = true;
             } else if (arg.equals("-initstrings")) {
                 initStrings = true;
-            } else if (arg.equals("-noclamp")) {
-                clampProgAndVers = false;
             } else if (arg.equals("-debug")) {
                 debug = true;
             } else if (arg.equals("-nobackup")) {
