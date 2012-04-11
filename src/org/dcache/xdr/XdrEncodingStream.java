@@ -45,6 +45,12 @@ public interface XdrEncodingStream {
     void xdrEncodeFloatFixedVector(float[] value, int length);
     void xdrEncodeDoubleVector(double[] value);
     void xdrEncodeDoubleFixedVector(double[] value, int length);
+    void xdrEncodeByteVector(byte[] value);
+    void xdrEncodeByteFixedVector(byte[] value, int length);
+    void xdrEncodeByte(byte value);
+    void xdrEncodeShort(short value);
+    void xdrEncodeShortVector(short[] value);
+    void xdrEncodeShortFixedVector(short[] value, int length);
     /*
      * Fake interface for compatibility with Remote Tea RPC library
      *

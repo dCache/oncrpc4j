@@ -17,7 +17,6 @@
 
 package org.dcache.xdr;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
@@ -299,6 +298,99 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
         _buffer.position(_buffer.position() + len + padding);
         return slice;
     }
+
+    /**
+     * Decodes (aka "deserializes") a vector of bytes, which is nothing more
+     * than a series of octets (or 8 bits wide bytes), each packed into its very
+     * own 4 bytes (XDR int). Byte vectors are decoded together with a
+     * preceeding length value. This way the receiver doesn't need to know the
+     * length of the vector in advance.
+     *
+     * @return The byte vector containing the decoded data.
+     */
+    public byte[] xdrDecodeByteVector() {
+        int length = xdrDecodeInt();
+        if (length > 0) {
+            byte[] bytes = new byte[length];
+            for (int i = 0; i < length; ++i) {
+                bytes[i] = (byte) xdrDecodeInt();
+            }
+            return bytes;
+        } else {
+            return new byte[0];
+        }
+    }
+
+    /**
+     * Decodes (aka "deserializes") a vector of bytes, which is nothing more
+     * than a series of octets (or 8 bits wide bytes), each packed into its very
+     * own 4 bytes (XDR int).
+     *
+     * @param length of vector to read.
+     *
+     * @return The byte vector containing the decoded data.
+     */
+    public byte[] xdrDecodeByteFixedVector(int length) {
+        if (length > 0) {
+            byte[] bytes = new byte[length];
+            for (int i = 0; i < length; ++i) {
+                bytes[i] = (byte) xdrDecodeInt();
+            }
+            return bytes;
+        } else {
+            return new byte[0];
+        }
+    }
+
+    /**
+     * Decodes (aka "deserializes") a byte read from this XDR stream.
+     *
+     * @return Decoded byte value.
+     */
+    public byte xdrDecodeByte() {
+        return (byte) xdrDecodeInt();
+    }
+
+    /**
+     * Decodes (aka "deserializes") a short (which is a 16 bit quantity) read
+     * from this XDR stream.
+     *
+     * @return Decoded short value.
+     */
+    public short xdrDecodeShort() {
+        return (short) xdrDecodeInt();
+    }
+
+    /**
+     * Decodes (aka "deserializes") a vector of short integers read from a XDR
+     * stream.
+     *
+     * @return Decoded vector of short integers..
+     */
+    public short[] xdrDecodeShortVector() {
+        int length = xdrDecodeInt();
+        short[] value = new short[length];
+        for (int i = 0; i < length; ++i) {
+            value[i] = xdrDecodeShort();
+        }
+        return value;
+    }
+
+    /**
+     * Decodes (aka "deserializes") a vector of short integers read from a XDR
+     * stream.
+     *
+     * @param length of vector to read.
+     *
+     * @return Decoded vector of short integers.
+     */
+    public short[] xdrDecodeShortFixedVector(int length) {
+        short[] value = new short[length];
+        for (int i = 0; i < length; ++i) {
+            value[i] = xdrDecodeShort();
+        }
+        return value;
+    }
     ////////////////////////////////////////////////////////////////////////////
     //
     //         Encoder
@@ -501,6 +593,110 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
         ensureCapacity(len+padding);
         _buffer.put(buf);
         _buffer.position(_buffer.position() + padding);
+    }
+
+    /**
+     * Encodes (aka "serializes") a vector of bytes, which is nothing more than
+     * a series of octets (or 8 bits wide bytes), each packed into its very own
+     * 4 bytes (XDR int). Byte vectors are encoded together with a preceeding
+     * length value. This way the receiver doesn't need to know the length of
+     * the vector in advance.
+     *
+     * @param value Byte vector to encode.
+     */
+    public void xdrEncodeByteVector(byte[] value) {
+        int length = value.length; // well, silly optimizations appear here...
+        xdrEncodeInt(length);
+        if (length != 0) {
+            //
+            // For speed reasons, we do sign extension here, but the higher bits
+            // will be removed again when deserializing.
+            //
+            for (int i = 0; i < length; ++i) {
+                xdrEncodeInt((int) value[i]);
+            }
+        }
+    }
+
+    /**
+     * Encodes (aka "serializes") a vector of bytes, which is nothing more than
+     * a series of octets (or 8 bits wide bytes), each packed into its very own
+     * 4 bytes (XDR int).
+     *
+     * @param value Byte vector to encode.
+     * @param length of vector to write. This parameter is used as a sanity
+     * check.
+     */
+    public void xdrEncodeByteFixedVector(byte[] value, int length) {
+        if (value.length != length) {
+            throw (new IllegalArgumentException("array size does not match protocol specification"));
+        }
+        if (length != 0) {
+            //
+            // For speed reasons, we do sign extension here, but the higher bits
+            // will be removed again when deserializing.
+            //
+            for (int i = 0; i < length; ++i) {
+                xdrEncodeInt((int) value[i]);
+            }
+        }
+    }
+
+    /**
+     * Encodes (aka "serializes") a byte and write it down this XDR stream.
+     *
+     * @param value Byte value to encode.
+     *
+     * @throws OncRpcException if an ONC/RPC error occurs.
+     * @throws IOException if an I/O error occurs.
+     */
+    public void xdrEncodeByte(byte value) {
+        //
+        // For speed reasons, we do sign extension here, but the higher bits
+        // will be removed again when deserializing.
+        //
+        xdrEncodeInt((int) value);
+    }
+
+    /**
+     * Encodes (aka "serializes") a short (which is a 16 bits wide quantity) and
+     * write it down this XDR stream.
+     *
+     * @param value Short value to encode.
+     */
+    public void xdrEncodeShort(short value) {
+        xdrEncodeInt((int) value);
+    }
+
+    /**
+     * Encodes (aka "serializes") a vector of short integers and writes it down
+     * this XDR stream.
+     *
+     * @param value short vector to be encoded.
+     */
+    public void xdrEncodeShortVector(short[] value) {
+        int size = value.length;
+        xdrEncodeInt(size);
+        for (int i = 0; i < size; i++) {
+            xdrEncodeShort(value[i]);
+        }
+    }
+
+    /**
+     * Encodes (aka "serializes") a vector of short integers and writes it down
+     * this XDR stream.
+     *
+     * @param value short vector to be encoded.
+     * @param length of vector to write. This parameter is used as a sanity
+     * check.
+     */
+    public void xdrEncodeShortFixedVector(short[] value, int length) {
+        if (value.length != length) {
+            throw (new IllegalArgumentException("array size does not match protocol specification"));
+        }
+        for (int i = 0; i < length; i++) {
+            xdrEncodeShort(value[i]);
+        }
     }
 
     public void close() {
