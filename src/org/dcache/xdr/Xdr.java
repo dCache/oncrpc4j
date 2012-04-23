@@ -409,7 +409,15 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
         _buffer.putInt(value);
     }
 
-    public Buffer body() {
+    /**
+     * Returns the {@link Buffer} that backs this xdr.
+     *
+     * <p>Modifications to this xdr's content will cause the returned
+     * buffer's content to be modified, and vice versa.
+     *
+     * @return The {@link Buffer} that backs this xdr
+     */
+    public Buffer asBuffer() {
         return _buffer;
     }
 

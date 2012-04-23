@@ -103,7 +103,7 @@ public class RpcGssCall extends RpcCall {
                     xdr.xdrEncodeInt(authGss.getSequence());
                     reply.xdrEncode(xdr);
                     xdr.endEncoding();
-                    Buffer b = ((Xdr)xdr).body();
+                    Buffer b = ((Xdr)xdr).asBuffer();
                     byte[] integBytes = new byte[b.remaining()];
                     b.get(integBytes);
 
@@ -117,7 +117,7 @@ public class RpcGssCall extends RpcCall {
                     xdr.xdrEncodeInt(authGss.getSequence());
                     reply.xdrEncode(xdr);
                     xdr.endEncoding();
-                    Buffer bp = ((Xdr)xdr).body();
+                    Buffer bp = ((Xdr)xdr).asBuffer();
                     byte[] rawData = new byte[bp.remaining()];
                     bp.get(rawData);
 

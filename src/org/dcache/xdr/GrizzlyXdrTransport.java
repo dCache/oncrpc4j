@@ -47,7 +47,7 @@ public class GrizzlyXdrTransport implements XdrTransport {
 
     @Override
     public void send(Xdr xdr) throws IOException {
-        Buffer buffer = xdr.body();
+        Buffer buffer = xdr.asBuffer();
         buffer.allowBufferDispose(true);
 
         // pass destination address to handle UDP connections as well

@@ -150,7 +150,7 @@ public class RpcMessageParserTCPTest {
 
     private static Buffer toFragmentedBuffer(Xdr xdr, int size) {
 
-        Buffer b = xdr.body();
+        Buffer b = xdr.asBuffer();
         int nfragments = b.remaining() / size + 1;
 
         /*

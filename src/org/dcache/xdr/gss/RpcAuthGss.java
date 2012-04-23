@@ -112,7 +112,7 @@ public class RpcAuthGss implements RpcAuth, XdrAble {
 
     public void xdrDecode(XdrDecodingStream xdr) throws OncRpcException, IOException {
         int len = xdr.xdrDecodeInt();
-        _header = ((Xdr) xdr).body().duplicate();
+        _header = ((Xdr) xdr).asBuffer().duplicate();
 
         /*
          * header size is RPC header + credential.
@@ -137,7 +137,7 @@ public class RpcAuthGss implements RpcAuth, XdrAble {
              * sometimes linux ( as of 3.0.0-rc3 ) sends crap instead of verifier.
              */
 
-            Buffer b = ((Xdr) xdr).body().slice();
+            Buffer b = ((Xdr) xdr).asBuffer().slice();
             b.order(ByteOrder.BIG_ENDIAN);
 
             if (b.remaining() < 4) {
