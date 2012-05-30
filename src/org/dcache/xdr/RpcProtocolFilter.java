@@ -53,36 +53,35 @@ public class RpcProtocolFilter extends BaseFilter {
         RpcMessage message = new RpcMessage(xdr);
         XdrTransport transport = new GrizzlyXdrTransport(ctx, _replyQueue);
 
-        if (message.type() == RpcMessageType.CALL) {
-            RpcCall call = new RpcCall(message.xid(), xdr, transport);
-            try {
-                call.accept();
-                ctx.setMessage(call);
+        switch (message.type()) {
+            case RpcMessageType.CALL:
+                RpcCall call = new RpcCall(message.xid(), xdr, transport);
+                try {
+                    call.accept();
+                    ctx.setMessage(call);
 
-            } catch (RpcException e) {
-                call.reject(e.getStatus(), e.getRpcReply());
-                _log.log(Level.INFO, "RPC request rejected: {0}", e.getMessage());
-                return ctx.getStopAction();
-            } catch (OncRpcException e) {
-                _log.log(Level.INFO, "failed to process RPC request: {0}", e.getMessage());
-                return ctx.getStopAction();
-            }
-            return ctx.getInvokeAction();
-        } else {
-            /*
-             * For now I do not expect to receive a reply message over
-             * the client connection. But it's definitely part of
-             * bidirectional RPC calls.
-             */
-            try {
-                RpcReply reply = new RpcReply(message.xid(), xdr, transport);
-                if (_replyQueue != null) {
-                    _replyQueue.put(message.xid(), reply);
+                } catch (RpcException e) {
+                    call.reject(e.getStatus(), e.getRpcReply());
+                    _log.log(Level.INFO, "RPC request rejected: {0}", e.getMessage());
+                    return ctx.getStopAction();
+                } catch (OncRpcException e) {
+                    _log.log(Level.INFO, "failed to process RPC request: {0}", e.getMessage());
+                    return ctx.getStopAction();
                 }
-            } catch (OncRpcException e) {
-                _log.log(Level.WARNING, "failed to decode reply:", e);
-            }
-            return ctx.getStopAction();
+                return ctx.getInvokeAction();
+            case RpcMessageType.REPLY:
+                try {
+                    RpcReply reply = new RpcReply(message.xid(), xdr, transport);
+                    if (_replyQueue != null) {
+                        _replyQueue.put(message.xid(), reply);
+                    }
+                } catch (OncRpcException e) {
+                    _log.log(Level.WARNING, "failed to decode reply:", e);
+                }
+                return ctx.getStopAction();
+            default:
+                // bad XDR
+                return ctx.getStopAction();
         }
     }
 }
