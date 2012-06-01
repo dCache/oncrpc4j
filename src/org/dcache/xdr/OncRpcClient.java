@@ -32,9 +32,7 @@ import org.glassfish.grizzly.ConnectorHandler;
 import org.glassfish.grizzly.Transport;
 import org.glassfish.grizzly.filterchain.FilterChainBuilder;
 import org.glassfish.grizzly.filterchain.TransportFilter;
-import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransportBuilder;
-import org.glassfish.grizzly.nio.transport.UDPNIOTransport;
 import org.glassfish.grizzly.nio.transport.UDPNIOTransportBuilder;
 import static org.dcache.xdr.GrizzlyUtils.*;
 import org.glassfish.grizzly.strategies.SameThreadIOStrategy;
@@ -48,8 +46,12 @@ public class OncRpcClient {
     private final ReplyQueue<Integer, RpcReply> _replyQueue = new ReplyQueue<Integer, RpcReply>();
 
     public OncRpcClient(InetAddress address, int protocol, int port) {
+        this(new InetSocketAddress(address, port), protocol);
+    }
 
-        _socketAddress = new InetSocketAddress(address, port);
+    public OncRpcClient(InetSocketAddress socketAddress, int protocol) {
+
+        _socketAddress = socketAddress;
 
         if (protocol == IpProtocolType.TCP) {
             _transport = TCPNIOTransportBuilder.newInstance().build();
