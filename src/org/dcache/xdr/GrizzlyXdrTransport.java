@@ -24,9 +24,10 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.logging.Logger;
 import org.glassfish.grizzly.Buffer;
-import org.glassfish.grizzly.CompletionHandler;
 import org.glassfish.grizzly.Connection;
-import org.glassfish.grizzly.WriteResult;
+import org.glassfish.grizzly.asyncqueue.PushBackContext;
+import org.glassfish.grizzly.asyncqueue.PushBackHandler;
+import org.glassfish.grizzly.asyncqueue.WritableMessage;
 import org.glassfish.grizzly.filterchain.FilterChainContext;
 
 public class GrizzlyXdrTransport implements XdrTransport {
@@ -53,7 +54,7 @@ public class GrizzlyXdrTransport implements XdrTransport {
         buffer.allowBufferDispose(true);
 
         // pass destination address to handle UDP connections as well
-        _context.write(_context.getAddress(), buffer, null);
+        _context.write(_context.getAddress(), buffer, null, new RetryPushBackHandler());
     }
 
     @Override
@@ -79,5 +80,18 @@ public class GrizzlyXdrTransport implements XdrTransport {
     @Override
     public String toString() {
         return getRemoteSocketAddress() + " <=> " + getLocalSocketAddress();
+    }
+
+    private static class RetryPushBackHandler implements PushBackHandler {
+
+        @Override
+        public void onAccept(Connection connection, WritableMessage message) {
+            // NOP
+        }
+
+        @Override
+        public void onPushBack(Connection connection, WritableMessage message, PushBackContext pushBackContext) {
+            pushBackContext.retryWhenPossible();
+        }
     }
 }
