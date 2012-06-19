@@ -36,6 +36,7 @@ public class GrizzlyXdrTransport implements XdrTransport {
     private final Connection<InetSocketAddress> _connection;
     private final ReplyQueue<Integer, RpcReply> _replyQueue;
 
+    private static final PushBackHandler RERTY_ON_PUSHBACK = new RetryPushBackHandler();
     private final static Logger _log = Logger.getLogger(GrizzlyXdrTransport.class.getName());
 
     public GrizzlyXdrTransport(FilterChainContext context, ReplyQueue<Integer, RpcReply> replyQueue) {
@@ -54,7 +55,7 @@ public class GrizzlyXdrTransport implements XdrTransport {
         buffer.allowBufferDispose(true);
 
         // pass destination address to handle UDP connections as well
-        _context.write(_context.getAddress(), buffer, null, new RetryPushBackHandler());
+        _context.write(_context.getAddress(), buffer, null, RERTY_ON_PUSHBACK);
     }
 
     @Override
@@ -82,6 +83,12 @@ public class GrizzlyXdrTransport implements XdrTransport {
         return getRemoteSocketAddress() + " <=> " + getLocalSocketAddress();
     }
 
+    /**
+     * An implementation of {@link PushBackHandler}, which will enforce Grizzly's
+     * {@link org.glassfish.grizzly.Writer} to retry when possible if
+     * message can not be neither written nor added to write queue due
+     * to I/O or memory limitations.
+     */
     private static class RetryPushBackHandler implements PushBackHandler {
 
         @Override
