@@ -21,15 +21,15 @@ package org.dcache.xdr;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.glassfish.grizzly.filterchain.BaseFilter;
 import org.glassfish.grizzly.filterchain.FilterChainContext;
 import org.glassfish.grizzly.filterchain.NextAction;
 
 public class RpcDispatcher extends BaseFilter {
 
-    private final static Logger _log = Logger.getLogger(RpcDispatcher.class.getName());
+    private final static Logger _log = LoggerFactory.getLogger(RpcDispatcher.class);
     /**
      * List of registered RPC services
      *
@@ -63,7 +63,7 @@ public class RpcDispatcher extends BaseFilter {
         int vers = call.getProgramVersion();
         int proc = call.getProcedure();
 
-        _log.log(Level.FINE, "processing request {0}", call);
+        _log.debug("processing request {}", call);
 
         RpcDispatchable program = _programs.get(new OncRpcProgram(prog, vers));
         if (program == null) {
@@ -73,9 +73,9 @@ public class RpcDispatcher extends BaseFilter {
                 program.dispatchOncRpcCall(call);
             } catch (RpcException e) {
                 call.reject(e.getStatus(), e.getRpcReply());
-                _log.log(Level.SEVERE, "Failed to process RPC request:", e);
+                _log.error("Failed to process RPC request:", e);
             } catch (OncRpcException e) {
-                _log.log(Level.SEVERE, "Failed to process RPC request:", e);
+                _log.error("Failed to process RPC request:", e);
             }
         }
         return ctx.getInvokeAction();

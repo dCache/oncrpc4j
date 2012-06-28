@@ -20,15 +20,15 @@
 package org.dcache.xdr;
 
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.glassfish.grizzly.filterchain.BaseFilter;
 import org.glassfish.grizzly.filterchain.FilterChainContext;
 import org.glassfish.grizzly.filterchain.NextAction;
 
 public class RpcProtocolFilter extends BaseFilter {
 
-    private final static Logger _log = Logger.getLogger(RpcProtocolFilter.class.getName());
+    private final static Logger _log = LoggerFactory.getLogger(RpcProtocolFilter.class);
     private final ReplyQueue<Integer, RpcReply> _replyQueue;
 
     public RpcProtocolFilter() {
@@ -44,7 +44,7 @@ public class RpcProtocolFilter extends BaseFilter {
 
         Xdr xdr = ctx.getMessage();
         if (xdr == null) {
-            _log.log(Level.SEVERE, "Parser returns bad XDR");
+            _log.error("Parser returns bad XDR");
             return ctx.getStopAction();
         }
 
@@ -62,10 +62,10 @@ public class RpcProtocolFilter extends BaseFilter {
 
                 } catch (RpcException e) {
                     call.reject(e.getStatus(), e.getRpcReply());
-                    _log.log(Level.INFO, "RPC request rejected: {0}", e.getMessage());
+                    _log.info("RPC request rejected: {}", e.getMessage());
                     return ctx.getStopAction();
                 } catch (OncRpcException e) {
-                    _log.log(Level.INFO, "failed to process RPC request: {0}", e.getMessage());
+                    _log.info("failed to process RPC request: {}", e.getMessage());
                     return ctx.getStopAction();
                 }
                 return ctx.getInvokeAction();
@@ -76,7 +76,7 @@ public class RpcProtocolFilter extends BaseFilter {
                         _replyQueue.put(message.xid(), reply);
                     }
                 } catch (OncRpcException e) {
-                    _log.log(Level.WARNING, "failed to decode reply:", e);
+                    _log.warn("failed to decode reply:", e);
                 }
                 return ctx.getStopAction();
             default:

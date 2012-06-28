@@ -20,7 +20,8 @@
 package org.dcache.xdr;
 
 import java.io.IOException;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javax.security.auth.Subject;
 import org.dcache.auth.Subjects;
 
@@ -31,7 +32,7 @@ public class RpcAuthTypeNone implements RpcAuth, XdrAble {
     private RpcAuthVerifier _verifier = new RpcAuthVerifier(RpcAuthType.NONE, new byte[0]);
     private final Subject _subject = Subjects.NOBODY;
 
-    private final static Logger _log = Logger.getLogger(RpcAuthTypeNone.class.getName());
+    private final static Logger _log = LoggerFactory.getLogger(RpcAuthTypeNone.class);
 
     public RpcAuthTypeNone() {
         this(new byte[0]);

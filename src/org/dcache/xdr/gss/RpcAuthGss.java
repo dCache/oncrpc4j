@@ -21,7 +21,8 @@ package org.dcache.xdr.gss;
 
 import java.io.IOException;
 import java.nio.ByteOrder;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javax.security.auth.Subject;
 import org.dcache.xdr.OncRpcException;
 import org.dcache.xdr.RpcAuth;
@@ -38,7 +39,7 @@ import org.glassfish.grizzly.Buffer;
 
 public class RpcAuthGss implements RpcAuth, XdrAble {
 
-    private final static Logger _log = Logger.getLogger(RpcAuthGss.class.getName());
+    private final static Logger _log = LoggerFactory.getLogger(RpcAuthGss.class);
 
     private final int _type = RpcAuthType.RPCGSS_SEC;
     private RpcAuthVerifier _verifier = new RpcAuthVerifier(_type, new byte[0]);

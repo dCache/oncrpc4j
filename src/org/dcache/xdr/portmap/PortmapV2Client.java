@@ -21,8 +21,8 @@ package org.dcache.xdr.portmap;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.dcache.utils.net.InetSocketAddresses;
 import org.dcache.xdr.OncRpcException;
 import org.dcache.xdr.RpcCall;
@@ -33,7 +33,7 @@ import org.dcache.xdr.netid;
 
 public class PortmapV2Client implements OncPortmapClient {
 
-    private final static Logger _log = Logger.getLogger(PortmapV2Client.class.getName());
+    private final static Logger _log = LoggerFactory.getLogger(PortmapV2Client.class);
     private final RpcCall _call;
 
     public PortmapV2Client(RpcCall call) {
@@ -41,7 +41,7 @@ public class PortmapV2Client implements OncPortmapClient {
     }
 
     public void dump() throws OncRpcException, IOException {
-        _log.log(Level.FINEST, "portmap dump");
+        _log.debug("portmap dump");
 
         pmaplist list_reply = new pmaplist();
         _call.call(OncRpcPortmap.PMAPPROC_DUMP, XdrVoid.XDR_VOID, list_reply);
@@ -50,7 +50,7 @@ public class PortmapV2Client implements OncPortmapClient {
     }
 
     public boolean ping() {
-        _log.log(Level.FINEST, "portmap ping");
+        _log.debug("portmap ping");
         boolean pong = false;
         try {
             _call.call(OncRpcPortmap.PMAPPROC_NULL, XdrVoid.XDR_VOID, XdrVoid.XDR_VOID, 2000);
@@ -63,7 +63,7 @@ public class PortmapV2Client implements OncPortmapClient {
     }
 
     public boolean setPort(int program, int version, String netids, String addr, String owner) throws OncRpcException, IOException {
-        _log.log(Level.FINEST, "portmap set port: prog: {0} vers: {1}, netid: {2} addr: {3}, owner: {4}",
+        _log.debug("portmap set port: prog: {} vers: {}, netid: {} addr: {}, owner: {}",
                 new Object[]{program, version, netids, addr, owner});
 
         InetSocketAddress address = org.dcache.xdr.netid.toInetSocketAddress(addr);

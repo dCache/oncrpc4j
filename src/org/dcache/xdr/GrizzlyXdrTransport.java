@@ -22,7 +22,8 @@ package org.dcache.xdr;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.glassfish.grizzly.Buffer;
 import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.asyncqueue.PushBackContext;
@@ -37,7 +38,7 @@ public class GrizzlyXdrTransport implements XdrTransport {
     private final ReplyQueue<Integer, RpcReply> _replyQueue;
 
     private static final PushBackHandler RERTY_ON_PUSHBACK = new RetryPushBackHandler();
-    private final static Logger _log = Logger.getLogger(GrizzlyXdrTransport.class.getName());
+    private final static Logger _log = LoggerFactory.getLogger(GrizzlyXdrTransport.class);
 
     public GrizzlyXdrTransport(FilterChainContext context, ReplyQueue<Integer, RpcReply> replyQueue) {
         _context = context;

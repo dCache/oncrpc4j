@@ -20,11 +20,12 @@
 package org.dcache.xdr;
 
 import java.io.IOException;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class RpcReply {
 
-    private final static Logger _log = Logger.getLogger(RpcReply.class.getName());
+    private final static Logger _log = LoggerFactory.getLogger(RpcReply.class);
     /**
      * XID of corresponding request
      */

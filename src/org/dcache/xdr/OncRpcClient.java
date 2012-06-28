@@ -26,7 +26,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.ConnectorHandler;
 import org.glassfish.grizzly.Transport;
@@ -39,7 +40,7 @@ import org.glassfish.grizzly.strategies.SameThreadIOStrategy;
 
 public class OncRpcClient {
 
-    private final static Logger _log = Logger.getLogger(OncRpcClient.class.getName());
+    private final static Logger _log = LoggerFactory.getLogger(OncRpcClient.class);
     private final InetSocketAddress _socketAddress;
     private final Transport _transport;
     private Connection<InetSocketAddress> _connection;

@@ -21,13 +21,14 @@ package org.dcache.xdr;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.glassfish.grizzly.Buffer;
 import org.glassfish.grizzly.Connection;
 
 public class ClientTransport implements XdrTransport {
 
-    private final static Logger _log = Logger.getLogger(ClientTransport.class.getName());
+    private final static Logger _log = LoggerFactory.getLogger(ClientTransport.class);
     private final Connection<InetSocketAddress> _connection;
     private final ReplyQueue<Integer, RpcReply> _replyQueue;
 

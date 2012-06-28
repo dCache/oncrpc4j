@@ -22,8 +22,8 @@ package org.dcache.xdr.portmap;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.dcache.xdr.IpProtocolType;
 import org.dcache.xdr.OncRpcClient;
 import org.dcache.xdr.OncRpcException;
@@ -34,7 +34,7 @@ import org.dcache.xdr.XdrTransport;
 
 public class GenericPortmapClient implements OncPortmapClient {
 
-    private final static Logger _log = Logger.getLogger(GenericPortmapClient.class.getName());
+    private final static Logger _log = LoggerFactory.getLogger(GenericPortmapClient.class);
     private final RpcAuth _auth = new RpcAuthTypeNone();
     private final OncPortmapClient _portmapClient;
 
@@ -49,7 +49,7 @@ public class GenericPortmapClient implements OncPortmapClient {
                 // FIXME: return correct exception
                 throw new IllegalStateException("portmap service not available");
             }
-            _log.log(Level.INFO, "Using portmap V2");
+            _log.debug("Using portmap V2");
         }
         _portmapClient = portmapClient;
     }

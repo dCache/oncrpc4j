@@ -22,8 +22,8 @@ package org.dcache.xdr.portmap;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.dcache.xdr.OncRpcException;
 import org.dcache.xdr.RpcCall;
 import org.dcache.xdr.RpcDispatchable;
@@ -35,7 +35,7 @@ import org.dcache.xdr.XdrVoid;
 
 public class OncRpcbindServer implements RpcDispatchable {
 
-    private final static Logger _log = Logger.getLogger(OncRpcbindServer.class.getName());
+    private final static Logger _log = LoggerFactory.getLogger(OncRpcbindServer.class);
 
     /**
      * Set of registered services.

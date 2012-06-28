@@ -22,8 +22,8 @@ package org.dcache.xdr.gss;
 import com.google.common.primitives.Ints;
 import java.io.IOException;
 import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.dcache.utils.Bytes;
 import org.dcache.xdr.OncRpcException;
 import org.dcache.xdr.RpcAuthError;
@@ -53,7 +53,7 @@ import org.ietf.jgss.MessageProp;
  */
 public class GssProtocolFilter extends BaseFilter {
 
-    private final static Logger _log = Logger.getLogger(GssProtocolFilter.class.getName());
+    private final static Logger _log = LoggerFactory.getLogger(GssProtocolFilter.class);
     /**
      * Return value from either accept or init stating that
      * the context creation phase is complete for this peer.
@@ -134,7 +134,7 @@ public class GssProtocolFilter extends BaseFilter {
                     authGss.getSubject()
                             .getPrincipals()
                             .addAll(_gssSessionManager.subjectOf(sourceName).getPrincipals());
-                    _log.log(Level.FINE, "RPCGSS_SEC: {0}",sourceName);
+                    _log.debug("RPCGSS_SEC: {}",sourceName);
                     byte[] crc = Ints.toByteArray(authGss.getSequence());
                     crc = gssContext.getMIC(crc, 0, 4, new MessageProp(false));
                     authGss.setVerifier(new RpcAuthVerifier(authGss.type(), crc));
@@ -144,16 +144,16 @@ public class GssProtocolFilter extends BaseFilter {
 
         } catch (RpcException e) {
             call.reject(e.getStatus(), e.getRpcReply());
-            _log.log(Level.WARNING, "GSS mechanism failed {0}", e.getMessage());
+            _log.warn("GSS mechanism failed {}", e.getMessage());
         } catch (IOException e) {
             call.reject(RpcRejectStatus.AUTH_ERROR, new RpcAuthError(RpcAuthStat.RPCSEC_GSS_CTXPROBLEM));
-            _log.log(Level.WARNING, "GSS mechanism failed {0}", e.getMessage());
+            _log.warn("GSS mechanism failed {}", e.getMessage());
         } catch (OncRpcException e) {
             call.reject(RpcRejectStatus.AUTH_ERROR, new RpcAuthError(RpcAuthStat.RPCSEC_GSS_CTXPROBLEM));
-            _log.log(Level.WARNING, "RPC request rejected: {0}", e.getMessage());
+            _log.warn("RPC request rejected: {}", e.getMessage());
         } catch (GSSException e) {
             call.reject(RpcRejectStatus.AUTH_ERROR, new RpcAuthError(RpcAuthStat.RPCSEC_GSS_CTXPROBLEM));
-            _log.log(Level.WARNING, "GSS mechanism failed {0}", e.getMessage());
+            _log.warn("GSS mechanism failed {}", e.getMessage());
         }
 
         if(hasContext)

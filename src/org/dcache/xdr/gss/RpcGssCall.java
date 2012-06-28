@@ -20,10 +20,10 @@
 package org.dcache.xdr.gss;
 
 import java.io.IOException;
-import java.util.logging.Logger;
 import org.ietf.jgss.GSSException;
 import org.ietf.jgss.MessageProp;
-import java.util.logging.Level;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.dcache.xdr.*;
 import org.glassfish.grizzly.Buffer;
 import org.ietf.jgss.GSSContext;
@@ -36,7 +36,7 @@ import org.ietf.jgss.GSSContext;
  */
 public class RpcGssCall extends RpcCall {
 
-    private final static Logger _log = Logger.getLogger(RpcGssCall.class.getName());
+    private final static Logger _log = LoggerFactory.getLogger(RpcGssCall.class);
     private final GSSContext _gssContext;
     private final MessageProp _mop;
 
@@ -51,7 +51,7 @@ public class RpcGssCall extends RpcCall {
     public void retrieveCall(XdrAble args) throws OncRpcException, IOException {
         try {
             RpcAuthGss authGss = (RpcAuthGss) getCredential();
-            _log.log(Level.FINE, "Call with GSS service: {0}", authGss.getService());
+            _log.debug("Call with GSS service: {}", authGss.getService());
             XdrDecodingStream xdr;
             switch (authGss.getService()) {
                 case RpcGssService.RPC_GSS_SVC_NONE:
@@ -84,7 +84,7 @@ public class RpcGssCall extends RpcCall {
                     xdr.endDecoding();
             }
         } catch (GSSException e) {
-            _log.log(Level.SEVERE, "GSS error: {0}", e.getMessage());
+            _log.error("GSS error: {}", e.getMessage());
             throw new RpcAuthException( "GSS error: " + e.getMessage() ,
                     new RpcAuthError(RpcAuthStat.RPCSEC_GSS_CTXPROBLEM));
         }
@@ -94,7 +94,7 @@ public class RpcGssCall extends RpcCall {
     public void acceptedReply(int state, XdrAble reply) {
         try {
             RpcAuthGss authGss = (RpcAuthGss) getCredential();
-            _log.log(Level.FINE, "Reply with GSS service: {0}", authGss.getService());
+            _log.debug("Reply with GSS service: {}", authGss.getService());
             XdrEncodingStream xdr;
             switch (authGss.getService()) {
                 case RpcGssService.RPC_GSS_SVC_NONE:
@@ -131,13 +131,13 @@ public class RpcGssCall extends RpcCall {
             }
 
         } catch (IOException e) {
-            _log.log(Level.SEVERE, "IO error: {0}", e.getMessage());
+            _log.error("IO error: {}", e.getMessage());
             super.reject(RpcRejectStatus.AUTH_ERROR, new RpcAuthError(RpcAuthStat.RPCSEC_GSS_CTXPROBLEM));
         } catch (OncRpcException e) {
-            _log.log(Level.SEVERE, "RPC error: {0}", e.getMessage());
+            _log.error("RPC error: {}", e.getMessage());
             super.reject(RpcRejectStatus.AUTH_ERROR, new RpcAuthError(RpcAuthStat.RPCSEC_GSS_CTXPROBLEM));
         } catch (GSSException e) {
-            _log.log(Level.SEVERE, "GSS error: {0}", e.getMessage());
+            _log.error("GSS error: {}", e.getMessage());
             super.reject(RpcRejectStatus.AUTH_ERROR, new RpcAuthError(RpcAuthStat.RPCSEC_GSS_CTXPROBLEM));
         }
     }

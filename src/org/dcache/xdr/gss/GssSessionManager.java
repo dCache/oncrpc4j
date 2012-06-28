@@ -21,7 +21,8 @@ package org.dcache.xdr.gss;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javax.security.auth.Subject;
 import javax.security.auth.kerberos.KerberosPrincipal;
 import org.dcache.xdr.RpcLoginService;
@@ -35,7 +36,7 @@ import org.ietf.jgss.Oid;
 
 public class GssSessionManager {
 
-    private static final Logger _log = Logger.getLogger(GssSessionManager.class.getName());
+    private static final Logger _log = LoggerFactory.getLogger(GssSessionManager.class);
     private final GSSManager gManager = GSSManager.getInstance();
     private final GSSCredential _serviceCredential;
     private final RpcLoginService _loginService;

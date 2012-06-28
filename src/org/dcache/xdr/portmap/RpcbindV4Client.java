@@ -20,8 +20,8 @@
 package org.dcache.xdr.portmap;
 
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.dcache.xdr.OncRpcException;
 import org.dcache.xdr.RpcAuth;
 import org.dcache.xdr.RpcAuthTypeNone;
@@ -32,7 +32,7 @@ import org.dcache.xdr.XdrVoid;
 
 public class RpcbindV4Client implements OncPortmapClient {
 
-    private final static Logger _log = Logger.getLogger(RpcbindV4Client.class.getName());
+    private final static Logger _log = LoggerFactory.getLogger(RpcbindV4Client.class);
 
     private final RpcAuth _auth = new RpcAuthTypeNone();
     private final RpcCall _call;
@@ -43,7 +43,7 @@ public class RpcbindV4Client implements OncPortmapClient {
 
     public boolean ping() {
 
-        _log.log(Level.FINEST, "portmap ping");
+        _log.debug("portmap ping");
         boolean pong = false;
 
         try {
@@ -59,7 +59,7 @@ public class RpcbindV4Client implements OncPortmapClient {
     public boolean setPort(int program, int version, String netid, String addr, String owner)
             throws OncRpcException, IOException {
 
-        _log.log(Level.FINEST, "portmap set port: prog: {0} vers: {1}, netid: {2} addr: {3}, owner: {4}",
+        _log.debug("portmap set port: prog: {} vers: {}, netid: {} addr: {}, owner: {}",
                 new Object[] {program, version, netid, addr, owner});
 
         rpcb m1 = new rpcb(program, version, netid, addr, owner);
@@ -80,7 +80,7 @@ public class RpcbindV4Client implements OncPortmapClient {
 
     public void dump() throws OncRpcException, IOException {
 
-        _log.log(Level.FINEST, "portmap dump");
+        _log.debug("portmap dump");
 
         rpcb_list rpcb_list_reply = new rpcb_list();
         _call.call(OncRpcPortmap.RPCBPROC_DUMP, XdrVoid.XDR_VOID, rpcb_list_reply);
