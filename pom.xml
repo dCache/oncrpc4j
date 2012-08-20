@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
 
@@ -8,10 +9,11 @@
   </description>
 
   <groupId>org.dcache</groupId>
-  <artifactId>nio-jrpc</artifactId>
+  <artifactId>oncrpc4j</artifactId>
   <version>2.0-SNAPSHOT</version>
-  <name>Grizzly NIO framework based ONC RPC implementation</name>
-  <packaging>jar</packaging>
+  <name>ONCRPC4J parent project</name>
+  <packaging>pom</packaging>
+
   <url>http://www.dCache.ORG</url>
 
     <scm>
@@ -33,9 +35,13 @@
     </license>
   </licenses>
 
+  <modules>
+      <module>oncrpc4j-core</module>
+      <module>oncrpc4j-spring</module>
+      <module>oncrpc4j-rpcgen</module>
+  </modules>
+
   <build>
-    <sourceDirectory>src</sourceDirectory>
-    <testSourceDirectory>test</testSourceDirectory>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -68,112 +74,57 @@
           </execution>
         </executions>
       </plugin>
-
-      <!--
-         start java app
-      -->
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <version>1.2</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>java</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <mainClass>org.dcache.xdr.SpringRunner</mainClass>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <version>2.2-beta-4</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>attached</goal>
-            </goals>
-            <phase>package</phase>
-            <configuration>
-              <descriptorRefs>
-                <descriptorRef>jar-with-dependencies</descriptorRef>
-              </descriptorRefs>
-              <archive>
-                <manifest>
-                  <mainClass>org.dcache.xdr.SpringRunner</mainClass>
-                  <packageName>org.dcache.rpc</packageName>
-                  <addExtensions />
-                </manifest>
-                <manifestEntries>
-                  <mode>development</mode>
-                  <Implementation-Build>${buildNumber}</Implementation-Build>
-                  <url>${project.url}</url>
-                  <Build-Time>${maven.build.timestamp}</Build-Time>
-                </manifestEntries>
-              </archive>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
     </plugins>
-    <resources>
-      <resource>
-         <directory>resources</directory>
-         <includes>
-         </includes>
-      </resource>
-    </resources>
   </build>
 
   <!--
     EXTERNAL DEPENDENCIES
   -->
-  <dependencies>
-    <dependency>
-      <groupId>org.glassfish.grizzly</groupId>
-      <artifactId>grizzly-framework</artifactId>
-      <version>2.2.11</version>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-context</artifactId>
-      <version>3.0.5.RELEASE</version>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.7</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-      <version>10.0.1</version>
-    </dependency>
-    <dependency>
-      <groupId>org.dcache.common</groupId>
-      <artifactId>dcache-auth</artifactId>
-      <version>0.0.10</version>
-    </dependency>
-    <dependency>
-      <groupId>com.sun.jna</groupId>
-      <artifactId>jna</artifactId>
-      <version>3.0.9</version>
-      </dependency>
-    <dependency>
-        <groupId>org.glassfish.gmbal</groupId>
-        <artifactId>gmbal</artifactId>
-        <version>3.0.0-b023</version>
-    </dependency>
-    <dependency>
-        <groupId>org.slf4j</groupId>
-        <artifactId>slf4j-api</artifactId>
-        <version>1.6.4</version>
-    </dependency>
-  </dependencies>
+  <dependencyManagement>
+      <dependencies>
+          <dependency>
+              <groupId>org.glassfish.grizzly</groupId>
+              <artifactId>grizzly-framework</artifactId>
+              <version>2.2.11</version>
+          </dependency>
+          <dependency>
+              <groupId>org.springframework</groupId>
+              <artifactId>spring-context</artifactId>
+              <version>3.0.5.RELEASE</version>
+          </dependency>
+          <dependency>
+              <groupId>junit</groupId>
+              <artifactId>junit</artifactId>
+              <version>4.7</version>
+              <scope>test</scope>
+          </dependency>
+          <dependency>
+              <groupId>com.google.guava</groupId>
+              <artifactId>guava</artifactId>
+              <version>10.0.1</version>
+          </dependency>
+          <dependency>
+              <groupId>org.dcache.common</groupId>
+              <artifactId>dcache-auth</artifactId>
+              <version>0.0.10</version>
+          </dependency>
+          <dependency>
+              <groupId>com.sun.jna</groupId>
+              <artifactId>jna</artifactId>
+              <version>3.0.9</version>
+          </dependency>
+          <dependency>
+              <groupId>org.glassfish.gmbal</groupId>
+              <artifactId>gmbal</artifactId>
+              <version>3.0.0-b023</version>
+          </dependency>
+          <dependency>
+              <groupId>org.slf4j</groupId>
+              <artifactId>slf4j-api</artifactId>
+              <version>1.6.4</version>
+          </dependency>
+      </dependencies>
+  </dependencyManagement>
 
   <!--
     MAVEN REPOSITORIES
