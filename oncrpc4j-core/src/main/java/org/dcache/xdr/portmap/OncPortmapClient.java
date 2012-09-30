@@ -29,5 +29,6 @@ public interface OncPortmapClient {
     boolean ping();
 
     boolean setPort(int program, int version, String netid, String addr, String owner) throws OncRpcException, IOException;
+    boolean unsetPort(int program, int version, String owner) throws OncRpcException, IOException;
     String  getPort(int program, int version, String netid) throws OncRpcException, IOException;
 }

@@ -76,6 +76,19 @@ public class PortmapV2Client implements OncPortmapClient {
     }
 
     @Override
+    public boolean unsetPort(int program, int version, String owner) throws OncRpcException, IOException {
+        _log.debug("portmap unset port: prog: {} vers: {}, owner: {}",
+                new Object[]{program, version, owner});
+
+        mapping m = new mapping(program, version, 0, -1);
+
+        XdrBoolean isSet = new XdrBoolean();
+        _call.call(OncRpcPortmap.PMAPPROC_UNSET, m, isSet);
+
+        return isSet.booleanValue();
+    }
+
+    @Override
     public String getPort(int program, int version, String nid) throws OncRpcException, IOException {
 
         mapping m = new mapping(program, version, netid.idOf(nid), 0);

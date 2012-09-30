@@ -21,7 +21,6 @@ package org.dcache.xdr.portmap;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.dcache.xdr.IpProtocolType;
@@ -66,27 +65,41 @@ public class GenericPortmapClient implements OncPortmapClient {
         return _portmapClient.setPort(program, version, netid, addr, owner);
     }
 
+    public boolean unsetPort(int program, int version, String owner) throws OncRpcException, IOException {
+        return _portmapClient.unsetPort(program, version, owner);
+    }
+
     public String getPort(int program, int version, String netid) throws OncRpcException, IOException {
         return _portmapClient.getPort(program, version, netid);
     }
 
     public static void main(String[] args) throws InterruptedException, IOException, OncRpcException {
 
-        OncRpcClient rpcClient = new OncRpcClient(InetAddress.getByName("127.0.0.1"), IpProtocolType.UDP, 111);
+        int protocol = IpProtocolType.TCP;
+        
+        OncRpcClient rpcClient = new OncRpcClient(InetAddress.getByName(null), IpProtocolType.UDP, 111);
         XdrTransport transport = rpcClient.connect();
 
         OncPortmapClient portmapClient = new GenericPortmapClient(transport);
 
         try {
 
+            int prog = 100009;
+            int vers = 4;
+            String netid = IpProtocolType.toString(protocol);
+            String user = System.getProperty("user.name");
+            String addr = "127.0.0.1.8.4";
             /*
              * check for V4
              */
             portmapClient.ping();
-            portmapClient.setPort(100003, 4, "tcp", "127.0.0.2.8.4", System.getProperty("user.name"));
-            portmapClient.dump();
+            System.out.println(portmapClient.setPort(prog, vers, netid, addr, user));
+            System.out.println("getport: " + portmapClient.getPort(prog, vers, netid));
+            System.out.println("-------");
+            
+      //      System.out.println(portmapClient.unsetPort(prog, vers, user));
+            System.out.println("getport: " + portmapClient.getPort(prog, vers, netid));
 
-            System.out.println("getport: " + portmapClient.getPort(100000, 4, "tcp"));
         } finally {
             rpcClient.close();
         }

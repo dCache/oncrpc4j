@@ -71,6 +71,21 @@ public class RpcbindV4Client implements OncPortmapClient {
     }
 
     @Override
+    public boolean unsetPort(int program, int version, String owner)
+            throws OncRpcException, IOException {
+
+        _log.debug("portmap unset port: prog: {} vers: {}, owner: {}",
+                new Object[]{program, version, owner});
+
+        rpcb m = new rpcb(program, version, "", "", owner);
+
+        XdrBoolean isSet = new XdrBoolean();
+        _call.call(OncRpcPortmap.RPCBPROC_UNSET, m, isSet);
+        return isSet.booleanValue();
+
+    }
+
+    @Override
     public String getPort(int program, int version, String netid) throws OncRpcException, IOException {
         rpcb arg = new rpcb(program, version, netid, "", "");
         XdrString xdrString = new XdrString();
