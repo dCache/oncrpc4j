@@ -212,6 +212,9 @@ public class OncRpcSvc {
 
             for (OncRpcProgram program : programs) {
                 try {
+                    portmapClient.unsetPort(program.getNumber(),
+                            program.getVersion(), username);
+
                     if (t instanceof TCPNIOTransport) {
                         portmapClient.setPort(program.getNumber(), program.getVersion(),
                                 "tcp", uaddr, username);
@@ -222,6 +225,35 @@ public class OncRpcSvc {
                     }
                 } catch (OncRpcException ex) {
                     _log.error("Failed to register program", ex);
+                }
+            }
+        } finally {
+            rpcClient.close();
+        }
+    }
+
+    /**
+     * Register services in portmap.
+     *
+     * @throws IOException
+     * @throws UnknownHostException
+     */
+    private void clearPortmap(Connection<InetSocketAddress> connection, Set<OncRpcProgram> programs) throws IOException {
+
+        OncRpcClient rpcClient = new OncRpcClient(InetAddress.getByName(null),
+                IpProtocolType.UDP, OncRpcPortmap.PORTMAP_PORT);
+        XdrTransport transport = rpcClient.connect();
+        OncPortmapClient portmapClient = new GenericPortmapClient(transport);
+
+        try {
+            String username = System.getProperty("user.name");
+
+            for (OncRpcProgram program : programs) {
+                try {
+                    portmapClient.unsetPort(program.getNumber(),
+                            program.getVersion(), username);
+                } catch (OncRpcException ex) {
+                    _log.error("Failed to unregister program", ex);
                 }
             }
         } finally {
@@ -269,6 +301,13 @@ public class OncRpcSvc {
     }
 
     public void stop() throws IOException {
+
+        if (_publish) {
+            for (Connection<InetSocketAddress> connection : _boundConnections) {
+                clearPortmap(connection, _programs.keySet());
+            }
+        }
+
         for (Transport t : _transports) {
             t.stop();
         }
