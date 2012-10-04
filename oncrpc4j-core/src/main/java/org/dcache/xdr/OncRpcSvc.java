@@ -212,9 +212,6 @@ public class OncRpcSvc {
 
             for (OncRpcProgram program : programs) {
                 try {
-                    portmapClient.unsetPort(program.getNumber(),
-                            program.getVersion(), username);
-
                     if (t instanceof TCPNIOTransport) {
                         portmapClient.setPort(program.getNumber(), program.getVersion(),
                                 "tcp", uaddr, username);
@@ -238,7 +235,7 @@ public class OncRpcSvc {
      * @throws IOException
      * @throws UnknownHostException
      */
-    private void clearPortmap(Connection<InetSocketAddress> connection, Set<OncRpcProgram> programs) throws IOException {
+    private void clearPortmap(Set<OncRpcProgram> programs) throws IOException {
 
         OncRpcClient rpcClient = new OncRpcClient(InetAddress.getByName(null),
                 IpProtocolType.UDP, OncRpcPortmap.PORTMAP_PORT);
@@ -273,6 +270,10 @@ public class OncRpcSvc {
 
     public void start() throws IOException {
 
+        if(_publish) {
+            clearPortmap(_programs.keySet());
+        }
+
         for (Transport t : _transports) {
 
             FilterChainBuilder filterChain = FilterChainBuilder.stateless();
@@ -297,15 +298,12 @@ public class OncRpcSvc {
                 publishToPortmap(connection, _programs.keySet());
             }
         }
-
     }
 
     public void stop() throws IOException {
 
         if (_publish) {
-            for (Connection<InetSocketAddress> connection : _boundConnections) {
-                clearPortmap(connection, _programs.keySet());
-            }
+            clearPortmap(_programs.keySet());
         }
 
         for (Transport t : _transports) {
