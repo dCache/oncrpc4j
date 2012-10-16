@@ -57,7 +57,7 @@ public class OncRpcEmbeddedPortmap {
                 RpcCall call = new RpcCall(OncRpcPortmap.PORTMAP_PROGRAMM,
                         i, _auth, transport);
                 try {
-                    call.call(0, XdrVoid.XDR_VOID, XdrVoid.XDR_VOID, 2000);
+                    call.call(0, XdrVoid.XDR_VOID, XdrVoid.XDR_VOID, timeout);
                 } catch (OncRpcException ex) {}
                 localPortmapperRunning = true;
             }
