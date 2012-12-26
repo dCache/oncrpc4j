@@ -163,11 +163,11 @@
   <distributionManagement>
       <repository>
           <id>dcache.org</id>
-          <url>http://download.dcache.org/nexus/content/repositories/releases</url>
+          <url>https://download.dcache.org/nexus/content/repositories/releases</url>
       </repository>
       <snapshotRepository>
           <id>dcache.org-snapshot</id>
-          <url>http://download.dcache.org/nexus/content/repositories/snapshots</url>
+          <url>https://download.dcache.org/nexus/content/repositories/snapshots</url>
       </snapshotRepository>
   </distributionManagement>
 
