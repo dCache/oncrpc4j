@@ -232,3 +232,26 @@ public class StrlenClientApp {
 ```
 
 Your RPC client and server are ready!
+
+Use ONCRPC4J in your project
+==========================
+
+As maven dependency
+------------------
+
+```xml
+<dependency>
+    <groupId>org.dcache</groupId>
+    <artifactId>oncrpc4j-core</artifactId>
+    <version>2.0.0</version>
+</dependency>
+
+<repositories>
+    <repository>
+        <id>dcache-snapshots</id>
+        <name>dCache.ORG maven repository</name>
+        <url>https://download.dcache.org/nexus/content/repositories/releases</url>
+        <layout>default</layout>
+    </repository>
+</repositories>
+```
