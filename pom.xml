@@ -17,8 +17,9 @@
   <url>http://www.dCache.ORG</url>
 
     <scm>
-        <connection>scm:hg:../nio-jrpc-release</connection>
-        <developerConnection>scm:hg:../nio-jrpc-release</developerConnection>
+        <url>https://github.com/dCache/oncrpc4j.git</url>
+        <connection>scm:git:https://github.com/dCache/oncrpc4j.git</connection>
+        <developerConnection>scm:git:https://github.com/dCache/oncrpc4j.git</developerConnection>
     </scm>
 
   <!--
