@@ -108,7 +108,7 @@ public class RpcReply {
 
     public void getReplyResult(XdrAble result) throws OncRpcException, IOException {
         result.xdrDecode(_xdr);
-        _xdr.endEncoding();
+        _xdr.endDecoding();
     }
 
     public void reply(XdrAble reply) throws OncRpcException, IOException {
