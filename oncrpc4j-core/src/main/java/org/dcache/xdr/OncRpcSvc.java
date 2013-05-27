@@ -236,7 +236,7 @@ public class OncRpcSvc {
     }
 
     /**
-     * Register services in portmap.
+     * UnRegister services in portmap.
      *
      * @throws IOException
      * @throws UnknownHostException
