@@ -29,6 +29,7 @@ import org.dcache.xdr.RpcCall;
 import org.dcache.xdr.RpcDispatchable;
 import org.dcache.xdr.OncRpcSvc;
 import org.dcache.xdr.OncRpcProgram;
+import org.dcache.xdr.OncRpcSvcBuilder;
 import org.dcache.xdr.XdrBoolean;
 import org.dcache.xdr.XdrVoid;
 
@@ -119,7 +120,7 @@ public class OncRpcbindServer implements RpcDispatchable {
     public static void main(String[] args) throws Exception {
 
         if (args.length > 1) {
-            System.err.println("Usage: SimpleRpcServer <port>");
+            System.err.println("Usage: OncRpcbindServer <port>");
             System.exit(1);
         }
 
@@ -131,11 +132,18 @@ public class OncRpcbindServer implements RpcDispatchable {
 
         RpcDispatchable rpcbind = new OncRpcbindServer();
 
-        OncRpcSvc server  = new OncRpcSvc(port);
+        OncRpcSvc server  = new OncRpcSvcBuilder()
+                .withPort(port)
+                .withTCP()
+                .withUDP()
+                .withSameThreadIoStrategy()
+                .withoutAutoPublish()
+                .build();
         server.register(new OncRpcProgram( OncRpcPortmap.PORTMAP_PROGRAMM,
                 OncRpcPortmap.PORTMAP_V2), rpcbind);
 
         server.start();
+        System.in.read();
 
     }
 }

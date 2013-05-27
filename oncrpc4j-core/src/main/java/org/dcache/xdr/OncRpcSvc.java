@@ -94,40 +94,6 @@ public class OncRpcSvc {
             new ConcurrentHashMap<OncRpcProgram, RpcDispatchable>();
 
     /**
-     * Create a RPC service. Binds to a given <i>port</i> on all available
-     * interfaces and transports ( TCP and UDP ). All programs will be published
-     * on the startup.
-     *
-     * @param port number to bind
-     */
-    public OncRpcSvc(int port) {
-        this(port, IpProtocolType.TCP | IpProtocolType.UDP, true);
-    }
-
-    /**
-     * Create a RPC service. Binds to a given <i>port</i> on all available
-     * interfaces and transports ( TCP and UDP )..
-     *
-     * @param port number to bind
-     * @param publish all services if <i>true</i>
-     */
-    public OncRpcSvc(int port, boolean publish) {
-        this(port, IpProtocolType.TCP | IpProtocolType.UDP, publish);
-    }
-
-    /**
-     * Create a RPC service. Binds to a given <i>port</i> with a given
-     * <i>protocol</i>.
-     *
-     * @param port number to bind
-     * @param protocol to bind
-     * @param publish all services if <i>true</i>
-     */
-    public OncRpcSvc(int port, int protocol, boolean publish) {
-        this(new PortRange(port), protocol, publish, IoStrategy.SAME_THREAD);
-    }
-
-    /**
      * Create new RPC service with defined configuration.
      * @param builder to build this service
      */
