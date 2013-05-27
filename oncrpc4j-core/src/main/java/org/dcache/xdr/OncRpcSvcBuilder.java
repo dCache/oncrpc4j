@@ -19,7 +19,6 @@
  */
 package org.dcache.xdr;
 
-import org.glassfish.grizzly.PortRange;
 import static com.google.common.base.Preconditions.*;
 
 
@@ -108,15 +107,35 @@ public class OncRpcSvcBuilder {
         return this;
     }
 
+    public int getProtocol() {
+        return _protocol;
+    }
+
+    public int getMinPort() {
+        return _minPort;
+    }
+
+    public int getMaxPort() {
+        return _maxPort;
+    }
+
+    public boolean isAutoPublish() {
+        return _autoPublish;
+    }
+
+    public OncRpcSvc.IoStrategy getIoStrategy() {
+        return _ioStrategy;
+    }
+
+    public boolean isWithJMX() {
+        return _withJMX;
+    }
+
     public OncRpcSvc build() {
 
         if (_protocol == 0) {
             throw new IllegalArgumentException("invalid protocol");
         }
-
-        OncRpcSvc svc = new OncRpcSvc(new PortRange(_minPort, _maxPort), _protocol, _autoPublish, _ioStrategy);
-        if(_withJMX)
-            svc.enableJMX();
-        return svc;
+        return new OncRpcSvc(this);
     }
 }

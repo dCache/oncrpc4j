@@ -128,6 +128,46 @@ public class OncRpcSvc {
     }
 
     /**
+     * Create new RPC service with defined configuration.
+     * @param builder to build this service
+     */
+    OncRpcSvc(OncRpcSvcBuilder builder) {
+        _publish = builder.isAutoPublish();
+        final int protocol = builder.getProtocol();
+
+        if ((protocol & (IpProtocolType.TCP | IpProtocolType.UDP)) == 0) {
+            throw new IllegalArgumentException("TCP or UDP protocol have to be defined");
+        }
+
+        IOStrategy grizzlyIoStrategy = builder.getIoStrategy().getStrategy();
+        if ((protocol & IpProtocolType.TCP) != 0) {
+            final TCPNIOTransport tcpTransport = TCPNIOTransportBuilder
+                    .newInstance()
+                    .setReuseAddress(true)
+                    .setIOStrategy(grizzlyIoStrategy)
+                    .build();
+            _transports.add(tcpTransport);
+        }
+
+        if ((protocol & IpProtocolType.UDP) != 0) {
+            final UDPNIOTransport udpTransport = UDPNIOTransportBuilder
+                    .newInstance()
+                    .setReuseAddress(true)
+                    .setIOStrategy(grizzlyIoStrategy)
+                    .build();
+            _transports.add(udpTransport);
+        }
+        _portRange = new PortRange(builder.getMinPort(), builder.getMaxPort());
+
+        if (builder.isWithJMX()) {
+            final GrizzlyJmxManager jmxManager = GrizzlyJmxManager.instance();
+            for (Transport t : _transports) {
+                jmxManager.registerAtRoot(t.getMonitoringConfig().createManagementObject(), t.getName() + "-" + _portRange);
+            }
+        }
+    }
+
+    /**
      * Create a RPC service. Binds with in a given <i>porRanget</i> with a given
      * <i>protocol</i>.
      *
@@ -308,13 +348,6 @@ public class OncRpcSvc {
 
         for (Transport t : _transports) {
             t.stop();
-        }
-    }
-
-    public void enableJMX() {
-        final GrizzlyJmxManager jmxManager = GrizzlyJmxManager.instance();
-        for (Transport t : _transports) {
-            jmxManager.registerAtRoot(t.getMonitoringConfig().createManagementObject(), t.getName() + "-" + _portRange);
         }
     }
 
