@@ -134,42 +134,6 @@ public class OncRpcSvc {
     }
 
     /**
-     * Create a RPC service. Binds with in a given <i>porRanget</i> with a given
-     * <i>protocol</i>.
-     *
-     * @param portRange to bind
-     * @param protocol to bind
-     * @param publish all services if <i>true</i>
-     */
-    public OncRpcSvc(PortRange portRange, int protocol, boolean publish, IoStrategy ioStrategy) {
-        _publish = publish;
-
-        if ((protocol & (IpProtocolType.TCP | IpProtocolType.UDP)) == 0) {
-            throw new IllegalArgumentException("TCP or UDP protocol have to be defined");
-        }
-
-        IOStrategy grizzlyIoStrategy = ioStrategy.getStrategy();
-        if ((protocol & IpProtocolType.TCP) != 0) {
-            final TCPNIOTransport tcpTransport = TCPNIOTransportBuilder
-                    .newInstance()
-                    .setReuseAddress(true)
-                    .setIOStrategy(grizzlyIoStrategy)
-                    .build();
-            _transports.add(tcpTransport);
-        }
-
-        if ((protocol & IpProtocolType.UDP) != 0) {
-            final UDPNIOTransport udpTransport = UDPNIOTransportBuilder
-                    .newInstance()
-                    .setReuseAddress(true)
-                    .setIOStrategy(grizzlyIoStrategy)
-                    .build();
-            _transports.add(udpTransport);
-        }
-        _portRange = portRange;
-    }
-
-    /**
      * Register a new PRC service. Existing registration will be overwritten.
      *
      * @param prog program number
