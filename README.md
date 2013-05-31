@@ -129,10 +129,16 @@ public class Svcd implements RpcDispatchable {
         <constructor-arg index="0" value="1110001" />
         <constructor-arg index="1" value="1" />
     </bean>
-    
+
+    <bean id="rpcsvc-builder" class="org.dcache.xdr.OncRpcSvcFactoryBean">
+        <description>Onc RPC service builder</description>
+        <property name="port" value="1717"/>
+        <property name="useTCP" value="true"/>
+    </bean>
+
     <bean id="oncrpcsvc" class="org.dcache.xdr.OncRpcSvc" init-method="start" destroy-method="stop">
         <description>My RPC service</description>
-        <constructor-arg type="int" value="1717"/>
+        <constructor-arg ref="rpcsvc-builder"/>
         <property name="programs">
             <map>
                 <entry key-ref="my-rpc" value-ref="my-rpc-svc"/>
