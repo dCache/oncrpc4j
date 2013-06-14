@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2012 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2013 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -57,9 +57,11 @@ import org.glassfish.grizzly.strategies.WorkerThreadIOStrategy;
 public class OncRpcSvc {
 
     private final static Logger _log = LoggerFactory.getLogger(OncRpcSvc.class);
-    private final static int BACKLOG = 4096;
+
+    private final int _backlog;
     private final boolean _publish;
     private final PortRange _portRange;
+    private final String _bindAddress;
     private final List<Transport> _transports = new ArrayList<Transport>();
     private final Set<Connection<InetSocketAddress>> _boundConnections =
             new HashSet<Connection<InetSocketAddress>>();
@@ -124,6 +126,8 @@ public class OncRpcSvc {
             _transports.add(udpTransport);
         }
         _portRange = new PortRange(builder.getMinPort(), builder.getMaxPort());
+        _backlog = builder.getBacklog();
+        _bindAddress = builder.getBindAddress();
 
         if (builder.isWithJMX()) {
             final GrizzlyJmxManager jmxManager = GrizzlyJmxManager.instance();
@@ -260,7 +264,7 @@ public class OncRpcSvc {
 
             t.setProcessor(filters);
             Connection<InetSocketAddress> connection =
-                    ((SocketBinder) t).bind("0.0.0.0", _portRange, BACKLOG);
+                    ((SocketBinder) t).bind(_bindAddress, _portRange, _backlog);
             t.start();
 
             _boundConnections.add(connection);

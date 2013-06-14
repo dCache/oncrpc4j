@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2012 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2013 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -51,6 +51,8 @@ public class OncRpcSvcBuilder {
     private boolean _autoPublish = true;
     private OncRpcSvc.IoStrategy _ioStrategy = OncRpcSvc.IoStrategy.SAME_THREAD;
     private boolean _withJMX = false;
+    private int _backlog = 4096;
+    private String _bindAddress = "0.0.0.0";
 
     public OncRpcSvcBuilder withAutoPublish() {
         _autoPublish = true;
@@ -107,6 +109,16 @@ public class OncRpcSvcBuilder {
         return this;
     }
 
+    public OncRpcSvcBuilder withBacklog(int backlog) {
+        _backlog = backlog;
+        return this;
+    }
+
+    public OncRpcSvcBuilder withBindAddress(String address) {
+        _bindAddress = address;
+        return this;
+    }
+
     public int getProtocol() {
         return _protocol;
     }
@@ -129,6 +141,14 @@ public class OncRpcSvcBuilder {
 
     public boolean isWithJMX() {
         return _withJMX;
+    }
+
+    public int getBacklog() {
+        return _backlog;
+    }
+
+    public String getBindAddress() {
+        return _bindAddress;
     }
 
     public OncRpcSvc build() {
