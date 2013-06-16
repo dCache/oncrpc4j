@@ -177,9 +177,10 @@ public class OncRpcSvc {
         OncRpcClient rpcClient = new OncRpcClient(InetAddress.getByName(null),
                 IpProtocolType.UDP, OncRpcPortmap.PORTMAP_PORT);
         XdrTransport transport = rpcClient.connect();
-        OncPortmapClient portmapClient = new GenericPortmapClient(transport);
 
         try {
+            OncPortmapClient portmapClient = new GenericPortmapClient(transport);
+
             String username = System.getProperty("user.name");
             Transport t = connection.getTransport();
             String uaddr = InetSocketAddresses.uaddrOf(connection.getLocalAddress());
@@ -198,6 +199,8 @@ public class OncRpcSvc {
                     _log.error("Failed to register program", ex);
                 }
             }
+        } catch (RpcProgUnavailable e) {
+            _log.warn("Failed to register at portmap: ", e.getMessage());
         } finally {
             rpcClient.close();
         }
@@ -214,9 +217,10 @@ public class OncRpcSvc {
         OncRpcClient rpcClient = new OncRpcClient(InetAddress.getByName(null),
                 IpProtocolType.UDP, OncRpcPortmap.PORTMAP_PORT);
         XdrTransport transport = rpcClient.connect();
-        OncPortmapClient portmapClient = new GenericPortmapClient(transport);
 
         try {
+            OncPortmapClient portmapClient = new GenericPortmapClient(transport);
+
             String username = System.getProperty("user.name");
 
             for (OncRpcProgram program : programs) {
@@ -224,9 +228,11 @@ public class OncRpcSvc {
                     portmapClient.unsetPort(program.getNumber(),
                             program.getVersion(), username);
                 } catch (OncRpcException ex) {
-                    _log.error("Failed to unregister program", ex);
+                    _log.info("Failed to unregister program {}", ex.getMessage());
                 }
             }
+        } catch (RpcProgUnavailable e) {
+            _log.info("portmap service not available");
         } finally {
             rpcClient.close();
         }

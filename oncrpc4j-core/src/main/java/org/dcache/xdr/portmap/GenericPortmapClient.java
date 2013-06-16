@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2012 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2013 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -29,6 +29,7 @@ import org.dcache.xdr.OncRpcException;
 import org.dcache.xdr.RpcAuth;
 import org.dcache.xdr.RpcAuthTypeNone;
 import org.dcache.xdr.RpcCall;
+import org.dcache.xdr.RpcProgUnavailable;
 import org.dcache.xdr.XdrTransport;
 
 public class GenericPortmapClient implements OncPortmapClient {
@@ -37,7 +38,7 @@ public class GenericPortmapClient implements OncPortmapClient {
     private final RpcAuth _auth = new RpcAuthTypeNone();
     private final OncPortmapClient _portmapClient;
 
-    public GenericPortmapClient(XdrTransport transport) {
+    public GenericPortmapClient(XdrTransport transport) throws RpcProgUnavailable {
 
        OncPortmapClient portmapClient = new RpcbindV4Client(new RpcCall(100000, 4,
                _auth, transport));
@@ -46,7 +47,7 @@ public class GenericPortmapClient implements OncPortmapClient {
                     _auth, transport) );
             if(!portmapClient.ping()) {
                 // FIXME: return correct exception
-                throw new IllegalStateException("portmap service not available");
+                throw new RpcProgUnavailable("portmap service not available");
             }
             _log.debug("Using portmap V2");
         }
