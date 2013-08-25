@@ -94,7 +94,6 @@ public class OncRpcClient {
     }
 
     public void close() throws IOException {
-        _connection.close();
-        _transport.stop();
+        _transport.shutdownNow();
     }
 }

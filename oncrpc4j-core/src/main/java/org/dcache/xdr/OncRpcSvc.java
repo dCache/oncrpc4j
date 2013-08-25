@@ -38,7 +38,6 @@ import org.glassfish.grizzly.Transport;
 import org.glassfish.grizzly.filterchain.FilterChain;
 import org.glassfish.grizzly.filterchain.FilterChainBuilder;
 import org.glassfish.grizzly.filterchain.TransportFilter;
-import org.glassfish.grizzly.monitoring.jmx.GrizzlyJmxManager;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransportBuilder;
 import org.glassfish.grizzly.nio.transport.UDPNIOTransport;
@@ -51,6 +50,7 @@ import java.util.Map;
 import java.util.Set;
 import static org.dcache.xdr.GrizzlyUtils.*;
 import org.glassfish.grizzly.*;
+import org.glassfish.grizzly.jmxbase.GrizzlyJmxManager;
 import org.glassfish.grizzly.strategies.SameThreadIOStrategy;
 import org.glassfish.grizzly.strategies.WorkerThreadIOStrategy;
 
@@ -287,7 +287,7 @@ public class OncRpcSvc {
         }
 
         for (Transport t : _transports) {
-            t.stop();
+            t.shutdownNow();
         }
     }
 
