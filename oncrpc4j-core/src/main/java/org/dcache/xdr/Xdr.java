@@ -245,19 +245,11 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      * @return decoded string
      */
     public String xdrDecodeString() {
-        String ret;
-
         int len = xdrDecodeInt();
 
-        if (len > 0) {
-            byte[] bytes = new byte[len];
-            xdrDecodeOpaque(bytes, 0, len);
-            ret = new String(bytes);
-        } else {
-            ret = "";
-        }
-
-        return ret;
+        byte[] bytes = new byte[len];
+        xdrDecodeOpaque(bytes, 0, len);
+        return new String(bytes);
     }
 
     public boolean xdrDecodeBoolean() {
@@ -302,15 +294,12 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      */
     public byte[] xdrDecodeByteVector() {
         int length = xdrDecodeInt();
-        if (length > 0) {
-            byte[] bytes = new byte[length];
-            for (int i = 0; i < length; ++i) {
-                bytes[i] = (byte) xdrDecodeInt();
-            }
-            return bytes;
-        } else {
-            return new byte[0];
+
+        byte[] bytes = new byte[length];
+        for (int i = 0; i < length; ++i) {
+            bytes[i] = (byte) xdrDecodeInt();
         }
+        return bytes;
     }
 
     /**
@@ -323,15 +312,12 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      * @return The byte vector containing the decoded data.
      */
     public byte[] xdrDecodeByteFixedVector(int length) {
-        if (length > 0) {
-            byte[] bytes = new byte[length];
-            for (int i = 0; i < length; ++i) {
-                bytes[i] = (byte) xdrDecodeInt();
-            }
-            return bytes;
-        } else {
-            return new byte[0];
+
+        byte[] bytes = new byte[length];
+        for (int i = 0; i < length; ++i) {
+            bytes[i] = (byte) xdrDecodeInt();
         }
+        return bytes;
     }
 
     /**
@@ -602,14 +588,12 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
     public void xdrEncodeByteVector(byte[] value) {
         int length = value.length; // well, silly optimizations appear here...
         xdrEncodeInt(length);
-        if (length != 0) {
-            //
-            // For speed reasons, we do sign extension here, but the higher bits
-            // will be removed again when deserializing.
-            //
-            for (int i = 0; i < length; ++i) {
-                xdrEncodeInt((int) value[i]);
-            }
+        //
+        // For speed reasons, we do sign extension here, but the higher bits
+        // will be removed again when deserializing.
+        //
+        for (int i = 0; i < length; ++i) {
+            xdrEncodeInt((int) value[i]);
         }
     }
 
@@ -626,14 +610,12 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
         if (value.length != length) {
             throw (new IllegalArgumentException("array size does not match protocol specification"));
         }
-        if (length != 0) {
-            //
-            // For speed reasons, we do sign extension here, but the higher bits
-            // will be removed again when deserializing.
-            //
-            for (int i = 0; i < length; ++i) {
-                xdrEncodeInt((int) value[i]);
-            }
+        //
+        // For speed reasons, we do sign extension here, but the higher bits
+        // will be removed again when deserializing.
+        //
+        for (int i = 0; i < length; ++i) {
+            xdrEncodeInt((int) value[i]);
         }
     }
 
