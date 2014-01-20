@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2012 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2014 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -128,4 +128,42 @@ public final class Bytes {
         }
         return new String(chars);
     }
+
+    /**
+     * Create a byte array from the given hexadecimal string.
+     *
+     * @param s string to convert
+     * @return byte array
+     */
+    public static byte[] fromHexString(String s) {
+
+        if (s.length() % 2 != 0) {
+            throw new IllegalArgumentException("The string needs to be even-length: " + s);
+        }
+
+        int len = s.length() / 2;
+        byte[] bytes = new byte[len];
+
+        for (int i = 0; i < len; i++) {
+            final int charIndex = i * 2;
+            final int d0 = toDigit(s.charAt(charIndex));
+            final int d1 = toDigit(s.charAt(charIndex + 1));
+            bytes[i] = (byte) ((d0 << 4) + d1);
+        }
+        return bytes;
+    }
+
+    private static int toDigit(char ch) throws NumberFormatException {
+        if (ch >= '0' && ch <= '9') {
+            return ch - '0';
+        }
+        if (ch >= 'A' && ch <= 'F') {
+            return ch - 'A' + 10;
+        }
+        if (ch >= 'a' && ch <= 'f') {
+            return ch - 'a' + 10;
+        }
+        throw new NumberFormatException("illegal character '" + ch + "'");
+    }
+
 }
