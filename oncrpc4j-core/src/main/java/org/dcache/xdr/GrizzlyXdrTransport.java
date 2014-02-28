@@ -26,6 +26,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.glassfish.grizzly.Buffer;
 import org.glassfish.grizzly.Connection;
+import org.glassfish.grizzly.EmptyCompletionHandler;
+import org.glassfish.grizzly.WriteResult;
 import org.glassfish.grizzly.filterchain.FilterChainContext;
 
 public class GrizzlyXdrTransport implements XdrTransport {
@@ -47,12 +49,19 @@ public class GrizzlyXdrTransport implements XdrTransport {
     }
 
     @Override
-    public void send(Xdr xdr) throws IOException {
-        Buffer buffer = xdr.asBuffer();
+    public void send(final Xdr xdr) throws IOException {
+        final Buffer buffer = xdr.asBuffer();
         buffer.allowBufferDispose(true);
 
         // pass destination address to handle UDP connections as well
-        _context.write(_context.getAddress(), buffer, null);
+        _context.write(_context.getAddress(), buffer, new EmptyCompletionHandler<WriteResult>() {
+            @Override
+            public void failed(Throwable throwable) {
+                _log.error("Failed to send RPC message: xid=0x{} remote={} : {}",
+                       Integer.toHexString(buffer.getInt(0)), getRemoteSocketAddress(), throwable.getMessage());
+           }
+
+        });
     }
 
     @Override
