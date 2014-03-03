@@ -53,6 +53,7 @@ import org.glassfish.grizzly.*;
 import org.glassfish.grizzly.jmxbase.GrizzlyJmxManager;
 import org.glassfish.grizzly.strategies.SameThreadIOStrategy;
 import org.glassfish.grizzly.strategies.WorkerThreadIOStrategy;
+import org.glassfish.grizzly.threadpool.ThreadPoolConfig;
 
 public class OncRpcSvc {
 
@@ -108,11 +109,16 @@ public class OncRpcSvc {
         }
 
         IOStrategy grizzlyIoStrategy = builder.getIoStrategy().getStrategy();
+        ThreadPoolConfig selectorPoolConfig = getSelectorPoolCfg(grizzlyIoStrategy);
+        ThreadPoolConfig workerPoolConfig = getWorkerPoolCfg(grizzlyIoStrategy);
+
         if ((protocol & IpProtocolType.TCP) != 0) {
             final TCPNIOTransport tcpTransport = TCPNIOTransportBuilder
                     .newInstance()
                     .setReuseAddress(true)
                     .setIOStrategy(grizzlyIoStrategy)
+		    .setSelectorThreadPoolConfig(selectorPoolConfig)
+		    .setWorkerThreadPoolConfig(workerPoolConfig)
                     .build();
             _transports.add(tcpTransport);
         }
@@ -122,6 +128,8 @@ public class OncRpcSvc {
                     .newInstance()
                     .setReuseAddress(true)
                     .setIOStrategy(grizzlyIoStrategy)
+		    .setSelectorThreadPoolConfig(selectorPoolConfig)
+		    .setWorkerThreadPoolConfig(workerPoolConfig)
                     .build();
             _transports.add(udpTransport);
         }
