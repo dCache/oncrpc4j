@@ -58,7 +58,7 @@ public class GrizzlyXdrTransport implements XdrTransport {
             @Override
             public void failed(Throwable throwable) {
                 _log.error("Failed to send RPC message: xid=0x{} remote={} : {}",
-                       Integer.toHexString(buffer.getInt(0)), getRemoteSocketAddress(), throwable.getMessage());
+                       Integer.toHexString(buffer.getInt(0)), _connection.getPeerAddress(), throwable.getMessage());
            }
 
         });
