@@ -40,7 +40,7 @@ public class XdrTest {
     }
 
     @Test
-    public void testDecodeInt() {
+    public void testDecodeInt() throws BadXdrOncRpcException {
 
         int value = 17;
         _buffer.putInt(value);
@@ -52,7 +52,7 @@ public class XdrTest {
     }
 
     @Test
-    public void testEncodeDecodeOpaque() {
+    public void testEncodeDecodeOpaque() throws BadXdrOncRpcException {
 
         byte[] data = "some random data".getBytes();
         XdrEncodingStream encoder = new Xdr(_buffer);
@@ -69,7 +69,7 @@ public class XdrTest {
 
 
     @Test
-    public void testDecodeBooleanTrue() {
+    public void testDecodeBooleanTrue() throws BadXdrOncRpcException {
 
         _buffer.putInt(1);
 
@@ -79,7 +79,7 @@ public class XdrTest {
     }
 
     @Test
-    public void testEncodeDecodeBooleanTrue() {
+    public void testEncodeDecodeBooleanTrue() throws BadXdrOncRpcException {
 
         boolean value = true;
         XdrEncodingStream encoder = new Xdr(_buffer);
@@ -95,7 +95,7 @@ public class XdrTest {
     }
 
     @Test
-    public void testEncodeDecodeBooleanFalse() {
+    public void testEncodeDecodeBooleanFalse() throws BadXdrOncRpcException {
 
         boolean value = false;
         XdrEncodingStream encoder = new Xdr(_buffer);
@@ -111,7 +111,7 @@ public class XdrTest {
     }
 
     @Test
-    public void testDecodeBooleanFale() {
+    public void testDecodeBooleanFale() throws BadXdrOncRpcException {
 
         _buffer.putInt(0);
 
@@ -122,7 +122,7 @@ public class XdrTest {
 
 
     @Test
-    public void testEncodeDecodeString() {
+    public void testEncodeDecodeString() throws BadXdrOncRpcException {
 
         String original = "some random data";
         XdrEncodingStream encoder = new Xdr(_buffer);
@@ -139,7 +139,7 @@ public class XdrTest {
     }
 
     @Test
-    public void testEncodeDecodeEmptyString() {
+    public void testEncodeDecodeEmptyString() throws BadXdrOncRpcException {
 
         String original = "";
         XdrEncodingStream encoder = new Xdr(_buffer);
@@ -156,7 +156,7 @@ public class XdrTest {
     }
 
     @Test
-    public void testEncodeDecodeNullString() {
+    public void testEncodeDecodeNullString() throws BadXdrOncRpcException {
 
         String original = null;
         XdrEncodingStream encoder = new Xdr(_buffer);
@@ -173,7 +173,7 @@ public class XdrTest {
     }
 
     @Test
-    public void testEncodeDecodeLong() {
+    public void testEncodeDecodeLong() throws BadXdrOncRpcException {
 
         long value = 7L << 32;
         XdrEncodingStream encoder = new Xdr(_buffer);
@@ -190,7 +190,7 @@ public class XdrTest {
     }
 
     @Test
-    public void testEncodeDecodeMaxLong() {
+    public void testEncodeDecodeMaxLong() throws BadXdrOncRpcException {
 
         long value = Long.MAX_VALUE;
         XdrEncodingStream encoder = new Xdr(_buffer);
@@ -207,7 +207,7 @@ public class XdrTest {
     }
 
     @Test
-    public void testEncodeDecodeMinLong() {
+    public void testEncodeDecodeMinLong() throws BadXdrOncRpcException {
 
         long value = Long.MIN_VALUE;
         XdrEncodingStream encoder = new Xdr(_buffer);
@@ -224,7 +224,7 @@ public class XdrTest {
     }
 
     @Test
-    public void testEncodeDecodeIntVector() {
+    public void testEncodeDecodeIntVector() throws BadXdrOncRpcException {
 
         int vector[] = { 1, 2, 3, 4 };
         XdrEncodingStream encoder = new Xdr(_buffer);
@@ -264,6 +264,60 @@ public class XdrTest {
         xdr.beginEncoding();
         xdr.xdrEncodeLong(1);
         xdr.xdrEncodeLong(1);
+    }
+
+    @Test(expected = BadXdrOncRpcException.class)
+    public void testBadXdrWithInt() throws BadXdrOncRpcException {
+        CompositeBuffer buffer = BuffersBuffer.create();
+        buffer.append(allocateBuffer(10));
+        Xdr xdr = new Xdr(buffer);
+        xdr.beginEncoding();
+        xdr.xdrEncodeInt(1);
+        xdr.endEncoding();
+        xdr.beginDecoding();
+        xdr.xdrDecodeLong();
+    }
+
+    @Test(expected = BadXdrOncRpcException.class)
+    public void testBadXdrWithOpaque() throws BadXdrOncRpcException {
+        CompositeBuffer buffer = BuffersBuffer.create();
+        buffer.append(allocateBuffer(10));
+        byte[] b = new byte[10];
+        Xdr xdr = new Xdr(buffer);
+        xdr.beginEncoding();
+        xdr.xdrEncodeOpaque(b, b.length);
+        xdr.endEncoding();
+        xdr.beginDecoding();
+        xdr.xdrDecodeOpaque(b.length +5);
+    }
+
+    @Test(expected = BadXdrOncRpcException.class)
+    public void testBadXdrOnCorrption() throws BadXdrOncRpcException {
+        CompositeBuffer buffer = BuffersBuffer.create();
+        buffer.append(allocateBuffer(10));
+        int[] b = new int[10];
+        Xdr xdr = new Xdr(buffer);
+        xdr.beginEncoding();
+        xdr.xdrEncodeIntVector(b);
+        xdr.asBuffer().limit( xdr.asBuffer().position() -4);
+        xdr.endEncoding();
+        xdr.beginDecoding();
+        xdr.xdrDecodeIntVector();
+    }
+
+    @Test(expected = BadXdrOncRpcException.class)
+    public void testBadXdrOnNegativeArraySize() throws BadXdrOncRpcException {
+        CompositeBuffer buffer = BuffersBuffer.create();
+        buffer.append(allocateBuffer(10));
+        int[] b = new int[10];
+        Xdr xdr = new Xdr(buffer);
+        xdr.beginEncoding();
+        xdr.xdrEncodeInt(-2);  // len
+        xdr.xdrEncodeInt(1);   // first int
+        xdr.xdrEncodeInt(2);   // second int
+        xdr.endEncoding();
+        xdr.beginDecoding();
+        xdr.xdrDecodeIntVector();
     }
 
     private static Buffer allocateBuffer(int size) {

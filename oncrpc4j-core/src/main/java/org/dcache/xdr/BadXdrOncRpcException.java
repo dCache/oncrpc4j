@@ -19,33 +19,11 @@
  */
 package org.dcache.xdr;
 
-public class MismatchInfo implements XdrAble {
+public class BadXdrOncRpcException extends OncRpcException {
 
-    private int _min;
-    private int _max;
+    private static final long serialVersionUID = 5492424750571897543L;
 
-    public MismatchInfo(int min, int max) {
-        _min = min;
-        _max = max;
+    BadXdrOncRpcException(String msg) {
+        super(msg);
     }
-
-    public MismatchInfo() {}
-
-    @Override
-    public void xdrEncode(XdrEncodingStream xdr) {
-        xdr.xdrEncodeInt(_min);
-        xdr.xdrEncodeInt(_max);
-    }
-
-    @Override
-    public void xdrDecode(XdrDecodingStream xdr) throws BadXdrOncRpcException {
-        _min = xdr.xdrDecodeInt();
-        _max = xdr.xdrDecodeInt();
-    }
-
-    @Override
-    public String toString() {
-        return String.format("mismatch info: [%d, %d]", _min, _max);
-    }
-
 }

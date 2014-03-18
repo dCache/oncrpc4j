@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2013 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2014 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -19,6 +19,7 @@
  */
 package org.dcache.xdr;
 
+import com.google.common.base.Charsets;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import org.glassfish.grizzly.Buffer;
@@ -84,7 +85,8 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      *
      * @return The decoded int value.
      */
-    public int xdrDecodeInt() {
+    public int xdrDecodeInt() throws BadXdrOncRpcException {
+        ensureBytes(SIZE_OF_INT);
         int val = _buffer.getInt();
         return val;
     }
@@ -94,10 +96,10 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      *
      * @return the array on integers
      */
-    public int[] xdrDecodeIntVector() {
+    public int[] xdrDecodeIntVector() throws BadXdrOncRpcException {
 
         int len = xdrDecodeInt();
-
+        checkArraySize(len);
         int[] ints = new int[len];
         for (int i = 0; i < len; i++) {
             ints[i] = xdrDecodeInt();
@@ -110,10 +112,10 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      *
      * @return the array on integers
      */
-    public long[] xdrDecodeLongVector() {
+    public long[] xdrDecodeLongVector() throws BadXdrOncRpcException {
 
         int len = xdrDecodeInt();
-
+        checkArraySize(len);
         long[] longs = new long[len];
         for (int i = 0; i < len; i++) {
             longs[i] = xdrDecodeLong();
@@ -127,7 +129,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      *
      * @return Decoded float value.rs.
      */
-    public float xdrDecodeFloat() {
+    public float xdrDecodeFloat() throws BadXdrOncRpcException {
         return Float.intBitsToFloat(xdrDecodeInt());
     }
 
@@ -137,7 +139,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      *
      * @return Decoded double value.rs.
      */
-    public double xdrDecodeDouble() {
+    public double xdrDecodeDouble() throws BadXdrOncRpcException {
         return Double.longBitsToDouble(xdrDecodeLong());
     }
 
@@ -146,13 +148,10 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      *
      * @return Decoded double vector.
      */
-    public double[] xdrDecodeDoubleVector() {
+    public double[] xdrDecodeDoubleVector() throws BadXdrOncRpcException {
         int length = xdrDecodeInt();
-        double[] value = new double[length];
-        for (int i = 0; i < length; ++i) {
-            value[i] = xdrDecodeDouble();
-        }
-        return value;
+        checkArraySize(length);
+        return xdrDecodeDoubleFixedVector(length);
     }
 
     /**
@@ -162,7 +161,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      *
      * @return Decoded double vector..
      */
-    public double[] xdrDecodeDoubleFixedVector(int length) {
+    public double[] xdrDecodeDoubleFixedVector(int length) throws BadXdrOncRpcException {
         double[] value = new double[length];
         for (int i = 0; i < length; ++i) {
             value[i] = xdrDecodeDouble();
@@ -175,13 +174,10 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      *
      * @return Decoded float vector.
      */
-    public float[] xdrDecodeFloatVector() {
+    public float[] xdrDecodeFloatVector() throws BadXdrOncRpcException {
         int length = xdrDecodeInt();
-        float[] value = new float[length];
-        for (int i = 0; i < length; ++i) {
-            value[i] = xdrDecodeFloat();
-        }
-        return value;
+        checkArraySize(length);
+        return xdrDecodeFloatFixedVector(length);
     }
 
     /**
@@ -191,7 +187,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      *
      * @return Decoded float vector.
      */
-    public float[] xdrDecodeFloatFixedVector(int length) {
+    public float[] xdrDecodeFloatFixedVector(int length) throws BadXdrOncRpcException {
         float[] value = new float[length];
         for (int i = 0; i < length; ++i) {
             value[i] = xdrDecodeFloat();
@@ -207,17 +203,18 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      * @param offset in the buffer.
      * @param len number of bytes to read.
      */
-    public void xdrDecodeOpaque(byte[] buf, int offset, int len) {
+    public void xdrDecodeOpaque(byte[] buf, int offset, int len) throws BadXdrOncRpcException {
         int padding = (4 - (len & 3)) & 3;
+        ensureBytes(len + padding);
         _buffer.get(buf, offset, len);
         _buffer.position(_buffer.position() + padding);
     }
 
-    public void xdrDecodeOpaque(byte[] buf,  int len) {
+    public void xdrDecodeOpaque(byte[] buf,  int len) throws BadXdrOncRpcException {
         xdrDecodeOpaque(buf, 0, len);
     }
 
-    public byte[] xdrDecodeOpaque(int len) {
+    public byte[] xdrDecodeOpaque(int len) throws BadXdrOncRpcException {
         byte[] opaque = new byte[len];
         xdrDecodeOpaque(opaque, len);
         return opaque;
@@ -230,8 +227,9 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      * the exact length in advance. The decoded data is always padded to be
      * a multiple of four (because that's what the sender does).
      */
-    public byte [] xdrDecodeDynamicOpaque() {
+    public byte [] xdrDecodeDynamicOpaque() throws BadXdrOncRpcException {
         int length = xdrDecodeInt();
+        checkArraySize(length);
         byte [] opaque = new byte[length];
         if ( length != 0 ) {
             xdrDecodeOpaque(opaque, 0, length);
@@ -244,15 +242,15 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      *
      * @return decoded string
      */
-    public String xdrDecodeString() {
+    public String xdrDecodeString() throws BadXdrOncRpcException {
         int len = xdrDecodeInt();
-
+        checkArraySize(len);
         byte[] bytes = new byte[len];
         xdrDecodeOpaque(bytes, 0, len);
-        return new String(bytes);
+        return new String(bytes, Charsets.US_ASCII);
     }
 
-    public boolean xdrDecodeBoolean() {
+    public boolean xdrDecodeBoolean() throws BadXdrOncRpcException {
         int bool = xdrDecodeInt();
         return bool != 0;
     }
@@ -263,14 +261,17 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      *
      * @return Decoded long value.
      */
-    public long xdrDecodeLong() {
+    public long xdrDecodeLong() throws BadXdrOncRpcException {
+        ensureBytes(SIZE_OF_LONG);
         return _buffer.getLong();
     }
 
-    public ByteBuffer xdrDecodeByteBuffer() {
+    public ByteBuffer xdrDecodeByteBuffer() throws BadXdrOncRpcException {
         int len = this.xdrDecodeInt();
+        checkArraySize(len);
         int padding = (4 - (len & 3)) & 3;
 
+        ensureBytes(len + padding);
        /*
         * as of grizzly 2.2.1 toByteBuffer returns a ByteBuffer view of
         * the backended heap. To be able to use rewind, flip and so on
@@ -292,14 +293,10 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      *
      * @return The byte vector containing the decoded data.
      */
-    public byte[] xdrDecodeByteVector() {
+    public byte[] xdrDecodeByteVector() throws BadXdrOncRpcException {
         int length = xdrDecodeInt();
-
-        byte[] bytes = new byte[length];
-        for (int i = 0; i < length; ++i) {
-            bytes[i] = (byte) xdrDecodeInt();
-        }
-        return bytes;
+        checkArraySize(length);
+        return xdrDecodeByteFixedVector(length);
     }
 
     /**
@@ -311,7 +308,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      *
      * @return The byte vector containing the decoded data.
      */
-    public byte[] xdrDecodeByteFixedVector(int length) {
+    public byte[] xdrDecodeByteFixedVector(int length) throws BadXdrOncRpcException {
 
         byte[] bytes = new byte[length];
         for (int i = 0; i < length; ++i) {
@@ -325,7 +322,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      *
      * @return Decoded byte value.
      */
-    public byte xdrDecodeByte() {
+    public byte xdrDecodeByte() throws BadXdrOncRpcException {
         return (byte) xdrDecodeInt();
     }
 
@@ -335,7 +332,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      *
      * @return Decoded short value.
      */
-    public short xdrDecodeShort() {
+    public short xdrDecodeShort() throws BadXdrOncRpcException {
         return (short) xdrDecodeInt();
     }
 
@@ -345,13 +342,10 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      *
      * @return Decoded vector of short integers..
      */
-    public short[] xdrDecodeShortVector() {
+    public short[] xdrDecodeShortVector() throws BadXdrOncRpcException {
         int length = xdrDecodeInt();
-        short[] value = new short[length];
-        for (int i = 0; i < length; ++i) {
-            value[i] = xdrDecodeShort();
-        }
-        return value;
+        checkArraySize(length);
+        return xdrDecodeShortFixedVector(length);
     }
 
     /**
@@ -362,7 +356,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      *
      * @return Decoded vector of short integers.
      */
-    public short[] xdrDecodeShortFixedVector(int length) {
+    public short[] xdrDecodeShortFixedVector(int length) throws BadXdrOncRpcException {
         short[] value = new short[length];
         for (int i = 0; i < length; ++i) {
             value[i] = xdrDecodeShort();
@@ -685,6 +679,18 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
             int oldCapacity = _buffer.capacity();
             int newCapacity = Math.max((oldCapacity * 3) / 2 + 1, oldCapacity + size);
             _buffer = GrizzlyMemoryManager.reallocate(_buffer, newCapacity);
+        }
+    }
+
+    private void ensureBytes(int size) throws BadXdrOncRpcException {
+        if (_buffer.remaining() < size) {
+            throw new BadXdrOncRpcException("xdr stream too short");
+        }
+    }
+
+    private void checkArraySize(int len) throws BadXdrOncRpcException {
+        if (len < 0) {
+            throw new BadXdrOncRpcException("corrupted xdr");
         }
     }
 }
