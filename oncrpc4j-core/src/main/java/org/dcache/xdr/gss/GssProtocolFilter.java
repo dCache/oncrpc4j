@@ -25,7 +25,6 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.dcache.utils.Bytes;
-import org.dcache.xdr.OncRpcException;
 import org.dcache.xdr.RpcAuthError;
 import org.dcache.xdr.RpcAuthStat;
 import org.dcache.xdr.RpcAuthType;
@@ -148,9 +147,6 @@ public class GssProtocolFilter extends BaseFilter {
         } catch (IOException e) {
             call.reject(RpcRejectStatus.AUTH_ERROR, new RpcAuthError(RpcAuthStat.RPCSEC_GSS_CTXPROBLEM));
             _log.warn("GSS mechanism failed {}", e.getMessage());
-        } catch (OncRpcException e) {
-            call.reject(RpcRejectStatus.AUTH_ERROR, new RpcAuthError(RpcAuthStat.RPCSEC_GSS_CTXPROBLEM));
-            _log.warn("RPC request rejected: {}", e.getMessage());
         } catch (GSSException e) {
             call.reject(RpcRejectStatus.AUTH_ERROR, new RpcAuthError(RpcAuthStat.RPCSEC_GSS_CTXPROBLEM));
             _log.warn("GSS mechanism failed {}", e.getMessage());

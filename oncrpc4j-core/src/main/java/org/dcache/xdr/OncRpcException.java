@@ -19,7 +19,9 @@
  */
 package org.dcache.xdr;
 
-public abstract class OncRpcException extends Exception {
+import java.io.IOException;
+
+public abstract class OncRpcException extends IOException {
 
     private static final long serialVersionUID = 5492424750571897543L;
 

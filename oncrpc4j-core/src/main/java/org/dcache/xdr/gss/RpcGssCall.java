@@ -133,9 +133,6 @@ public class RpcGssCall extends RpcCall {
         } catch (IOException e) {
             _log.error("IO error: {}", e.getMessage());
             super.reject(RpcRejectStatus.AUTH_ERROR, new RpcAuthError(RpcAuthStat.RPCSEC_GSS_CTXPROBLEM));
-        } catch (OncRpcException e) {
-            _log.error("RPC error: {}", e.getMessage());
-            super.reject(RpcRejectStatus.AUTH_ERROR, new RpcAuthError(RpcAuthStat.RPCSEC_GSS_CTXPROBLEM));
         } catch (GSSException e) {
             _log.error("GSS error: {}", e.getMessage());
             super.reject(RpcRejectStatus.AUTH_ERROR, new RpcAuthError(RpcAuthStat.RPCSEC_GSS_CTXPROBLEM));
