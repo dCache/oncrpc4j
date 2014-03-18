@@ -77,6 +77,14 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
     }
 
     /**
+     * Tells whether there are any data available in the stream.
+     * @return true if, and only if, there is data available in the stream
+     */
+    public boolean hasMoreData() {
+        return _buffer.hasRemaining();
+    }
+
+    /**
      * Decodes (aka "deserializes") a "XDR int" value received from a
      * XDR stream. A XDR int is 32 bits wide -- the same width Java's "int"
      * data type has. This method is one of the basic methods all other

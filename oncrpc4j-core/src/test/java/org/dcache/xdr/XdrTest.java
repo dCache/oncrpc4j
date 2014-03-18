@@ -320,6 +320,23 @@ public class XdrTest {
         xdr.xdrDecodeIntVector();
     }
 
+    @Test
+    public void testAvailalbleData() throws BadXdrOncRpcException {
+        CompositeBuffer buffer = BuffersBuffer.create();
+        buffer.append(allocateBuffer(10));
+        Xdr xdr = new Xdr(buffer);
+        xdr.beginEncoding();
+        xdr.xdrEncodeInt(1);   // first int
+        xdr.xdrEncodeInt(2);   // second int
+        xdr.endEncoding();
+        xdr.beginDecoding();
+
+        assertTrue("available data not detected", xdr.hasMoreData());
+        xdr.xdrDecodeInt();
+        xdr.xdrDecodeInt();
+        assertFalse("empty stream not detected", xdr.hasMoreData());
+    }
+
     private static Buffer allocateBuffer(int size) {
         return GrizzlyMemoryManager.allocate(size);
     }
