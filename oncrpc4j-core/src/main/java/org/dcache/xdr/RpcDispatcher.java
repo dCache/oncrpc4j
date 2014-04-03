@@ -73,10 +73,10 @@ public class RpcDispatcher extends BaseFilter {
                 program.dispatchOncRpcCall(call);
             } catch (RpcException e) {
                 call.reject(e.getStatus(), e.getRpcReply());
-                _log.error("Failed to process RPC request:", e);
+                _log.warn("Failed to process RPC request: {}", e.getMessage());
             } catch (OncRpcException e) {
                 call.failRpcGarbage();
-                _log.error("Failed to process RPC request:", e);
+                _log.warn("Failed to process RPC request: {}", e.getMessage());
             }
         }
         return ctx.getInvokeAction();
