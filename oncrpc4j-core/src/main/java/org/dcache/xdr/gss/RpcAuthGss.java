@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2012 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2014 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -20,15 +20,11 @@
 package org.dcache.xdr.gss;
 
 import java.io.IOException;
-import java.nio.ByteOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import javax.security.auth.Subject;
 import org.dcache.xdr.OncRpcException;
 import org.dcache.xdr.RpcAuth;
-import org.dcache.xdr.RpcAuthError;
-import org.dcache.xdr.RpcAuthException;
-import org.dcache.xdr.RpcAuthStat;
 import org.dcache.xdr.RpcAuthType;
 import org.dcache.xdr.RpcAuthVerifier;
 import org.dcache.xdr.Xdr;
@@ -134,24 +130,6 @@ public class RpcAuthGss implements RpcAuth, XdrAble {
         _sequence = xdr.xdrDecodeInt();
         _service = xdr.xdrDecodeInt();
         _handle = xdr.xdrDecodeDynamicOpaque();
-
-        {
-            /*
-             * workaround bug in linux kernel implementation:
-             * sometimes linux ( as of 3.0.0-rc3 ) sends crap instead of verifier.
-             */
-
-            Buffer b = ((Xdr) xdr).asBuffer().slice();
-            b.order(ByteOrder.BIG_ENDIAN);
-
-            if (b.remaining() < 4) {
-                throw new RpcAuthException("bad verifier (seal broken)", new RpcAuthError(RpcAuthStat.AUTH_BADVERF));
-            }
-            int verifierSize = b.getInt();
-            if (verifierSize < 0 || verifierSize > b.remaining()) {
-                throw new RpcAuthException("bad verifier (seal broken)", new RpcAuthError(RpcAuthStat.AUTH_BADVERF));
-            }
-        }
         _verifier.xdrDecode(xdr);
     }
 

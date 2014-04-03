@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2012 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2014 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -25,6 +25,7 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.dcache.utils.Bytes;
+import org.dcache.xdr.BadXdrOncRpcException;
 import org.dcache.xdr.RpcAuthError;
 import org.dcache.xdr.RpcAuthStat;
 import org.dcache.xdr.RpcAuthType;
@@ -144,6 +145,9 @@ public class GssProtocolFilter extends BaseFilter {
         } catch (RpcException e) {
             call.reject(e.getStatus(), e.getRpcReply());
             _log.warn("GSS mechanism failed {}", e.getMessage());
+        } catch (BadXdrOncRpcException e) {
+            call.failRpcGarbage();
+            _log.warn("Broken RPCSEC_GSS package: {}", e.getMessage());
         } catch (IOException e) {
             call.reject(RpcRejectStatus.AUTH_ERROR, new RpcAuthError(RpcAuthStat.RPCSEC_GSS_CTXPROBLEM));
             _log.warn("GSS mechanism failed {}", e.getMessage());
