@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2012 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2014 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -75,6 +75,7 @@ public class RpcDispatcher extends BaseFilter {
                 call.reject(e.getStatus(), e.getRpcReply());
                 _log.error("Failed to process RPC request:", e);
             } catch (OncRpcException e) {
+                call.failRpcGarbage();
                 _log.error("Failed to process RPC request:", e);
             }
         }
