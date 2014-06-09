@@ -19,6 +19,8 @@
  */
 package org.dcache.xdr;
 
+import org.dcache.xdr.gss.GssSessionManager;
+
 import static com.google.common.base.Preconditions.*;
 
 
@@ -53,6 +55,7 @@ public class OncRpcSvcBuilder {
     private boolean _withJMX = false;
     private int _backlog = 4096;
     private String _bindAddress = "0.0.0.0";
+    private GssSessionManager _gssSessionManager;
 
     public OncRpcSvcBuilder withAutoPublish() {
         _autoPublish = true;
@@ -119,6 +122,11 @@ public class OncRpcSvcBuilder {
         return this;
     }
 
+    public OncRpcSvcBuilder withGssSessionManager(GssSessionManager gssSessionManager) {
+        _gssSessionManager = gssSessionManager;
+        return this;
+    }
+
     public int getProtocol() {
         return _protocol;
     }
@@ -149,6 +157,10 @@ public class OncRpcSvcBuilder {
 
     public String getBindAddress() {
         return _bindAddress;
+    }
+
+    public GssSessionManager getGssSessionManager() {
+        return _gssSessionManager;
     }
 
     public OncRpcSvc build() {

@@ -19,6 +19,7 @@
  */
 package org.dcache.xdr;
 
+import org.dcache.xdr.gss.GssSessionManager;
 import org.springframework.beans.factory.FactoryBean;
 
 /**
@@ -94,5 +95,9 @@ public class OncRpcSvcFactoryBean implements FactoryBean<OncRpcSvcBuilder> {
         if (enable) {
             builder.withJMX();
         }
+    }
+
+    public void setGssSessionManager(GssSessionManager gssSessionManager) {
+        builder.withGssSessionManager(gssSessionManager);
     }
 }

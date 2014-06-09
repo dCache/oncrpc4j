@@ -81,7 +81,7 @@ public class OncRpcSvc {
     /**
      * Handle RPCSEC_GSS
      */
-    private GssSessionManager _gssSessionManager;
+    private final GssSessionManager _gssSessionManager;
 
     /**
      * mapping of registered programs.
@@ -136,6 +136,7 @@ public class OncRpcSvc {
         }
         _requestExecutor = builder.getIoStrategy() == IoStrategy.SAME_THREAD ?
                 MoreExecutors.sameThreadExecutor() : new FixedThreadPool(workerPoolConfig);
+        _gssSessionManager = builder.getGssSessionManager();
     }
 
     /**
@@ -237,16 +238,6 @@ public class OncRpcSvc {
         } finally {
             rpcClient.close();
         }
-    }
-
-    /**
-     * Set {@link GssSessionManager} to handle GSS context if RPCSEG_GSS is used.
-     * If {@code gssSessionManager} is <i>null</i> GSS authentication will be
-     * disabled.
-     * @param gssSessionManager
-     */
-    public void setGssSessionManager(GssSessionManager gssSessionManager) {
-        _gssSessionManager = gssSessionManager;
     }
 
     public void start() throws IOException {
