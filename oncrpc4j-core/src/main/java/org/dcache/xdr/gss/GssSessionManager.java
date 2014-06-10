@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2012 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2014 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -19,6 +19,7 @@
  */
 package org.dcache.xdr.gss;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
@@ -36,15 +37,30 @@ import org.ietf.jgss.Oid;
 
 public class GssSessionManager {
 
+    private final String KRB5_OID = "1.2.840.113554.1.2.2";
+
     private static final Logger _log = LoggerFactory.getLogger(GssSessionManager.class);
     private final GSSManager gManager = GSSManager.getInstance();
     private final GSSCredential _serviceCredential;
     private final RpcLoginService _loginService;
 
+    public GssSessionManager(RpcLoginService loginService, String servicePrincipal, String keytab)
+            throws GSSException, IOException {
+        System.setProperty("javax.security.auth.useSubjectCredsOnly", "false");
+        System.setProperty("java.security.auth.login.config",
+                JaasConfigGenerator.generateJaasConfig(servicePrincipal, keytab));
+
+        Oid krb5Mechanism = new Oid(KRB5_OID);
+        _serviceCredential = gManager.createCredential(null,
+                GSSCredential.INDEFINITE_LIFETIME,
+                krb5Mechanism, GSSCredential.ACCEPT_ONLY);
+        _loginService = loginService;
+    }
+
     public GssSessionManager(RpcLoginService loginService) throws GSSException {
         System.setProperty("javax.security.auth.useSubjectCredsOnly", "false");
 
-        Oid krb5Mechanism = new Oid("1.2.840.113554.1.2.2");
+        Oid krb5Mechanism = new Oid(KRB5_OID);
         _serviceCredential = gManager.createCredential(null,
                 GSSCredential.INDEFINITE_LIFETIME,
                 krb5Mechanism, GSSCredential.ACCEPT_ONLY);
