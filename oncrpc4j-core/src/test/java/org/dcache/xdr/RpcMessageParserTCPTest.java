@@ -22,8 +22,10 @@ package org.dcache.xdr;
 import java.io.IOException;
 import java.nio.ByteOrder;
 import org.glassfish.grizzly.Buffer;
+import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.filterchain.FilterChainContext;
 import org.junit.*;
+import static org.mockito.Mockito.*;
 import static org.junit.Assert.*;
 
 public class RpcMessageParserTCPTest {
@@ -36,7 +38,7 @@ public class RpcMessageParserTCPTest {
 
     @Before
     public void setUp() {
-        mockedContext = new FilterChainContext();
+        mockedContext = FilterChainContext.create(mock(Connection.class));
         tcpParser = new RpcMessageParserTCP();
         rpc = new RpcProtocolFilter();
     }
