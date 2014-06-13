@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2012 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2014 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -28,20 +28,23 @@ import org.glassfish.grizzly.Buffer;
 import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.EmptyCompletionHandler;
 import org.glassfish.grizzly.WriteResult;
+import org.glassfish.grizzly.asyncqueue.WritableMessage;
 import org.glassfish.grizzly.filterchain.FilterChainContext;
 
 public class GrizzlyXdrTransport implements XdrTransport {
 
-    private final FilterChainContext _context;
     private final Connection<InetSocketAddress> _connection;
     private final ReplyQueue<Integer, RpcReply> _replyQueue;
+    private final InetSocketAddress _localAddress;
+    private final InetSocketAddress _remoteAddress;
 
     private final static Logger _log = LoggerFactory.getLogger(GrizzlyXdrTransport.class);
 
     public GrizzlyXdrTransport(FilterChainContext context, ReplyQueue<Integer, RpcReply> replyQueue) {
-        _context = context;
         _connection = context.getConnection();
         _replyQueue = replyQueue;
+        _localAddress = (InetSocketAddress)context.getConnection().getLocalAddress();
+        _remoteAddress = (InetSocketAddress)context.getAddress();
     }
 
     public GrizzlyXdrTransport(FilterChainContext context) {
@@ -54,24 +57,23 @@ public class GrizzlyXdrTransport implements XdrTransport {
         buffer.allowBufferDispose(true);
 
         // pass destination address to handle UDP connections as well
-        _context.write(_context.getAddress(), buffer, new EmptyCompletionHandler<WriteResult>() {
+        _connection.write(_remoteAddress, buffer, new EmptyCompletionHandler<WriteResult<WritableMessage, InetSocketAddress>>() {
             @Override
             public void failed(Throwable throwable) {
                 _log.error("Failed to send RPC message: xid=0x{} remote={} : {}",
-                       Integer.toHexString(buffer.getInt(0)), _connection.getPeerAddress(), throwable.getMessage());
-           }
-
+                        Integer.toHexString(buffer.getInt(0)), _connection.getPeerAddress(), throwable.getMessage());
+            }
         });
     }
 
     @Override
     public InetSocketAddress getLocalSocketAddress() {
-        return (InetSocketAddress)_context.getConnection().getLocalAddress();
+        return _localAddress;
     }
 
     @Override
     public InetSocketAddress getRemoteSocketAddress() {
-        return (InetSocketAddress)_context.getAddress();
+        return _remoteAddress;
     }
 
     @Override
