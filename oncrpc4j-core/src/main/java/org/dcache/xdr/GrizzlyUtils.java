@@ -24,9 +24,10 @@ import org.glassfish.grizzly.Transport;
 import org.glassfish.grizzly.filterchain.Filter;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 import org.glassfish.grizzly.nio.transport.UDPNIOTransport;
-import org.glassfish.grizzly.strategies.SameThreadIOStrategy;
-import org.glassfish.grizzly.strategies.WorkerThreadIOStrategy;
 import org.glassfish.grizzly.threadpool.ThreadPoolConfig;
+
+import static org.dcache.xdr.OncRpcSvc.IoStrategy;
+import static org.dcache.xdr.OncRpcSvc.IoStrategy.*;
 
 /**
  * Class with utility methods for Grizzly
@@ -69,13 +70,13 @@ public class GrizzlyUtils {
         throw new RuntimeException("Unsupported protocol: " + protocol);
     }
 
-    static private int getSelectorPoolSize(IOStrategy ioStrategy) {
-	return ioStrategy == WorkerThreadIOStrategy.getInstance()
+    static private int getSelectorPoolSize(IoStrategy ioStrategy) {
+	return ioStrategy == WORKER_THREAD
 		? Math.max(MIN_SELECTORS, CPUS / 4) : Math.max(MIN_WORKERS, CPUS);
     }
 
-    static private int getWorkerPoolSize(IOStrategy ioStrategy) {
-	return ioStrategy == WorkerThreadIOStrategy.getInstance()
+    static private int getWorkerPoolSize(IoStrategy ioStrategy) {
+	return ioStrategy == WORKER_THREAD
 		? Math.max(MIN_WORKERS, (CPUS * 2)) : 0;
     }
 
@@ -85,11 +86,11 @@ public class GrizzlyUtils {
      * @param ioStrategy in use
      * @return thread pool configuration.
      */
-    static ThreadPoolConfig getSelectorPoolCfg(IOStrategy ioStrategy) {
+    static ThreadPoolConfig getSelectorPoolCfg(OncRpcSvc.IoStrategy ioStrategy) {
 	final int poolSize = getSelectorPoolSize(ioStrategy);
 	final ThreadPoolConfig poolCfg = ThreadPoolConfig.defaultConfig();
 	poolCfg.setCorePoolSize(poolSize).setMaxPoolSize(poolSize);
-	poolCfg.setPoolName("OncRpcSvc Selector thread");
+	poolCfg.setPoolName("OncRpcSvc Selector");
 
 	return poolCfg;
     }
@@ -101,16 +102,16 @@ public class GrizzlyUtils {
      * @return thread pool configuration or {@code null}, if ioStrategy don't
      * supports worker threads.
      */
-    static ThreadPoolConfig getWorkerPoolCfg(IOStrategy ioStrategy) {
+    static ThreadPoolConfig getWorkerPoolCfg(OncRpcSvc.IoStrategy ioStrategy) {
 
-	if (ioStrategy == SameThreadIOStrategy.getInstance()) {
+	if (ioStrategy == SAME_THREAD) {
 	    return null;
 	}
 
 	final int poolSize = getWorkerPoolSize(ioStrategy);
 	final ThreadPoolConfig poolCfg = ThreadPoolConfig.defaultConfig();
 	poolCfg.setCorePoolSize(poolSize).setMaxPoolSize(poolSize);
-	poolCfg.setPoolName("OncRpcSvc Worker thread");
+	poolCfg.setPoolName("OncRpcSvc Worker");
 
 	return poolCfg;
     }

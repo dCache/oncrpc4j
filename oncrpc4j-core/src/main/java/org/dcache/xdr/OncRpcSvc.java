@@ -19,6 +19,7 @@
  */
 package org.dcache.xdr;
 
+import com.google.common.util.concurrent.MoreExecutors;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -48,11 +49,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+
 import static org.dcache.xdr.GrizzlyUtils.*;
-import org.glassfish.grizzly.*;
+
 import org.glassfish.grizzly.jmxbase.GrizzlyJmxManager;
 import org.glassfish.grizzly.strategies.SameThreadIOStrategy;
-import org.glassfish.grizzly.strategies.WorkerThreadIOStrategy;
+import org.glassfish.grizzly.threadpool.FixedThreadPool;
 import org.glassfish.grizzly.threadpool.ThreadPoolConfig;
 
 public class OncRpcSvc {
@@ -67,21 +70,11 @@ public class OncRpcSvc {
     private final Set<Connection<InetSocketAddress>> _boundConnections =
             new HashSet<Connection<InetSocketAddress>>();
 
-    public enum IoStrategy {
-        SAME_THREAD {
-            @Override
-            IOStrategy getStrategy() {
-                return SameThreadIOStrategy.getInstance();
-            }
-        },
-        WORKER_THREAD {
-            @Override
-            IOStrategy getStrategy() {
-                return WorkerThreadIOStrategy.getInstance();
-            }
-        };
+    private final ExecutorService _requestExecutor;
 
-        abstract IOStrategy getStrategy();
+    public enum IoStrategy {
+        SAME_THREAD,
+        WORKER_THREAD
     }
 
     private final ReplyQueue<Integer, RpcReply> _replyQueue = new ReplyQueue<Integer, RpcReply>();
@@ -108,17 +101,16 @@ public class OncRpcSvc {
             throw new IllegalArgumentException("TCP or UDP protocol have to be defined");
         }
 
-        IOStrategy grizzlyIoStrategy = builder.getIoStrategy().getStrategy();
-        ThreadPoolConfig selectorPoolConfig = getSelectorPoolCfg(grizzlyIoStrategy);
-        ThreadPoolConfig workerPoolConfig = getWorkerPoolCfg(grizzlyIoStrategy);
+        IoStrategy ioStrategy = builder.getIoStrategy();
+        ThreadPoolConfig selectorPoolConfig = getSelectorPoolCfg(ioStrategy);
+        ThreadPoolConfig workerPoolConfig = getWorkerPoolCfg(ioStrategy);
 
         if ((protocol & IpProtocolType.TCP) != 0) {
             final TCPNIOTransport tcpTransport = TCPNIOTransportBuilder
                     .newInstance()
                     .setReuseAddress(true)
-                    .setIOStrategy(grizzlyIoStrategy)
+                    .setIOStrategy(SameThreadIOStrategy.getInstance())
 		    .setSelectorThreadPoolConfig(selectorPoolConfig)
-		    .setWorkerThreadPoolConfig(workerPoolConfig)
                     .build();
             _transports.add(tcpTransport);
         }
@@ -127,9 +119,8 @@ public class OncRpcSvc {
             final UDPNIOTransport udpTransport = UDPNIOTransportBuilder
                     .newInstance()
                     .setReuseAddress(true)
-                    .setIOStrategy(grizzlyIoStrategy)
+                    .setIOStrategy(SameThreadIOStrategy.getInstance())
 		    .setSelectorThreadPoolConfig(selectorPoolConfig)
-		    .setWorkerThreadPoolConfig(workerPoolConfig)
                     .build();
             _transports.add(udpTransport);
         }
@@ -143,6 +134,8 @@ public class OncRpcSvc {
                 jmxManager.registerAtRoot(t.getMonitoringConfig().createManagementObject(), t.getName() + "-" + _portRange);
             }
         }
+        _requestExecutor = builder.getIoStrategy() == IoStrategy.SAME_THREAD ?
+                MoreExecutors.sameThreadExecutor() : new FixedThreadPool(workerPoolConfig);
     }
 
     /**
@@ -272,7 +265,7 @@ public class OncRpcSvc {
             if (_gssSessionManager != null) {
                 filterChain.add(new GssProtocolFilter(_gssSessionManager));
             }
-            filterChain.add(new RpcDispatcher(_programs));
+            filterChain.add(new RpcDispatcher(_requestExecutor, _programs));
 
             final FilterChain filters = filterChain.build();
 
@@ -297,11 +290,13 @@ public class OncRpcSvc {
         for (Transport t : _transports) {
             t.shutdownNow();
         }
+
+        _requestExecutor.shutdown();
     }
 
     /**
      * Returns the address of the endpoint this service is bound to,
-     * or <code>null<code> if it is not bound yet.
+     * or <code>null</code> if it is not bound yet.
      * @param protocol
      * @return a {@link InetSocketAddress} representing the local endpoint of
      * this service, or <code>null</code> if it is not bound yet.
