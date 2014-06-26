@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2013 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2014 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -19,9 +19,14 @@
  */
 package org.dcache.xdr;
 
+import com.google.common.util.concurrent.MoreExecutors;
+import java.util.concurrent.ExecutorService;
 import org.dcache.xdr.gss.GssSessionManager;
+import org.glassfish.grizzly.threadpool.FixedThreadPool;
+import org.glassfish.grizzly.threadpool.ThreadPoolConfig;
 
 import static com.google.common.base.Preconditions.*;
+import static org.dcache.xdr.GrizzlyUtils.getWorkerPoolCfg;
 
 
 /**
@@ -56,6 +61,7 @@ public class OncRpcSvcBuilder {
     private int _backlog = 4096;
     private String _bindAddress = "0.0.0.0";
     private GssSessionManager _gssSessionManager;
+    private ExecutorService _workerThreadExecutionService;
 
     public OncRpcSvcBuilder withAutoPublish() {
         _autoPublish = true;
@@ -127,6 +133,11 @@ public class OncRpcSvcBuilder {
         return this;
     }
 
+    public OncRpcSvcBuilder withWorkerThreadExecutionService(ExecutorService executorService) {
+        _workerThreadExecutionService = executorService;
+        return this;
+    }
+
     public int getProtocol() {
         return _protocol;
     }
@@ -161,6 +172,19 @@ public class OncRpcSvcBuilder {
 
     public GssSessionManager getGssSessionManager() {
         return _gssSessionManager;
+    }
+
+    public ExecutorService getWorkerThreadExecutorService() {
+        if (_ioStrategy == OncRpcSvc.IoStrategy.SAME_THREAD ) {
+            return MoreExecutors.sameThreadExecutor();
+        }
+
+        if (_workerThreadExecutionService != null) {
+            return _workerThreadExecutionService;
+        }
+
+        ThreadPoolConfig workerPoolConfig = getWorkerPoolCfg(_ioStrategy);
+        return new FixedThreadPool(workerPoolConfig);
     }
 
     public OncRpcSvc build() {

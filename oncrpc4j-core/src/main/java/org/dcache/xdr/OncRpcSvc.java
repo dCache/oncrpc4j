@@ -19,7 +19,6 @@
  */
 package org.dcache.xdr;
 
-import com.google.common.util.concurrent.MoreExecutors;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -55,7 +54,6 @@ import static org.dcache.xdr.GrizzlyUtils.*;
 
 import org.glassfish.grizzly.jmxbase.GrizzlyJmxManager;
 import org.glassfish.grizzly.strategies.SameThreadIOStrategy;
-import org.glassfish.grizzly.threadpool.FixedThreadPool;
 import org.glassfish.grizzly.threadpool.ThreadPoolConfig;
 
 public class OncRpcSvc {
@@ -103,7 +101,6 @@ public class OncRpcSvc {
 
         IoStrategy ioStrategy = builder.getIoStrategy();
         ThreadPoolConfig selectorPoolConfig = getSelectorPoolCfg(ioStrategy);
-        ThreadPoolConfig workerPoolConfig = getWorkerPoolCfg(ioStrategy);
 
         if ((protocol & IpProtocolType.TCP) != 0) {
             final TCPNIOTransport tcpTransport = TCPNIOTransportBuilder
@@ -134,8 +131,7 @@ public class OncRpcSvc {
                 jmxManager.registerAtRoot(t.getMonitoringConfig().createManagementObject(), t.getName() + "-" + _portRange);
             }
         }
-        _requestExecutor = builder.getIoStrategy() == IoStrategy.SAME_THREAD ?
-                MoreExecutors.sameThreadExecutor() : new FixedThreadPool(workerPoolConfig);
+        _requestExecutor = builder.getWorkerThreadExecutorService();
         _gssSessionManager = builder.getGssSessionManager();
     }
 

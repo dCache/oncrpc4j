@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2013 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2014 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -19,6 +19,7 @@
  */
 package org.dcache.xdr;
 
+import java.util.concurrent.ExecutorService;
 import org.dcache.xdr.gss.GssSessionManager;
 import org.springframework.beans.factory.FactoryBean;
 
@@ -99,5 +100,9 @@ public class OncRpcSvcFactoryBean implements FactoryBean<OncRpcSvcBuilder> {
 
     public void setGssSessionManager(GssSessionManager gssSessionManager) {
         builder.withGssSessionManager(gssSessionManager);
+    }
+
+    public void setWorkerThreadExecutionService(ExecutorService executorService) {
+        builder.withWorkerThreadExecutionService(executorService);
     }
 }
