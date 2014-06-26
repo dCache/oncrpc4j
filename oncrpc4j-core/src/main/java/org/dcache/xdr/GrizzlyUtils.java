@@ -90,7 +90,7 @@ public class GrizzlyUtils {
 	final int poolSize = getSelectorPoolSize(ioStrategy);
 	final ThreadPoolConfig poolCfg = ThreadPoolConfig.defaultConfig();
 	poolCfg.setCorePoolSize(poolSize).setMaxPoolSize(poolSize);
-	poolCfg.setPoolName("OncRpcSvc Selector");
+	poolCfg.setPoolName("OncRpcSvc"); // grizzly will add "SelectorRunner"
 
 	return poolCfg;
     }
