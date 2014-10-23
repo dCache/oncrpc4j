@@ -19,12 +19,6 @@
  */
 package org.dcache.xdr;
 
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.util.concurrent.ConcurrentHashMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.dcache.utils.net.InetSocketAddresses;
 import org.dcache.xdr.gss.GssProtocolFilter;
 import org.dcache.xdr.gss.GssSessionManager;
@@ -32,29 +26,39 @@ import org.dcache.xdr.portmap.GenericPortmapClient;
 import org.dcache.xdr.portmap.OncPortmapClient;
 import org.dcache.xdr.portmap.OncRpcPortmap;
 import org.glassfish.grizzly.Connection;
+import org.glassfish.grizzly.GrizzlyFuture;
 import org.glassfish.grizzly.PortRange;
 import org.glassfish.grizzly.SocketBinder;
 import org.glassfish.grizzly.Transport;
 import org.glassfish.grizzly.filterchain.FilterChain;
 import org.glassfish.grizzly.filterchain.FilterChainBuilder;
 import org.glassfish.grizzly.filterchain.TransportFilter;
+import org.glassfish.grizzly.jmxbase.GrizzlyJmxManager;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransportBuilder;
 import org.glassfish.grizzly.nio.transport.UDPNIOTransport;
 import org.glassfish.grizzly.nio.transport.UDPNIOTransportBuilder;
+import org.glassfish.grizzly.strategies.SameThreadIOStrategy;
+import org.glassfish.grizzly.threadpool.ThreadPoolConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 
-import static org.dcache.xdr.GrizzlyUtils.*;
-
-import org.glassfish.grizzly.jmxbase.GrizzlyJmxManager;
-import org.glassfish.grizzly.strategies.SameThreadIOStrategy;
-import org.glassfish.grizzly.threadpool.ThreadPoolConfig;
+import static org.dcache.xdr.GrizzlyUtils.getSelectorPoolCfg;
+import static org.dcache.xdr.GrizzlyUtils.rpcMessageReceiverFor;
+import static org.dcache.xdr.GrizzlyUtils.transportFor;
 
 public class OncRpcSvc {
 
@@ -276,6 +280,28 @@ public class OncRpcSvc {
 
         for (Transport t : _transports) {
             t.shutdownNow();
+        }
+
+        _requestExecutor.shutdown();
+    }
+
+    public void stop(long gracePeriod, TimeUnit timeUnit) throws IOException {
+
+        if (_publish) {
+            clearPortmap(_programs.keySet());
+        }
+
+        List<GrizzlyFuture<Transport>> transportsShuttingDown = new ArrayList<GrizzlyFuture<Transport>>();
+        for (Transport t : _transports) {
+            transportsShuttingDown.add(t.shutdown(gracePeriod, timeUnit));
+        }
+
+        for (GrizzlyFuture<Transport> transportShuttingDown : transportsShuttingDown) {
+            try {
+                transportShuttingDown.get();
+            } catch (Exception e) {
+                _log.warn("Exception while waiting for transport to shut down gracefully",e);
+            }
         }
 
         _requestExecutor.shutdown();
