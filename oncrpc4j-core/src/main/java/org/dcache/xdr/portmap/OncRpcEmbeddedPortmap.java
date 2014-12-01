@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2012 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2014 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -33,10 +33,14 @@ import org.dcache.xdr.RpcCall;
 import org.dcache.xdr.XdrTransport;
 import org.dcache.xdr.XdrVoid;
 
-
+/**
+ * An instance of this class will create an embedded rpc portmap
+ * service if OS does not provides one.
+ */
 public class OncRpcEmbeddedPortmap {
 
     private static final RpcAuth _auth = new RpcAuthTypeNone();
+    private final OncRpcSvc optionalEmbeddedServer;
 
     public  OncRpcEmbeddedPortmap() throws IOException {
         this(2000);
@@ -75,7 +79,19 @@ public class OncRpcEmbeddedPortmap {
                     .build();
             rpcbindServer.register(new OncRpcProgram( OncRpcPortmap.PORTMAP_PROGRAMM, OncRpcPortmap.PORTMAP_V2), new OncRpcbindServer());
             rpcbindServer.start();
+            optionalEmbeddedServer = rpcbindServer;
+        } else {
+            optionalEmbeddedServer = null;
         }
     }
 
+    /**
+     * Shutdown embedded <tt>portmap</tt> service if running.
+     * @throws IOException
+     */
+    public void shutdown() throws IOException {
+        if (optionalEmbeddedServer != null) {
+            optionalEmbeddedServer.stop();
+        }
+    }
 }
