@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2012 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2015 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -36,6 +36,7 @@ import org.glassfish.grizzly.filterchain.TransportFilter;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransportBuilder;
 import org.glassfish.grizzly.nio.transport.UDPNIOTransportBuilder;
 import static org.dcache.xdr.GrizzlyUtils.*;
+import org.glassfish.grizzly.ConnectionProbe;
 import org.glassfish.grizzly.strategies.SameThreadIOStrategy;
 
 public class OncRpcClient {
@@ -69,6 +70,12 @@ public class OncRpcClient {
 
         _transport.setProcessor(filterChain.build());
         _transport.setIOStrategy(SameThreadIOStrategy.getInstance());
+        _transport.getConnectionMonitoringConfig().addProbes( new ConnectionProbe.Adapter() {
+            @Override
+            public void onCloseEvent(Connection connection) {
+                _replyQueue.handleDisconnect();
+            }
+        });
     }
 
     public XdrTransport connect() throws IOException {
