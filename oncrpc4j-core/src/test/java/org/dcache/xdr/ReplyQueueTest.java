@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2012 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2015 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -19,6 +19,8 @@
  */
 package org.dcache.xdr;
 
+import java.io.EOFException;
+import java.io.IOException;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -44,6 +46,7 @@ public class ReplyQueueTest {
         fail("exception not thrown");
     }
 
+    @Test
     public void testGetNotPutted() throws Exception {
         _replyQueue.registerKey(1);
         String result = _replyQueue.get(1, 20);
@@ -51,11 +54,18 @@ public class ReplyQueueTest {
     }
 
     @Test(timeout=500)
-    public void testNotToBlockOnExistance() throws InterruptedException {
+    public void testNotToBlockOnExistance() throws InterruptedException, IOException {
         _replyQueue.registerKey(1);
         _replyQueue.put(1, "bla");
         String result = _replyQueue.get(1, 5000);
         assertNotNull("Did not got in time", result);
     }
 
+    @Test(expected = EOFException.class)
+    public void testDisconnect() throws InterruptedException, IOException {
+        _replyQueue.registerKey(1);
+        _replyQueue.put(1, "bla");
+        _replyQueue.handleDisconnect();
+        _replyQueue.get(1);
+    }
 }

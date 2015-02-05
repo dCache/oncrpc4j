@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2012 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2015 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -19,6 +19,8 @@
  */
 package org.dcache.xdr;
 
+import java.io.EOFException;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -28,6 +30,7 @@ public class ReplyQueue<K, V> {
 
     private final static Logger _log = LoggerFactory.getLogger(ReplyQueue.class);
     private final Map<K, V> _queue = new HashMap<K, V>();
+    private IOException _eof;
 
     /**
      * Create a placeholder for specified key.
@@ -51,6 +54,10 @@ public class ReplyQueue<K, V> {
         }
     }
 
+    public synchronized void handleDisconnect() {
+        _eof = new EOFException();
+        notifyAll();
+    }
     /**
      * Get value for defined key. The call will block if value is not available yet.
      * On completion key will be unregistered.
@@ -60,13 +67,13 @@ public class ReplyQueue<K, V> {
      * @throws InterruptedException
      * @throws IllegalArgumentException if key is not registered.
      */
-    public synchronized V get(K key) throws InterruptedException {
+    public synchronized V get(K key) throws InterruptedException, IOException {
         _log.debug("query key {}", key);
         if (!_queue.containsKey(key)) {
             throw new IllegalArgumentException("defined key does not exist: " + key);
         }
 
-        while (_queue.get(key) == null) {
+        while (connectionAlive() && _queue.get(key) == null) {
             wait();
         }
 
@@ -82,7 +89,7 @@ public class ReplyQueue<K, V> {
      * @return value or null if timeout expired.
      * @throwns IllegalArgumentException if key is not registered.
      */
-    public synchronized V get(K key, int timeout) throws InterruptedException {
+    public synchronized V get(K key, int timeout) throws InterruptedException, IOException {
         _log.debug("query key {} with timeout", key);
         if (!_queue.containsKey(key)) {
             throw new IllegalArgumentException("defined key does not exist: " + key);
@@ -90,11 +97,18 @@ public class ReplyQueue<K, V> {
 
         long timeToWait = timeout;
         long deadline = System.currentTimeMillis() + timeout;
-        while (timeToWait > 0 && _queue.get(key) == null) {
+        while (connectionAlive() && timeToWait > 0 && _queue.get(key) == null) {
             wait(timeToWait);
             timeToWait = deadline - System.currentTimeMillis();
         }
 
         return _queue.remove(key);
+    }
+
+    private boolean connectionAlive() throws IOException {
+        if (_eof != null) {
+            throw _eof;
+        }
+        return true;
     }
 }
