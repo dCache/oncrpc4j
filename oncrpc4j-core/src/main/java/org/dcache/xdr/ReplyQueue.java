@@ -30,7 +30,7 @@ public class ReplyQueue<K, V> {
 
     private final static Logger _log = LoggerFactory.getLogger(ReplyQueue.class);
     private final Map<K, V> _queue = new HashMap<K, V>();
-    private IOException _eof;
+    private boolean _connected = true;
 
     /**
      * Create a placeholder for specified key.
@@ -55,7 +55,7 @@ public class ReplyQueue<K, V> {
     }
 
     public synchronized void handleDisconnect() {
-        _eof = new EOFException();
+        _connected = false;
         notifyAll();
     }
     /**
@@ -73,7 +73,7 @@ public class ReplyQueue<K, V> {
             throw new IllegalArgumentException("defined key does not exist: " + key);
         }
 
-        while (connectionAlive() && _queue.get(key) == null) {
+        while (isConnectionAlive() && _queue.get(key) == null) {
             wait();
         }
 
@@ -97,7 +97,7 @@ public class ReplyQueue<K, V> {
 
         long timeToWait = timeout;
         long deadline = System.currentTimeMillis() + timeout;
-        while (connectionAlive() && timeToWait > 0 && _queue.get(key) == null) {
+        while (isConnectionAlive() && timeToWait > 0 && _queue.get(key) == null) {
             wait(timeToWait);
             timeToWait = deadline - System.currentTimeMillis();
         }
@@ -105,9 +105,9 @@ public class ReplyQueue<K, V> {
         return _queue.remove(key);
     }
 
-    private boolean connectionAlive() throws IOException {
-        if (_eof != null) {
-            throw _eof;
+    private boolean isConnectionAlive() throws IOException {
+        if (!_connected) {
+            throw new EOFException("Disconnected");
         }
         return true;
     }
