@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2013 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2015 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -44,6 +44,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
@@ -183,22 +184,39 @@ public class OncRpcSvc {
         try {
             OncPortmapClient portmapClient = new GenericPortmapClient(transport);
 
+            Set<String> netids = new HashSet<String>();
             String username = System.getProperty("user.name");
             Transport t = connection.getTransport();
             String uaddr = InetSocketAddresses.uaddrOf(connection.getLocalAddress());
 
+            String netidBase;
+            if (t instanceof TCPNIOTransport) {
+                netidBase = "tcp";
+            } else if (t instanceof UDPNIOTransport) {
+                netidBase = "udp";
+            } else {
+                // must never happens
+                throw new RuntimeException("Unsupported transport type: " + t.getClass().getCanonicalName());
+            }
+
+            InetAddress localAddress = connection.getLocalAddress().getAddress();
+            if (localAddress instanceof Inet6Address) {
+                netids.add(netidBase + "6");
+                if (((Inet6Address)localAddress).isIPv4CompatibleAddress()) {
+                    netids.add(netidBase);
+                }
+            } else {
+                netids.add(netidBase);
+            }
+
             for (OncRpcProgram program : programs) {
-                try {
-                    if (t instanceof TCPNIOTransport) {
+                for (String netid : netids) {
+                    try {
                         portmapClient.setPort(program.getNumber(), program.getVersion(),
-                                "tcp", uaddr, username);
+                                netid, uaddr, username);
+                    } catch (OncRpcException ex) {
+                        _log.error("Failed to register program", ex);
                     }
-                    if (t instanceof UDPNIOTransport) {
-                        portmapClient.setPort(program.getNumber(), program.getVersion(),
-                                "udp", uaddr, username);
-                    }
-                } catch (OncRpcException ex) {
-                    _log.error("Failed to register program", ex);
                 }
             }
         } catch (RpcProgUnavailable e) {
