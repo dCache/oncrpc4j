@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2012 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2015 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -21,7 +21,7 @@ package org.dcache.xdr;
 
 import java.io.IOException;
 import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 
 public class SpringRunner {
@@ -36,8 +36,10 @@ public class SpringRunner {
             System.exit(1);
         }
 
+        ConfigurableApplicationContext context = null;
         try {
-            ApplicationContext context = new FileSystemXmlApplicationContext(args[0]);
+            context = new FileSystemXmlApplicationContext(args[0]);
+
             OncRpcSvc service = (OncRpcSvc) context.getBean("oncrpcsvc");
             service.start();
 
@@ -45,6 +47,12 @@ public class SpringRunner {
         } catch (BeansException e) {
             System.err.println("Spring: " + e.getMessage());
             System.exit(1);
+        } finally {
+            if (context != null) {
+                context.close();
+            }
         }
+
+        System.exit(0);
     }
 }
