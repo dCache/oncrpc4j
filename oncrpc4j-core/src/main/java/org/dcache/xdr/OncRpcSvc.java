@@ -214,13 +214,13 @@ public class OncRpcSvc {
                     try {
                         portmapClient.setPort(program.getNumber(), program.getVersion(),
                                 netid, uaddr, username);
-                    } catch (OncRpcException ex) {
-                        _log.error("Failed to register program", ex);
+                    } catch (OncRpcException e) {
+                        _log.warn("Failed to register program: {}", e.getMessage());
                     }
                 }
             }
         } catch (RpcProgUnavailable e) {
-            _log.warn("Failed to register at portmap: ", e.getMessage());
+            _log.warn("Failed to register at portmap: {}", e.getMessage());
         } finally {
             rpcClient.close();
         }
@@ -248,7 +248,7 @@ public class OncRpcSvc {
                     portmapClient.unsetPort(program.getNumber(),
                             program.getVersion(), username);
                 } catch (OncRpcException ex) {
-                    _log.info("Failed to unregister program {}", ex.getMessage());
+                    _log.info("Failed to unregister program: {}", ex.getMessage());
                 }
             }
         } catch (RpcProgUnavailable e) {
