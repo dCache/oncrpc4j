@@ -9,7 +9,7 @@
 
   <groupId>org.dcache</groupId>
   <artifactId>oncrpc4j</artifactId>
-  <version>2.3.3-SNAPSHOT</version>
+  <version>2.3.3</version>
   <name>ONCRPC4J parent project</name>
   <packaging>pom</packaging>
 
@@ -19,7 +19,7 @@
         <url>https://github.com/dCache/oncrpc4j.git</url>
         <connection>scm:git:https://github.com/dCache/oncrpc4j.git</connection>
         <developerConnection>scm:git:https://github.com/dCache/oncrpc4j.git</developerConnection>
-    <tag>oncrpc4j-2.3.1-SNAPSHOT</tag>
+    <tag>oncrpc4j-2.3.3</tag>
   </scm>
 
   <!--
