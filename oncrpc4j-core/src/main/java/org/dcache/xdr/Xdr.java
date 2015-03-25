@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2014 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2015 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -19,9 +19,9 @@
  */
 package org.dcache.xdr;
 
-import com.google.common.base.Charsets;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.charset.StandardCharsets;
 import org.glassfish.grizzly.Buffer;
 
 public class Xdr implements XdrDecodingStream, XdrEncodingStream {
@@ -255,7 +255,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
         checkArraySize(len);
         byte[] bytes = new byte[len];
         xdrDecodeOpaque(bytes, 0, len);
-        return new String(bytes, Charsets.US_ASCII);
+        return new String(bytes, StandardCharsets.US_ASCII);
     }
 
     public boolean xdrDecodeBoolean() throws BadXdrOncRpcException {

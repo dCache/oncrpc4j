@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2014 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2015 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -28,7 +28,7 @@ import org.glassfish.grizzly.filterchain.BaseFilter;
 import org.glassfish.grizzly.filterchain.FilterChainContext;
 import org.glassfish.grizzly.filterchain.NextAction;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Objects.requireNonNull;
 
 public class RpcDispatcher extends BaseFilter {
 
@@ -52,16 +52,13 @@ public class RpcDispatcher extends BaseFilter {
      *     with a mapping between program number and program
      *     handler.
      *
-     * @throws IllegalArgumentException if executor or program is null
+     * @throws NullPointerException if executor or program is null
      */
     public RpcDispatcher(ExecutorService executor, Map<OncRpcProgram, RpcDispatchable> programs)
-            throws IllegalArgumentException {
+            throws NullPointerException {
 
-        checkNotNull(programs != null, "Programs is NULL");
-        checkNotNull(executor != null, "ExecutorService is NULL");
-
-        _asyncExecutorService = executor;
-        _programs = programs;
+        _programs = requireNonNull(programs, "Programs is NULL");
+        _asyncExecutorService = requireNonNull(executor, "ExecutorService is NULL");
     }
 
     @Override

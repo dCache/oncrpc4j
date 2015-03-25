@@ -19,11 +19,11 @@
  */
 package org.dcache.xdr.gss;
 
-import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Utility class to generate JAAS configuration file for kerberized service.
@@ -53,7 +53,7 @@ class JaasConfigGenerator {
         jaasFile.setWritable(true, true);
 
         String config = String.format(jaasConfigTemplate, servicePrincipal, keytab);
-        try (BufferedWriter bw = Files.newWriter(jaasFile, Charsets.UTF_8)) {
+        try (BufferedWriter bw = Files.newWriter(jaasFile, StandardCharsets.UTF_8)) {
             bw.write(config, 0, config.length());
         }
         return jaasFile.getAbsolutePath();
