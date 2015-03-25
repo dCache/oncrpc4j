@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 public class ReplyQueue<K, V> {
 
     private final static Logger _log = LoggerFactory.getLogger(ReplyQueue.class);
-    private final Map<K, V> _queue = new HashMap<K, V>();
+    private final Map<K, V> _queue = new HashMap<>();
     private boolean _connected = true;
 
     /**

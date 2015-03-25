@@ -45,7 +45,7 @@ public class OncRpcClient {
     private final InetSocketAddress _socketAddress;
     private final Transport _transport;
     private Connection<InetSocketAddress> _connection;
-    private final ReplyQueue<Integer, RpcReply> _replyQueue = new ReplyQueue<Integer, RpcReply>();
+    private final ReplyQueue<Integer, RpcReply> _replyQueue = new ReplyQueue<>();
 
     public OncRpcClient(InetAddress address, int protocol, int port) {
         this(new InetSocketAddress(address, port), protocol);
@@ -89,11 +89,7 @@ public class OncRpcClient {
 
         try {
             _connection = future.get(timeout, timeUnit);
-        } catch (TimeoutException e) {
-            throw new IOException(e.toString(), e);
-        } catch (InterruptedException e) {
-            throw new IOException(e.toString(), e);
-        } catch (ExecutionException e) {
+        } catch (TimeoutException | InterruptedException | ExecutionException e) {
             throw new IOException(e.toString(), e);
         }
 

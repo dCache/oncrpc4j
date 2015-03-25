@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2012 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2015 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -44,12 +44,13 @@ public class netid {
     }
 
     public static int idOf(String id) {
-        if("tcp".equals(id)) {
-            return IpProtocolType.TCP;
-        }else if ("udp".equals(id)) {
-            return IpProtocolType.UDP;
-        }else{
-            return -1;
+        switch (id) {
+            case "tcp":
+                return IpProtocolType.TCP;
+            case "udp":
+                return IpProtocolType.UDP;
+            default:
+                return -1;
         }
     }
 

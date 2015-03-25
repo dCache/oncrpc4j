@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2014 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2015 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -53,11 +53,8 @@ class JaasConfigGenerator {
         jaasFile.setWritable(true, true);
 
         String config = String.format(jaasConfigTemplate, servicePrincipal, keytab);
-        BufferedWriter bw = Files.newWriter(jaasFile, Charsets.UTF_8);
-        try {
+        try (BufferedWriter bw = Files.newWriter(jaasFile, Charsets.UTF_8)) {
             bw.write(config, 0, config.length());
-        } finally {
-            bw.close();
         }
         return jaasFile.getAbsolutePath();
     }

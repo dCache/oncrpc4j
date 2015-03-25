@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2014 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2015 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -148,10 +148,7 @@ public class GssProtocolFilter extends BaseFilter {
         } catch (BadXdrOncRpcException e) {
             call.failRpcGarbage();
             _log.warn("Broken RPCSEC_GSS package: {}", e.getMessage());
-        } catch (IOException e) {
-            call.reject(RpcRejectStatus.AUTH_ERROR, new RpcAuthError(RpcAuthStat.RPCSEC_GSS_CTXPROBLEM));
-            _log.warn("GSS mechanism failed {}", e.getMessage());
-        } catch (GSSException e) {
+        } catch (IOException | GSSException e) {
             call.reject(RpcRejectStatus.AUTH_ERROR, new RpcAuthError(RpcAuthStat.RPCSEC_GSS_CTXPROBLEM));
             _log.warn("GSS mechanism failed {}", e.getMessage());
         }

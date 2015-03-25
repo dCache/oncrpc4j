@@ -69,9 +69,9 @@ public class OncRpcSvc {
     private final boolean _publish;
     private final PortRange _portRange;
     private final String _bindAddress;
-    private final List<Transport> _transports = new ArrayList<Transport>();
+    private final List<Transport> _transports = new ArrayList<>();
     private final Set<Connection<InetSocketAddress>> _boundConnections =
-            new HashSet<Connection<InetSocketAddress>>();
+            new HashSet<>();
 
     private final ExecutorService _requestExecutor;
 
@@ -80,7 +80,7 @@ public class OncRpcSvc {
         WORKER_THREAD
     }
 
-    private final ReplyQueue<Integer, RpcReply> _replyQueue = new ReplyQueue<Integer, RpcReply>();
+    private final ReplyQueue<Integer, RpcReply> _replyQueue = new ReplyQueue<>();
     /**
      * Handle RPCSEC_GSS
      */
@@ -90,7 +90,7 @@ public class OncRpcSvc {
      * mapping of registered programs.
      */
     private final Map<OncRpcProgram, RpcDispatchable> _programs =
-            new ConcurrentHashMap<OncRpcProgram, RpcDispatchable>();
+            new ConcurrentHashMap<>();
 
     /**
      * Create new RPC service with defined configuration.
@@ -184,7 +184,7 @@ public class OncRpcSvc {
         try {
             OncPortmapClient portmapClient = new GenericPortmapClient(transport);
 
-            Set<String> netids = new HashSet<String>();
+            Set<String> netids = new HashSet<>();
             String username = System.getProperty("user.name");
             Transport t = connection.getTransport();
             String uaddr = InetSocketAddresses.uaddrOf(connection.getLocalAddress());
@@ -309,7 +309,7 @@ public class OncRpcSvc {
             clearPortmap(_programs.keySet());
         }
 
-        List<GrizzlyFuture<Transport>> transportsShuttingDown = new ArrayList<GrizzlyFuture<Transport>>();
+        List<GrizzlyFuture<Transport>> transportsShuttingDown = new ArrayList<>();
         for (Transport t : _transports) {
             transportsShuttingDown.add(t.shutdown(gracePeriod, timeUnit));
         }

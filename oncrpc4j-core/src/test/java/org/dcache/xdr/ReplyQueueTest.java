@@ -32,7 +32,7 @@ public class ReplyQueueTest {
 
     @Before
     public void setUp() {
-        _replyQueue = new ReplyQueue<Integer, String>();
+        _replyQueue = new ReplyQueue<>();
     }
 
     @Test
