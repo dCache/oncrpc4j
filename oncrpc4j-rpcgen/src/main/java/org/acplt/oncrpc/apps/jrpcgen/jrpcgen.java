@@ -2207,6 +2207,12 @@ public class jrpcgen {
                 System.exit(1);
             }
         }
+        if (packageName != null && !packageName.isEmpty()) {
+            destinationDir = new File(destinationDir, packageName.replaceAll("\\.", File.separator));
+            if (!destinationDir.exists() && !destinationDir.mkdirs()) {
+                throw new IllegalStateException("unable to create path " + destinationDir);
+            }
+        }
         //
         // Otherwise we regard the current command line argument to be the
         // name of the x-file to compile. Check, that there is exactly one
@@ -2217,7 +2223,7 @@ public class jrpcgen {
             System.exit(1);
         }
         String xfilename = args[argIdx];
-        xFile = new File(".", xfilename);
+        xFile = new File(xfilename);
         //
         // Try to parse the file and generate the different class source
         // code files...
