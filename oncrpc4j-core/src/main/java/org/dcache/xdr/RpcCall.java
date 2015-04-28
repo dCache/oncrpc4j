@@ -20,9 +20,11 @@
 package org.dcache.xdr;
 
 import com.google.common.base.Throwables;
+import com.google.common.util.concurrent.SettableFuture;
 import java.io.IOException;
 import java.nio.channels.CompletionHandler;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -288,6 +290,80 @@ public class RpcCall {
     }
 
     /**
+     * Send asynchronous RPC request to a remove server.
+     *
+     * This method initiates an asynchronous RPC request. The handler parameter
+     * is a completion handler that is invoked when the RPC operation completes
+     * (or fails). The result passed to the completion handler is the RPC result
+     * returned by server.
+     *
+     * @param procedure The number of the procedure.
+     * @param args The argument of the procedure.
+     * @param callback The completion handler.
+     * @throws OncRpcException
+     * @throws IOException
+     * @since 2.4.0
+     */
+    public void call(int procedure, XdrAble args, CompletionHandler<RpcReply, XdrTransport> callback)
+            throws OncRpcException, IOException {
+
+        int xid = NEXT_XID.incrementAndGet();
+
+        Xdr xdr = new Xdr(Xdr.MAX_XDR_SIZE);
+        xdr.beginEncoding();
+        RpcMessage rpcMessage = new RpcMessage(xid, RpcMessageType.CALL);
+        rpcMessage.xdrEncode(xdr);
+        xdr.xdrEncodeInt(RPCVERS);
+        xdr.xdrEncodeInt(_prog);
+        xdr.xdrEncodeInt(_version);
+        xdr.xdrEncodeInt(procedure);
+        _cred.xdrEncode(xdr);
+        args.xdrEncode(xdr);
+        xdr.endEncoding();
+
+        if (callback != null) {
+            _transport.getReplyQueue().registerKey(xid, callback);
+        }
+        _transport.send(xdr);
+    }
+
+    /**
+     * Send asynchronous RPC request to a remove server.
+     *
+     * This method initiates an asynchronous RPC request. The method behaves in
+     * exactly the same manner as the {@link #call(int, XdrAble, CompletionHandler)
+     * method except that instead of specifying a completion handler, this method
+     * returns a Future representing the pending result. The Future's get method
+     * returns the RPC reply responded by server.
+     *
+     * @param procedure The number of the procedure.
+     * @param args The argument of the procedure.
+     * @return A Future representing the result of the operation.
+     * @throws OncRpcException
+     * @throws IOException
+     * @since 2.4.0
+     */
+    public Future<RpcReply> call(int procedure, XdrAble args) throws OncRpcException, IOException {
+
+        final SettableFuture<RpcReply> future = SettableFuture.create();
+        CompletionHandler<RpcReply, XdrTransport> callback = new CompletionHandler<RpcReply, XdrTransport>() {
+
+            @Override
+            public void completed(RpcReply reply, XdrTransport attachment) {
+                future.set(reply);
+            }
+
+            @Override
+            public void failed(Throwable exc, XdrTransport attachment) {
+                future.setException(exc);
+            }
+        };
+
+        call(procedure, args, callback);
+        return future;
+    }
+
+    /**
      * Send call to remove RPC server.
      *
      * @param procedure the number of the procedure.
@@ -315,20 +391,6 @@ public class RpcCall {
     public void call(int procedure, XdrAble args, XdrAble result, int timeout)
             throws OncRpcException, IOException {
 
-        int xid = NEXT_XID.incrementAndGet();
-
-        Xdr xdr = new Xdr(Xdr.MAX_XDR_SIZE);
-        xdr.beginEncoding();
-        RpcMessage rpcMessage = new RpcMessage(xid, RpcMessageType.CALL);
-        rpcMessage.xdrEncode(xdr);
-        xdr.xdrEncodeInt(RPCVERS);
-        xdr.xdrEncodeInt(_prog);
-        xdr.xdrEncodeInt(_version);
-        xdr.xdrEncodeInt(procedure);
-        _cred.xdrEncode(xdr);
-        args.xdrEncode(xdr);
-        xdr.endEncoding();
-
         final CountDownLatch cdl = new CountDownLatch(1);
         final XdrAble r = result;
         final AtomicReference<Throwable> exception = new AtomicReference<>();
@@ -351,8 +413,7 @@ public class RpcCall {
             }
         };
 
-        _transport.getReplyQueue().registerKey(xid, callback);
-        _transport.send(xdr);
+        call(procedure, args, callback);
 
         try {
             if (!cdl.await(timeout, TimeUnit.MILLISECONDS)) {
