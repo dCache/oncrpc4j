@@ -80,7 +80,8 @@ public class OncRpcSvc {
         WORKER_THREAD
     }
 
-    private final ReplyQueue<Integer, RpcReply> _replyQueue = new ReplyQueue<>();
+    private final ReplyQueue _replyQueue = new ReplyQueue();
+
     /**
      * Handle RPCSEC_GSS
      */

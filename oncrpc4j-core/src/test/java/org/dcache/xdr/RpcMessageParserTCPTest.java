@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2012 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2015 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -40,7 +40,7 @@ public class RpcMessageParserTCPTest {
     public void setUp() {
         mockedContext = FilterChainContext.create(mock(Connection.class));
         tcpParser = new RpcMessageParserTCP();
-        rpc = new RpcProtocolFilter();
+        rpc = new RpcProtocolFilter(new ReplyQueue());
     }
 
     @Test

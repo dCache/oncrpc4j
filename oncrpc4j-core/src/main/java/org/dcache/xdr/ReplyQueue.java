@@ -20,95 +20,41 @@
 package org.dcache.xdr;
 
 import java.io.EOFException;
-import java.io.IOException;
+import java.nio.channels.CompletionHandler;
 import java.util.HashMap;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-public class ReplyQueue<K, V> {
+public class ReplyQueue {
 
-    private final static Logger _log = LoggerFactory.getLogger(ReplyQueue.class);
-    private final Map<K, V> _queue = new HashMap<>();
-    private boolean _connected = true;
+    private final Map<Integer, CompletionHandler<RpcReply, XdrTransport>> _queue = new HashMap<>();
+    private boolean _isConnected = true;
 
     /**
      * Create a placeholder for specified key.
      * @param key
      */
-    public synchronized void registerKey(K key) {
-        _log.debug("Registering key {}", key);
-        _queue.put(key, null);
+    public synchronized void registerKey(int key, CompletionHandler<RpcReply, XdrTransport> callback) throws EOFException {
+        if (!_isConnected) {
+            throw new EOFException("Disconnected");
+        }
+        _queue.put(key, callback);
     }
 
-    /**
-     * Put the value into Queue only and only if key is registered.
-     * @param key
-     * @param value
-     */
-    public synchronized void put(K key, V value) {
-        _log.debug("updating key {}", key);
-        if (_queue.containsKey(key)) {
-            _queue.put(key, value);
-            notifyAll();
-        }
-    }
 
     public synchronized void handleDisconnect() {
-        _connected = false;
-        notifyAll();
+        _isConnected = false;
+        for(CompletionHandler<RpcReply, XdrTransport> handler: _queue.values()) {
+            handler.failed(new EOFException("Disconnected") , null);
+        }
+        _queue.clear();
     }
     /**
      * Get value for defined key. The call will block if value is not available yet.
      * On completion key will be unregistered.
      *
      * @param key
-     * @return value
-     * @throws InterruptedException
-     * @throws IllegalArgumentException if key is not registered.
      */
-    public synchronized V get(K key) throws InterruptedException, IOException {
-        _log.debug("query key {}", key);
-        if (!_queue.containsKey(key)) {
-            throw new IllegalArgumentException("defined key does not exist: " + key);
-        }
-
-        while (isConnectionAlive() && _queue.get(key) == null) {
-            wait();
-        }
-
+    public synchronized CompletionHandler<RpcReply, XdrTransport> get(int key) {
         return _queue.remove(key);
-    }
-
-    /**
-     * Get value for defined key. The call will block up to defined timeout
-     * if value is not available yet. On completion key will be unregistered.
-     *
-     * @param key
-     * @param timeout in milliseconds
-     * @return value or null if timeout expired.
-     * @throwns IllegalArgumentException if key is not registered.
-     */
-    public synchronized V get(K key, int timeout) throws InterruptedException, IOException {
-        _log.debug("query key {} with timeout", key);
-        if (!_queue.containsKey(key)) {
-            throw new IllegalArgumentException("defined key does not exist: " + key);
-        }
-
-        long timeToWait = timeout;
-        long deadline = System.currentTimeMillis() + timeout;
-        while (isConnectionAlive() && timeToWait > 0 && _queue.get(key) == null) {
-            wait(timeToWait);
-            timeToWait = deadline - System.currentTimeMillis();
-        }
-
-        return _queue.remove(key);
-    }
-
-    private boolean isConnectionAlive() throws IOException {
-        if (!_connected) {
-            throw new EOFException("Disconnected");
-        }
-        return true;
     }
 }

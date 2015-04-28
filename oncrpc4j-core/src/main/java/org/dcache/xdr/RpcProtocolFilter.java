@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2012 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2015 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -20,6 +20,7 @@
 package org.dcache.xdr;
 
 import java.io.IOException;
+import java.nio.channels.CompletionHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.glassfish.grizzly.filterchain.BaseFilter;
@@ -29,13 +30,9 @@ import org.glassfish.grizzly.filterchain.NextAction;
 public class RpcProtocolFilter extends BaseFilter {
 
     private final static Logger _log = LoggerFactory.getLogger(RpcProtocolFilter.class);
-    private final ReplyQueue<Integer, RpcReply> _replyQueue;
+    private final ReplyQueue _replyQueue;
 
-    public RpcProtocolFilter() {
-        this(null);
-    }
-
-    public RpcProtocolFilter(ReplyQueue<Integer, RpcReply> replyQueue) {
+    public RpcProtocolFilter(ReplyQueue replyQueue) {
         _replyQueue = replyQueue;
     }
 
@@ -72,8 +69,15 @@ public class RpcProtocolFilter extends BaseFilter {
             case RpcMessageType.REPLY:
                 try {
                     RpcReply reply = new RpcReply(message.xid(), xdr, transport);
-                    if (_replyQueue != null) {
-                        _replyQueue.put(message.xid(), reply);
+                    CompletionHandler<RpcReply, XdrTransport> callback = _replyQueue.get(message.xid());
+                    if (callback != null) {
+                        if (!reply.isAccepted()) {
+                            callback.failed(new OncRpcRejectedException(reply.getRejectStatus()), transport);
+                        } else if (reply.getAcceptStatus() != RpcAccepsStatus.SUCCESS) {
+                            callback.failed(new OncRpcAcceptedException(reply.getAcceptStatus()), transport);
+                        } else {
+                            callback.completed(reply, transport);
+                        }
                     }
                 } catch (OncRpcException e) {
                     _log.warn("failed to decode reply:", e);

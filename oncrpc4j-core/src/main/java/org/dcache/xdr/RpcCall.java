@@ -19,8 +19,13 @@
  */
 package org.dcache.xdr;
 
+import com.google.common.base.Throwables;
 import java.io.IOException;
+import java.nio.channels.CompletionHandler;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -324,31 +329,45 @@ public class RpcCall {
         args.xdrEncode(xdr);
         xdr.endEncoding();
 
-        _transport.getReplyQueue().registerKey(xid);
+        final CountDownLatch cdl = new CountDownLatch(1);
+        final XdrAble r = result;
+        final AtomicReference<Throwable> exception = new AtomicReference<>();
+        CompletionHandler<RpcReply, XdrTransport> callback = new CompletionHandler<RpcReply, XdrTransport>() {
+
+            @Override
+            public void completed(RpcReply reply, XdrTransport attachment) {
+                try {
+                    reply.getReplyResult(r);
+                    cdl.countDown();
+                } catch (IOException e) {
+                    failed(e, attachment);
+                }
+            }
+
+            @Override
+            public void failed(Throwable exc, XdrTransport attachment) {
+                exception.set(exc);
+                cdl.countDown();
+            }
+        };
+
+        _transport.getReplyQueue().registerKey(xid, callback);
         _transport.send(xdr);
 
-        RpcReply reply;
         try {
-            reply = _transport.getReplyQueue().get(xid, timeout);
-            if( reply == null ) {
+            if (!cdl.await(timeout, TimeUnit.MILLISECONDS)) {
                 _log.info("Did not get reply in time");
                 throw new IOException("Did not get reply in time");
             }
         } catch (InterruptedException e) {
-            _log.error("call processing interrupted");
-            throw new IOException(e.getMessage());
+            throw new IOException("Did not get reply in time");
         }
 
-        if(reply.isAccepted() && reply.getAcceptStatus() == RpcAccepsStatus.SUCCESS ) {
-            reply.getReplyResult(result);
-        } else {
-            _log.info("reply not succeeded {}", reply);
-            // FIXME: error handling here
-
-            if( reply.isAccepted() ) {
-                throw new OncRpcAcceptedException(reply.getAcceptStatus());
-            }
-            throw new OncRpcRejectedException(reply.getRejectStatus());
+        Throwable t = exception.get();
+        if (t != null) {
+            Throwables.propagateIfInstanceOf(t, OncRpcException.class);
+            Throwables.propagateIfInstanceOf(t, IOException.class);
+            throw new IOException(t);
         }
     }
 }

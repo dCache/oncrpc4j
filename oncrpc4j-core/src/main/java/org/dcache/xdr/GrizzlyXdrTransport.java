@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2014 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2015 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -34,13 +34,13 @@ import org.glassfish.grizzly.filterchain.FilterChainContext;
 public class GrizzlyXdrTransport implements XdrTransport {
 
     private final Connection<InetSocketAddress> _connection;
-    private final ReplyQueue<Integer, RpcReply> _replyQueue;
+    private final ReplyQueue _replyQueue;
     private final InetSocketAddress _localAddress;
     private final InetSocketAddress _remoteAddress;
 
     private final static Logger _log = LoggerFactory.getLogger(GrizzlyXdrTransport.class);
 
-    public GrizzlyXdrTransport(FilterChainContext context, ReplyQueue<Integer, RpcReply> replyQueue) {
+    public GrizzlyXdrTransport(FilterChainContext context, ReplyQueue replyQueue) {
         _connection = context.getConnection();
         _replyQueue = replyQueue;
         _localAddress = (InetSocketAddress)context.getConnection().getLocalAddress();
@@ -77,7 +77,7 @@ public class GrizzlyXdrTransport implements XdrTransport {
     }
 
     @Override
-    public ReplyQueue<Integer, RpcReply> getReplyQueue() {
+    public ReplyQueue getReplyQueue() {
         return _replyQueue;
     }
 

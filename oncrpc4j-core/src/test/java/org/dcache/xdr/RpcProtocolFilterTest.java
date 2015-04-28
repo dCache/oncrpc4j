@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2012 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2015 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -41,7 +41,7 @@ public class RpcProtocolFilterTest {
 
     @Before
     public void setUp() {
-        filter = new RpcProtocolFilter();
+        filter = new RpcProtocolFilter( new ReplyQueue());
         mockedContext = FilterChainContext.create(mock(Connection.class));
     }
 

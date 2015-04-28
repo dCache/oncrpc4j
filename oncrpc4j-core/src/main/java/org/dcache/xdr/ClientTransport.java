@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2012 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2015 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -30,10 +30,9 @@ public class ClientTransport implements XdrTransport {
 
     private final static Logger _log = LoggerFactory.getLogger(ClientTransport.class);
     private final Connection<InetSocketAddress> _connection;
-    private final ReplyQueue<Integer, RpcReply> _replyQueue;
+    private final ReplyQueue _replyQueue;
 
-    public ClientTransport(Connection<InetSocketAddress> connection,
-            ReplyQueue<Integer, RpcReply> replyQueue) {
+    public ClientTransport(Connection<InetSocketAddress> connection, ReplyQueue replyQueue) {
         _replyQueue = replyQueue;
         _connection = connection;
     }
@@ -54,7 +53,7 @@ public class ClientTransport implements XdrTransport {
         return _connection.getPeerAddress();
     }
 
-    public ReplyQueue<Integer, RpcReply> getReplyQueue() {
+    public ReplyQueue getReplyQueue() {
         return _replyQueue;
     }
 

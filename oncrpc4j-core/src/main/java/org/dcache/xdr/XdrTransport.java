@@ -37,7 +37,7 @@ public interface XdrTransport {
      */
     public void send(Xdr xdr) throws IOException;
 
-    public ReplyQueue<Integer, RpcReply> getReplyQueue();
+    public ReplyQueue getReplyQueue();
 
     /**
      * Get local end point.
