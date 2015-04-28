@@ -33,7 +33,7 @@ public class SimpleRpcClient {
         InetAddress address = InetAddress.getByName(args[0]);
         int port = Integer.parseInt(args[1]);
 
-        OncRpcClient rpcClient = new OncRpcClient(address, port, port);
+        OncRpcClient rpcClient = new OncRpcClient(address, IpProtocolType.TCP, port);
         XdrTransport transport = rpcClient.connect();
         RpcAuth auth = new RpcAuthTypeNone();
 
