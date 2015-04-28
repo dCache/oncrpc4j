@@ -20,6 +20,7 @@
 package org.dcache.xdr.portmap;
 
 import java.io.IOException;
+import java.util.concurrent.TimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.dcache.xdr.OncRpcException;
@@ -49,15 +50,14 @@ public class RpcbindV4Client implements OncPortmapClient {
         try {
             _call.call(OncRpcPortmap.PMAPPROC_NULL, XdrVoid.XDR_VOID, XdrVoid.XDR_VOID, 2000);
             pong = true;
-        }catch(OncRpcException e) {
-        }catch(IOException e) {
+        }catch(IOException | TimeoutException e) {
         }
 
         return pong;
     }
 
     public boolean setPort(int program, int version, String netid, String addr, String owner)
-            throws OncRpcException, IOException {
+            throws OncRpcException, IOException, TimeoutException {
 
         _log.debug("portmap set port: prog: {} vers: {}, netid: {} addr: {}, owner: {}",
                 new Object[] {program, version, netid, addr, owner});
@@ -72,7 +72,7 @@ public class RpcbindV4Client implements OncPortmapClient {
 
     @Override
     public boolean unsetPort(int program, int version, String owner)
-            throws OncRpcException, IOException {
+            throws OncRpcException, IOException, TimeoutException {
 
         _log.debug("portmap unset port: prog: {} vers: {}, owner: {}",
                 new Object[]{program, version, owner});
@@ -86,14 +86,15 @@ public class RpcbindV4Client implements OncPortmapClient {
     }
 
     @Override
-    public String getPort(int program, int version, String netid) throws OncRpcException, IOException {
+    public String getPort(int program, int version, String netid)
+            throws OncRpcException, IOException, TimeoutException {
         rpcb arg = new rpcb(program, version, netid, "", "");
         XdrString xdrString = new XdrString();
         _call.call(OncRpcPortmap.RPCBPROC_GETADDR, arg, xdrString);
         return xdrString.stringValue();
     }
 
-    public void dump() throws OncRpcException, IOException {
+    public void dump() throws OncRpcException, IOException, TimeoutException {
 
         _log.debug("portmap dump");
 

@@ -56,6 +56,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static org.dcache.xdr.GrizzlyUtils.getSelectorPoolCfg;
 import static org.dcache.xdr.GrizzlyUtils.rpcMessageReceiverFor;
@@ -215,7 +216,7 @@ public class OncRpcSvc {
                     try {
                         portmapClient.setPort(program.getNumber(), program.getVersion(),
                                 netid, uaddr, username);
-                    } catch (OncRpcException e) {
+                    } catch (OncRpcException | TimeoutException e) {
                         _log.warn("Failed to register program: {}", e.getMessage());
                     }
                 }
@@ -248,8 +249,8 @@ public class OncRpcSvc {
                 try {
                     portmapClient.unsetPort(program.getNumber(),
                             program.getVersion(), username);
-                } catch (OncRpcException ex) {
-                    _log.info("Failed to unregister program: {}", ex.getMessage());
+                } catch (OncRpcException | TimeoutException e) {
+                    _log.info("Failed to unregister program: {}", e.getMessage());
                 }
             }
         } catch (RpcProgUnavailable e) {

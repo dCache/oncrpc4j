@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2014 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2015 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -22,12 +22,13 @@ package org.dcache.xdr;
 import com.google.common.base.Throwables;
 import com.google.common.util.concurrent.SettableFuture;
 import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.nio.channels.CompletionHandler;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -371,9 +372,10 @@ public class RpcCall {
      * @param result the result of the procedure
      * @throws OncRpcException
      * @throws IOException
+     * @throws TimeoutException if the wait timed out
      */
     public void call(int procedure, XdrAble args, XdrAble result)
-            throws OncRpcException, IOException {
+            throws OncRpcException, IOException, TimeoutException {
 
         this.call(procedure, args, result, Integer.MAX_VALUE);
     }
@@ -387,47 +389,23 @@ public class RpcCall {
      * @param timeout
      * @throws OncRpcException
      * @throws IOException
+     * @throws TimeoutException if the wait timed out
      */
     public void call(int procedure, XdrAble args, XdrAble result, int timeout)
-            throws OncRpcException, IOException {
+            throws OncRpcException, IOException, TimeoutException {
 
-        final CountDownLatch cdl = new CountDownLatch(1);
-        final XdrAble r = result;
-        final AtomicReference<Throwable> exception = new AtomicReference<>();
-        CompletionHandler<RpcReply, XdrTransport> callback = new CompletionHandler<RpcReply, XdrTransport>() {
-
-            @Override
-            public void completed(RpcReply reply, XdrTransport attachment) {
-                try {
-                    reply.getReplyResult(r);
-                    cdl.countDown();
-                } catch (IOException e) {
-                    failed(e, attachment);
-                }
-            }
-
-            @Override
-            public void failed(Throwable exc, XdrTransport attachment) {
-                exception.set(exc);
-                cdl.countDown();
-            }
-        };
-
-        call(procedure, args, callback);
+        Future<RpcReply> future = call(procedure, args);
 
         try {
-            if (!cdl.await(timeout, TimeUnit.MILLISECONDS)) {
-                _log.info("Did not get reply in time");
-                throw new IOException("Did not get reply in time");
-            }
+            RpcReply reply =  future.get(timeout, TimeUnit.MILLISECONDS);
+            reply.getReplyResult(result);
         } catch (InterruptedException e) {
-            throw new IOException("Did not get reply in time");
-        }
-
-        Throwable t = exception.get();
-        if (t != null) {
+            throw new InterruptedIOException();
+        } catch (ExecutionException e) {
+            Throwable t = Throwables.getRootCause(e);
             Throwables.propagateIfInstanceOf(t, OncRpcException.class);
             Throwables.propagateIfInstanceOf(t, IOException.class);
+
             throw new IOException(t);
         }
     }

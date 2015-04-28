@@ -20,15 +20,16 @@
 package org.dcache.xdr.portmap;
 
 import java.io.IOException;
+import java.util.concurrent.TimeoutException;
 import org.dcache.xdr.OncRpcException;
 
 public interface OncPortmapClient {
 
-    void dump() throws OncRpcException, IOException;
+    void dump() throws OncRpcException, IOException, TimeoutException;
 
     boolean ping();
 
-    boolean setPort(int program, int version, String netid, String addr, String owner) throws OncRpcException, IOException;
-    boolean unsetPort(int program, int version, String owner) throws OncRpcException, IOException;
-    String  getPort(int program, int version, String netid) throws OncRpcException, IOException;
+    boolean setPort(int program, int version, String netid, String addr, String owner) throws OncRpcException, IOException, TimeoutException;
+    boolean unsetPort(int program, int version, String owner) throws OncRpcException, IOException, TimeoutException;
+    String  getPort(int program, int version, String netid) throws OncRpcException, IOException, TimeoutException;
 }

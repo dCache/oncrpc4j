@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2014 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2015 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -21,6 +21,7 @@ package org.dcache.xdr.portmap;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.util.concurrent.TimeoutException;
 import org.dcache.xdr.IpProtocolType;
 import org.dcache.xdr.OncRpcClient;
 import org.dcache.xdr.OncRpcException;
@@ -62,7 +63,7 @@ public class OncRpcEmbeddedPortmap {
                         i, _auth, transport);
                 try {
                     call.call(0, XdrVoid.XDR_VOID, XdrVoid.XDR_VOID, timeout);
-                } catch (OncRpcException ex) {}
+                } catch (TimeoutException | OncRpcException e) {}
                 localPortmapperRunning = true;
             }
         } catch (IOException e) {

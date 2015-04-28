@@ -21,6 +21,7 @@ package org.dcache.xdr.portmap;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.util.concurrent.TimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.dcache.xdr.IpProtocolType;
@@ -40,11 +41,9 @@ public class GenericPortmapClient implements OncPortmapClient {
 
     public GenericPortmapClient(XdrTransport transport) throws RpcProgUnavailable {
 
-       OncPortmapClient portmapClient = new RpcbindV4Client(new RpcCall(100000, 4,
-               _auth, transport));
+       OncPortmapClient portmapClient = new RpcbindV4Client(new RpcCall(100000, 4, _auth, transport));
         if( !portmapClient.ping() ) {
-            portmapClient = new PortmapV2Client( new RpcCall(100000, 2,
-                    _auth, transport) );
+            portmapClient = new PortmapV2Client( new RpcCall(100000, 2, _auth, transport) );
             if(!portmapClient.ping()) {
                 // FIXME: return correct exception
                 throw new RpcProgUnavailable("portmap service not available");
@@ -54,7 +53,7 @@ public class GenericPortmapClient implements OncPortmapClient {
         _portmapClient = portmapClient;
     }
 
-    public void dump() throws OncRpcException, IOException {
+    public void dump() throws OncRpcException, IOException, TimeoutException {
         _portmapClient.dump();
     }
 
@@ -62,22 +61,22 @@ public class GenericPortmapClient implements OncPortmapClient {
         return _portmapClient.ping();
     }
 
-    public boolean setPort(int program, int version, String netid, String addr, String owner) throws OncRpcException, IOException {
+    public boolean setPort(int program, int version, String netid, String addr, String owner) throws OncRpcException, IOException, TimeoutException {
         return _portmapClient.setPort(program, version, netid, addr, owner);
     }
 
-    public boolean unsetPort(int program, int version, String owner) throws OncRpcException, IOException {
+    public boolean unsetPort(int program, int version, String owner) throws OncRpcException, IOException, TimeoutException {
         return _portmapClient.unsetPort(program, version, owner);
     }
 
-    public String getPort(int program, int version, String netid) throws OncRpcException, IOException {
+    public String getPort(int program, int version, String netid) throws OncRpcException, IOException, TimeoutException {
         return _portmapClient.getPort(program, version, netid);
     }
 
-    public static void main(String[] args) throws InterruptedException, IOException, OncRpcException {
+    public static void main(String[] args) throws InterruptedException, IOException, OncRpcException, TimeoutException {
 
         int protocol = IpProtocolType.TCP;
-        
+
         OncRpcClient rpcClient = new OncRpcClient(InetAddress.getByName(null), IpProtocolType.UDP, 111);
         XdrTransport transport = rpcClient.connect();
 
@@ -97,7 +96,7 @@ public class GenericPortmapClient implements OncPortmapClient {
             System.out.println(portmapClient.setPort(prog, vers, netid, addr, user));
             System.out.println("getport: " + portmapClient.getPort(prog, vers, netid));
             System.out.println("-------");
-            
+
       //      System.out.println(portmapClient.unsetPort(prog, vers, user));
             System.out.println("getport: " + portmapClient.getPort(prog, vers, netid));
 

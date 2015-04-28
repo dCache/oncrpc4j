@@ -21,6 +21,7 @@ package org.dcache.xdr.portmap;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.concurrent.TimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.dcache.utils.net.InetSocketAddresses;
@@ -40,7 +41,7 @@ public class PortmapV2Client implements OncPortmapClient {
         _call = call;
     }
 
-    public void dump() throws OncRpcException, IOException {
+    public void dump() throws OncRpcException, IOException, TimeoutException {
         _log.debug("portmap dump");
 
         pmaplist list_reply = new pmaplist();
@@ -55,14 +56,13 @@ public class PortmapV2Client implements OncPortmapClient {
         try {
             _call.call(OncRpcPortmap.PMAPPROC_NULL, XdrVoid.XDR_VOID, XdrVoid.XDR_VOID, 2000);
             pong = true;
-        }catch(OncRpcException e) {
-        }catch(IOException e) {
-        }
+        }catch (TimeoutException | IOException e) {}
 
         return pong;
     }
 
-    public boolean setPort(int program, int version, String netids, String addr, String owner) throws OncRpcException, IOException {
+    public boolean setPort(int program, int version, String netids, String addr, String owner)
+            throws OncRpcException, IOException, TimeoutException {
         _log.debug("portmap set port: prog: {} vers: {}, netid: {} addr: {}, owner: {}",
                 new Object[]{program, version, netids, addr, owner});
 
@@ -76,7 +76,8 @@ public class PortmapV2Client implements OncPortmapClient {
     }
 
     @Override
-    public boolean unsetPort(int program, int version, String owner) throws OncRpcException, IOException {
+    public boolean unsetPort(int program, int version, String owner)
+            throws OncRpcException, IOException, TimeoutException {
         _log.debug("portmap unset port: prog: {} vers: {}, owner: {}",
                 new Object[]{program, version, owner});
 
@@ -89,7 +90,8 @@ public class PortmapV2Client implements OncPortmapClient {
     }
 
     @Override
-    public String getPort(int program, int version, String nid) throws OncRpcException, IOException {
+    public String getPort(int program, int version, String nid)
+            throws OncRpcException, IOException, TimeoutException {
 
         mapping m = new mapping(program, version, netid.idOf(nid), 0);
         XdrInt port = new XdrInt();

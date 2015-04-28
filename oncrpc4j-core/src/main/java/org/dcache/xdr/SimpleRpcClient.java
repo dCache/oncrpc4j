@@ -20,6 +20,7 @@
 package org.dcache.xdr;
 
 import java.net.InetAddress;
+import java.util.concurrent.Future;
 
 public class SimpleRpcClient {
 
@@ -43,6 +44,9 @@ public class SimpleRpcClient {
          * call PROC_NULL (ping)
          */
         call.call(0, XdrVoid.XDR_VOID, XdrVoid.XDR_VOID);
+
+        Future<RpcReply> r = call.call(0, XdrVoid.XDR_VOID);
+        r.get();
         rpcClient.close();
     }
 }
