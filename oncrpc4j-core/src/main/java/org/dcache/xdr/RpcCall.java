@@ -337,31 +337,24 @@ public class RpcCall {
      * returns a Future representing the pending result. The Future's get method
      * returns the RPC reply responded by server.
      *
+     * @param <T> The result type of RPC call.
      * @param procedure The number of the procedure.
      * @param args The argument of the procedure.
+     * @param type The expected type of the reply
      * @return A Future representing the result of the operation.
      * @throws OncRpcException
      * @throws IOException
      * @since 2.4.0
      */
-    public Future<RpcReply> call(int procedure, XdrAble args) throws OncRpcException, IOException {
-
-        final SettableFuture<RpcReply> future = SettableFuture.create();
-        CompletionHandler<RpcReply, XdrTransport> callback = new CompletionHandler<RpcReply, XdrTransport>() {
-
-            @Override
-            public void completed(RpcReply reply, XdrTransport attachment) {
-                future.set(reply);
-            }
-
-            @Override
-            public void failed(Throwable exc, XdrTransport attachment) {
-                future.setException(exc);
-            }
-        };
-
-        call(procedure, args, callback);
-        return future;
+    public <T extends XdrAble> Future<T> call(int procedure, XdrAble args, final Class<T> type)
+            throws OncRpcException, IOException {
+        try {
+            T result = type.newInstance();
+            return getCallFuture(procedure, args, result);
+        } catch (InstantiationException | IllegalAccessException e) {
+            // this exceptions point to bugs
+            throw new RuntimeException("Failed to create in instance of " + type, e);
+        }
     }
 
     /**
@@ -372,12 +365,25 @@ public class RpcCall {
      * @param result the result of the procedure
      * @throws OncRpcException
      * @throws IOException
-     * @throws TimeoutException if the wait timed out
      */
     public void call(int procedure, XdrAble args, XdrAble result)
-            throws OncRpcException, IOException, TimeoutException {
+            throws OncRpcException, IOException {
 
-        this.call(procedure, args, result, Integer.MAX_VALUE);
+        try {
+            Future<XdrAble> future = getCallFuture(procedure, args, result);
+            future.get();
+        } catch (InterruptedException e) {
+            // workaround missing chained constructor
+            IOException ioe = new InterruptedIOException(e.getMessage());
+            ioe.initCause(e);
+            throw ioe;
+        } catch (ExecutionException e) {
+            Throwable t = Throwables.getRootCause(e);
+            Throwables.propagateIfInstanceOf(t, OncRpcException.class);
+            Throwables.propagateIfInstanceOf(t, IOException.class);
+
+            throw new IOException(t);
+        }
     }
 
     /**
@@ -391,16 +397,17 @@ public class RpcCall {
      * @throws IOException
      * @throws TimeoutException if the wait timed out
      */
-    public void call(int procedure, XdrAble args, XdrAble result, int timeout)
+    public void call(int procedure, XdrAble args, final XdrAble result, int timeout)
             throws OncRpcException, IOException, TimeoutException {
 
-        Future<RpcReply> future = call(procedure, args);
-
         try {
-            RpcReply reply =  future.get(timeout, TimeUnit.MILLISECONDS);
-            reply.getReplyResult(result);
+            Future<XdrAble> future = getCallFuture(procedure, args, result);
+            future.get(timeout, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
-            throw new InterruptedIOException();
+            // workaround missing chained constructor
+            IOException ioe = new InterruptedIOException(e.getMessage());
+            ioe.initCause(e);
+            throw ioe;
         } catch (ExecutionException e) {
             Throwable t = Throwables.getRootCause(e);
             Throwables.propagateIfInstanceOf(t, OncRpcException.class);
@@ -408,5 +415,31 @@ public class RpcCall {
 
             throw new IOException(t);
         }
+    }
+
+    private <T extends XdrAble> Future<T> getCallFuture(int procedure, XdrAble args, final T result)
+            throws OncRpcException, IOException {
+
+        final SettableFuture<T> future = SettableFuture.create();
+        CompletionHandler<RpcReply, XdrTransport> callback = new CompletionHandler<RpcReply, XdrTransport>() {
+
+            @Override
+            public void completed(RpcReply reply, XdrTransport attachment) {
+                try {
+                    reply.getReplyResult(result);
+                    future.set(result);
+                } catch (IOException e) {
+                    failed(e, attachment);
+                }
+            }
+
+            @Override
+            public void failed(Throwable exc, XdrTransport attachment) {
+                future.setException(exc);
+            }
+        };
+
+        call(procedure, args, callback);
+        return future;
     }
 }

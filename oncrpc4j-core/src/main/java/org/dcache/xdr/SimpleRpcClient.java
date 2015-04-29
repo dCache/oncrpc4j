@@ -45,7 +45,7 @@ public class SimpleRpcClient {
          */
         call.call(0, XdrVoid.XDR_VOID, XdrVoid.XDR_VOID);
 
-        Future<RpcReply> r = call.call(0, XdrVoid.XDR_VOID);
+        Future<XdrVoid> r = call.call(0, XdrVoid.XDR_VOID, XdrVoid.class);
         r.get();
         rpcClient.close();
     }
