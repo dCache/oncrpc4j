@@ -33,7 +33,7 @@ public class XdrInt implements XdrAble {
     }
 
     /**
-     * Returns the value of this <code>XdrString</code> object as a {@code String}.
+     * Returns the value of this <code>XdrInt</code> object as an {@code int}.
      */
     public int intValue() {
         return _value;
