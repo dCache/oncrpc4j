@@ -19,8 +19,8 @@
         <url>https://github.com/dCache/oncrpc4j.git</url>
         <connection>scm:git:https://github.com/dCache/oncrpc4j.git</connection>
         <developerConnection>scm:git:https://github.com/dCache/oncrpc4j.git</developerConnection>
-    <tag>HEAD</tag>
-  </scm>
+        <tag>HEAD</tag>
+    </scm>
 
   <!--
     CODE LICENSE
