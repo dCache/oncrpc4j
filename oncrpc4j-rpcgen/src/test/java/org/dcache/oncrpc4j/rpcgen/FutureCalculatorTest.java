@@ -69,6 +69,9 @@ public class FutureCalculatorTest {
         Assert.assertNotNull(result);
         Assert.assertEquals(3, result.longValue());
         //not really proof of async, but good enough?
+        //the condition below is a bit fragile and relies on the fact
+        //that there's a 10-milli sleep server side and the invocation
+        //is likely to take much less
         Assert.assertTrue(waitTime > invocationTime);
     }
 }
