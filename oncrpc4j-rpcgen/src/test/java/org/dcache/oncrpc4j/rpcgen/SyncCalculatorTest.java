@@ -47,4 +47,9 @@ public class SyncCalculatorTest {
         Assert.assertNotNull(result);
         Assert.assertEquals(3, result.getResult());
     }
+
+    @Test
+    public void testSyncAddSimple() throws Exception {
+        Assert.assertEquals(3, client.addSimple_1(1, 2));
+    }
 }
