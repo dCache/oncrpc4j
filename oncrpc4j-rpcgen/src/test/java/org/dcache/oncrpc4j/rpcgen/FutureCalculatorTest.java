@@ -1,9 +1,6 @@
 package org.dcache.oncrpc4j.rpcgen;
 
-import org.dcache.xdr.IpProtocolType;
-import org.dcache.xdr.OncRpcProgram;
-import org.dcache.xdr.OncRpcSvc;
-import org.dcache.xdr.OncRpcSvcBuilder;
+import org.dcache.xdr.*;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -58,5 +55,23 @@ public class FutureCalculatorTest {
         Assert.assertTrue(result.startMillis < result.finishMillis);
         Assert.assertTrue(result.finishMillis <= resTime);
         Assert.assertTrue(retTime < result.finishMillis);
+    }
+
+    @Test
+    public void testFutureAddSimple() throws Exception {
+        long callTime = System.nanoTime();
+        Future<XdrLong> future = client.addSimple_1_future(1, 2);
+        long retTime = System.nanoTime();
+        XdrLong result = future.get();
+        long resTime = System.nanoTime();
+        long invocationTime = retTime-callTime;
+        long waitTime = resTime-retTime;
+        Assert.assertNotNull(result);
+        Assert.assertEquals(3, result.longValue());
+        //not really proof of async, but good enough?
+        //the condition below is a bit fragile and relies on the fact
+        //that there's a 10-milli sleep server side and the invocation
+        //is likely to take much less
+        Assert.assertTrue(waitTime > invocationTime);
     }
 }

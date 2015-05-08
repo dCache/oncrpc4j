@@ -17,4 +17,14 @@ public class CalculatorServerImpl extends CalculatorServer {
         result.setFinishMillis(System.currentTimeMillis());
         return result;
     }
+
+    @Override
+    public long addSimple_1(RpcCall call$, long arg1, long arg2) {
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            throw new IllegalStateException(e);
+        }
+        return arg1 + arg2;
+    }
 }

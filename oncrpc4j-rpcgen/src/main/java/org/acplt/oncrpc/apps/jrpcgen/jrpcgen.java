@@ -30,12 +30,8 @@ package org.acplt.oncrpc.apps.jrpcgen;
 import org.acplt.oncrpc.apps.jrpcgen.cup_runtime.Symbol;
 
 import java.io.*;
-import java.util.Enumeration;
-import java.util.Date;
+import java.util.*;
 import java.text.SimpleDateFormat;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * The class <code>jrpcgen</code> implements a Java-based rpcgen RPC protocol
@@ -520,8 +516,11 @@ public class jrpcgen {
         "void",
         "boolean",
         "byte",
-        "short", "int", "long",
-        "float", "double",
+        "short",
+        "int",
+        "long",
+        "float",
+        "double",
         "String"
     };
 
@@ -837,6 +836,22 @@ public class jrpcgen {
             return "byte";
         }
         return dataType;
+    }
+
+    /**
+     * given a java type, return the XdrAble wrapper for it.
+     * this applies mostly to java primitives and immutables
+     * (like int and String respectively)
+     * otherwise return the original (assumed to be XdrAble)
+     * @param javaType a java type (ex "int")
+     * @return the boxed, XdrAble type, or the argument, if none required
+     */
+    public static String boxForTransport(String javaType) {
+        String xdrWrapper = xdrBaseType(javaType);
+        if (xdrWrapper != null) {
+            return xdrWrapper;
+        }
+        return javaType;
     }
 
     /**
@@ -1491,7 +1506,7 @@ public class jrpcgen {
                 methodName = proc.procedureId;
                 break;
             case FUTURE:
-                returnType = "Future<"+resultType+">";
+                returnType = "Future<"+ boxForTransport(resultType)+">";
                 methodName = proc.procedureId+"_future";
                 break;
             case CALLBACK:
@@ -1699,7 +1714,7 @@ public class jrpcgen {
             case FUTURE:
                 out.println("        return client.call("
                         + baseClassname + "." + proc.procedureId
-                        + ", " + xdrParamsName + ", " + resultType + ".class);");
+                        + ", " + xdrParamsName + ", " + boxForTransport(resultType) + ".class);");
                 break;
             case CALLBACK:
             case ONE_WAY:
