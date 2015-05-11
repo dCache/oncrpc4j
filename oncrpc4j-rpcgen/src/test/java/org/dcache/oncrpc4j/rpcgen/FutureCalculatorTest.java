@@ -1,43 +1,12 @@
 package org.dcache.oncrpc4j.rpcgen;
 
-import org.dcache.xdr.*;
-import org.junit.After;
+import org.dcache.xdr.XdrLong;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
-import java.net.InetAddress;
 import java.util.concurrent.Future;
 
-public class FutureCalculatorTest {
-    private OncRpcSvc server;
-    private CalculatorClient client;
-    private String address = "127.0.0.1";
-    private int port = 6666;
-
-    @Before
-    public void setup() throws Exception{
-        server = new OncRpcSvcBuilder()
-                .withTCP()
-                .withoutAutoPublish() //so we dont need rpcbind
-                .withPort(port)
-                .withSameThreadIoStrategy()
-                .withBindAddress(address)
-                .build();
-        server.register(new OncRpcProgram(Calculator.CALCULATOR, Calculator.CALCULATORVERS), new CalculatorServerImpl());
-        server.start();
-        client = new CalculatorClient(
-                InetAddress.getByName(address),
-                port,
-                Calculator.CALCULATOR,
-                Calculator.CALCULATORVERS,
-                IpProtocolType.TCP);
-    }
-
-    @After
-    public void teardown() throws Exception {
-        server.stop();
-    }
+public class FutureCalculatorTest extends AbstractCalculatorTest {
 
     @Test
     public void testFutureAdd() throws Exception {
