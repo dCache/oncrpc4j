@@ -54,6 +54,7 @@
                                 <argument>-bean</argument>
                                 <argument>-asyncfuture</argument>
                                 <argument>-asynccallback</argument>
+                                <argument>-oneway</argument>
                                 <argument>-c</argument>
                                 <argument>CalculatorClient</argument>
                                 <argument>-s</argument>

@@ -15,6 +15,7 @@ import java.net.InetAddress;
  * @since Phase1
  */
 public class AbstractCalculatorTest {
+    protected CalculatorServerImpl serverImpl = new CalculatorServerImpl();
     protected OncRpcSvc server;
     protected CalculatorClient client;
     protected String address = "127.0.0.1";
@@ -29,7 +30,7 @@ public class AbstractCalculatorTest {
                 .withSameThreadIoStrategy()
                 .withBindAddress(address)
                 .build();
-        server.register(new OncRpcProgram(Calculator.CALCULATOR, Calculator.CALCULATORVERS), new CalculatorServerImpl());
+        server.register(new OncRpcProgram(Calculator.CALCULATOR, Calculator.CALCULATORVERS), serverImpl);
         server.start();
         client = new CalculatorClient(
                 InetAddress.getByName(address),
