@@ -19,6 +19,18 @@
  */
 package org.dcache.xdr;
 
+import org.glassfish.grizzly.Connection;
+import org.glassfish.grizzly.ConnectionProbe;
+import org.glassfish.grizzly.ConnectorHandler;
+import org.glassfish.grizzly.Transport;
+import org.glassfish.grizzly.filterchain.FilterChainBuilder;
+import org.glassfish.grizzly.filterchain.TransportFilter;
+import org.glassfish.grizzly.nio.transport.TCPNIOTransportBuilder;
+import org.glassfish.grizzly.nio.transport.UDPNIOTransportBuilder;
+import org.glassfish.grizzly.strategies.SameThreadIOStrategy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -26,20 +38,10 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.glassfish.grizzly.Connection;
-import org.glassfish.grizzly.ConnectorHandler;
-import org.glassfish.grizzly.Transport;
-import org.glassfish.grizzly.filterchain.FilterChainBuilder;
-import org.glassfish.grizzly.filterchain.TransportFilter;
-import org.glassfish.grizzly.nio.transport.TCPNIOTransportBuilder;
-import org.glassfish.grizzly.nio.transport.UDPNIOTransportBuilder;
-import static org.dcache.xdr.GrizzlyUtils.*;
-import org.glassfish.grizzly.ConnectionProbe;
-import org.glassfish.grizzly.strategies.SameThreadIOStrategy;
 
-public class OncRpcClient {
+import static org.dcache.xdr.GrizzlyUtils.rpcMessageReceiverFor;
+
+public class OncRpcClient implements AutoCloseable {
 
     private final static Logger _log = LoggerFactory.getLogger(OncRpcClient.class);
     private final InetSocketAddress _socketAddress;
@@ -96,6 +98,7 @@ public class OncRpcClient {
         return new ClientTransport(_connection, _replyQueue);
     }
 
+    @Override
     public void close() throws IOException {
         _transport.shutdownNow();
     }
