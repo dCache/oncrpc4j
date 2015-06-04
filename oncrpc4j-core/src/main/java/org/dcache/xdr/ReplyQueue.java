@@ -19,42 +19,114 @@
  */
 package org.dcache.xdr;
 
+import javax.annotation.Nonnull;
 import java.io.EOFException;
 import java.nio.channels.CompletionHandler;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ReplyQueue {
 
-    private final Map<Integer, CompletionHandler<RpcReply, XdrTransport>> _queue = new HashMap<>();
+    private final ScheduledExecutorService executorService = new ScheduledThreadPoolExecutor(1, new ThreadFactory() {
+        private final AtomicInteger counter = new AtomicInteger();
+
+        @Override
+        public Thread newThread(@Nonnull Runnable r) {
+            Thread t = new Thread(r, "timeout thread #" + counter.incrementAndGet() + " for ReplyQueue " + ReplyQueue.this);
+            t.setDaemon(true);
+            return t;
+        }
+    });
+    private final Map<Integer, HandlerTimeoutPair> _queue = new HashMap<>();
     private boolean _isConnected = true;
 
     /**
-     * Create a placeholder for specified key.
-     * @param key
+     * Creates a placeholder for the specified key, and no timeout
+     *
+     * @param key key (xid)
+     * @param callback
+     * @throws EOFException if disconnected
      */
-    public synchronized void registerKey(int key, CompletionHandler<RpcReply, XdrTransport> callback) throws EOFException {
+    public synchronized void registerKey(final int key, CompletionHandler<RpcReply, XdrTransport> callback) throws EOFException {
+        registerKey(key, callback, 0, null);
+    }
+
+    /**
+     * Create a placeholder for specified key, with the specified timeout to get a response by)
+     *
+     * @param key key (xid)
+     * @param callback
+     * @throws EOFException if disconnected
+     */
+    public synchronized void registerKey(final int key, CompletionHandler<RpcReply, XdrTransport> callback, final long timeoutValue, final TimeUnit timeoutUnits) throws EOFException {
         if (!_isConnected) {
             throw new EOFException("Disconnected");
         }
-        _queue.put(key, callback);
+        ScheduledFuture<?> scheduledTimeout = null;
+        if (timeoutValue > 0 && timeoutUnits != null) {
+            scheduledTimeout = executorService.schedule(new Runnable() {
+                @Override
+                public void run() {
+                    synchronized (ReplyQueue.this) {
+                        CompletionHandler<RpcReply, XdrTransport> handler = get(key);
+                        if (handler != null) { //means we're 1st, no response yet
+                            handler.failed(new TimeoutException("did not get a response within " + timeoutValue + " " + timeoutUnits), null);
+                        }
+                    }
+                }
+            }, timeoutValue, timeoutUnits);
+        }
+        _queue.put(key, new HandlerTimeoutPair(callback, scheduledTimeout));
     }
-
 
     public synchronized void handleDisconnect() {
         _isConnected = false;
-        for(CompletionHandler<RpcReply, XdrTransport> handler: _queue.values()) {
-            handler.failed(new EOFException("Disconnected") , null);
+        EOFException eofException = new EOFException("Disconnected");
+        for (HandlerTimeoutPair handler : _queue.values()) {
+            handler.handler.failed(eofException, null);
+        }
+        for (HandlerTimeoutPair pair : _queue.values()) {
+            ScheduledFuture<?> timeoutFuture = pair.scheduledTimeout;
+            if (timeoutFuture != null) {
+                timeoutFuture.cancel(false);
+            }
         }
         _queue.clear();
+        executorService.shutdown();
     }
+
     /**
      * Get value for defined key. The call will block if value is not available yet.
      * On completion key will be unregistered.
      *
-     * @param key
+     * @param key key (xid)
      */
     public synchronized CompletionHandler<RpcReply, XdrTransport> get(int key) {
-        return _queue.remove(key);
+        HandlerTimeoutPair pair = _queue.remove(key);
+        if (pair != null) { //means we're first. call off any pending timeouts
+            if (pair.scheduledTimeout != null) {
+                pair.scheduledTimeout.cancel(false);
+            }
+            return pair.handler;
+        } else {
+            return null;
+        }
+    }
+
+    private static class HandlerTimeoutPair {
+        private final CompletionHandler<RpcReply, XdrTransport> handler;
+        private final ScheduledFuture<?> scheduledTimeout;
+
+        public HandlerTimeoutPair(CompletionHandler<RpcReply, XdrTransport> handler, ScheduledFuture<?> scheduledTimeout) {
+            this.handler = handler;
+            this.scheduledTimeout = scheduledTimeout;
+        }
     }
 }

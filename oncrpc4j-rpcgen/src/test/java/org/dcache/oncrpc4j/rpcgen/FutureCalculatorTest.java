@@ -5,6 +5,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 public class FutureCalculatorTest extends AbstractCalculatorTest {
 
@@ -42,5 +44,11 @@ public class FutureCalculatorTest extends AbstractCalculatorTest {
         //that there's a 10-milli sleep server side and the invocation
         //is likely to take much less
         Assert.assertTrue(waitTime > invocationTime);
+    }
+
+    @Test(expected = TimeoutException.class)
+    public void testFutureAddTimeout() throws Exception {
+        Future<CalculationResult> future = client.add_1_future(3, 4);
+        future.get(CalculatorServerImpl.SLEEP_MILLIS / 10, TimeUnit.MILLISECONDS);
     }
 }

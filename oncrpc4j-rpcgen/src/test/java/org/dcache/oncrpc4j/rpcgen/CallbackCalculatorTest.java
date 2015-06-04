@@ -9,6 +9,7 @@ import org.junit.Test;
 import java.nio.channels.CompletionHandler;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -43,7 +44,7 @@ public class CallbackCalculatorTest extends AbstractCalculatorTest {
             public void failed(Throwable exc, XdrTransport attachment) {
                 throw new IllegalStateException(exc);
             }
-        });
+        }, 0, null);
         long retTime = System.currentTimeMillis();
         latch.await(3, TimeUnit.SECONDS);
         long resTime = System.currentTimeMillis();
@@ -85,7 +86,7 @@ public class CallbackCalculatorTest extends AbstractCalculatorTest {
             public void failed(Throwable exc, XdrTransport attachment) {
                 throw new IllegalStateException(exc);
             }
-        });
+        }, 0, null);
         long retTime = System.currentTimeMillis();
         latch.await(3, TimeUnit.SECONDS);
         long resTime = System.currentTimeMillis();
@@ -100,5 +101,29 @@ public class CallbackCalculatorTest extends AbstractCalculatorTest {
         Assert.assertTrue(callbackTime <= resTime);
         Assert.assertTrue(callTime <= retTime);
         Assert.assertTrue(retTime < callbackTime);
+    }
+
+    @Test
+    public void testCallbackAddTimeout() throws Exception {
+        final AtomicReference<String> failureMsgRef = new AtomicReference<>();
+        final CountDownLatch latch = new CountDownLatch(1);
+        client.addSimple_1_callback(1, 2, new CompletionHandler<RpcReply, XdrTransport>() {
+            @Override
+            public void completed(RpcReply result, XdrTransport attachment) {
+                failureMsgRef.set("call should have timed out");
+                latch.countDown();
+            }
+
+            @Override
+            public void failed(Throwable exc, XdrTransport attachment) {
+                if (!(exc instanceof TimeoutException)) {
+                    exc.printStackTrace();
+                    failureMsgRef.set("expected TimeoutException. got "+exc);
+                }
+                latch.countDown();
+            }
+        }, CalculatorServerImpl.SLEEP_MILLIS/10, TimeUnit.MILLISECONDS);
+        latch.await(1, TimeUnit.SECONDS);
+        Assert.assertNull(failureMsgRef.get());
     }
 }

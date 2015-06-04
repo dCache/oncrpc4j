@@ -19,9 +19,10 @@
  */
 package org.dcache.xdr.portmap;
 
+import org.dcache.xdr.OncRpcException;
+
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
-import org.dcache.xdr.OncRpcException;
 
 public interface OncPortmapClient {
 

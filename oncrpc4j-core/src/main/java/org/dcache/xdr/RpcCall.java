@@ -21,6 +21,9 @@ package org.dcache.xdr;
 
 import com.google.common.base.Throwables;
 import com.google.common.util.concurrent.SettableFuture;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.nio.channels.CompletionHandler;
@@ -29,8 +32,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class RpcCall {
 
@@ -295,18 +296,44 @@ public class RpcCall {
      *
      * This method initiates an asynchronous RPC request. The handler parameter
      * is a completion handler that is invoked when the RPC operation completes
-     * (or fails). The result passed to the completion handler is the RPC result
-     * returned by server.
+     * (or fails/times-out). The result passed to the completion handler is the
+     * RPC result returned by server.
      *
      * @param procedure The number of the procedure.
      * @param args The argument of the procedure.
      * @param callback The completion handler.
+     * @param timeoutValue timeout value. 0 means no timeout
+     * @param timeoutUnits units for timeout value
      * @throws OncRpcException
      * @throws IOException
      * @since 2.4.0
      */
+    public void call(int procedure, XdrAble args, CompletionHandler<RpcReply, XdrTransport> callback, long timeoutValue, TimeUnit timeoutUnits)
+            throws IOException {
+        callInternal(procedure, args, callback, timeoutValue, timeoutUnits);
+    }
+
+    /**
+     * convenience version of {@link #call(int, XdrAble, CompletionHandler, long, TimeUnit)} with no timeout
+     */
     public void call(int procedure, XdrAble args, CompletionHandler<RpcReply, XdrTransport> callback)
-            throws OncRpcException, IOException {
+            throws IOException {
+        call(procedure, args, callback, 0, null);
+    }
+
+    /**
+     * executes an RPC. returns the (internally generated) xid for the call
+     * @param procedure The number of the procedure.
+     * @param args The argument of the procedure.
+     * @param callback The completion handler.
+     * @param timeoutValue timeout value. 0 means no timeout
+     * @param timeoutUnits units for timeout value
+     * @return the xid for the call
+     * @throws OncRpcException
+     * @throws IOException
+     */
+    private int callInternal(int procedure, XdrAble args, CompletionHandler<RpcReply, XdrTransport> callback, long timeoutValue, TimeUnit timeoutUnits)
+            throws IOException {
 
         int xid = NEXT_XID.incrementAndGet();
 
@@ -323,16 +350,17 @@ public class RpcCall {
         xdr.endEncoding();
 
         if (callback != null) {
-            _transport.getReplyQueue().registerKey(xid, callback);
+            _transport.getReplyQueue().registerKey(xid, callback, timeoutValue, timeoutUnits);
         }
         _transport.send(xdr);
+        return xid;
     }
 
     /**
      * Send asynchronous RPC request to a remove server.
      *
      * This method initiates an asynchronous RPC request. The method behaves in
-     * exactly the same manner as the {@link #call(int, XdrAble, CompletionHandler)
+     * exactly the same manner as the {@link #call(int, XdrAble, CompletionHandler, long, TimeUnit)}
      * method except that instead of specifying a completion handler, this method
      * returns a Future representing the pending result. The Future's get method
      * returns the RPC reply responded by server.
@@ -347,10 +375,10 @@ public class RpcCall {
      * @since 2.4.0
      */
     public <T extends XdrAble> Future<T> call(int procedure, XdrAble args, final Class<T> type)
-            throws OncRpcException, IOException {
+            throws IOException {
         try {
             T result = type.newInstance();
-            return getCallFuture(procedure, args, result);
+            return getCallFuture(procedure, args, result, 0, null);
         } catch (InstantiationException | IllegalAccessException e) {
             // this exceptions point to bugs
             throw new RuntimeException("Failed to create in instance of " + type, e);
@@ -363,14 +391,15 @@ public class RpcCall {
      * @param procedure the number of the procedure.
      * @param args the argument of the procedure.
      * @param result the result of the procedure
+     * @param timeoutValue timeout value. 0 means no timeout
+     * @param timeoutUnits units for timeout value
      * @throws OncRpcException
      * @throws IOException
      */
-    public void call(int procedure, XdrAble args, XdrAble result)
-            throws OncRpcException, IOException {
-
+    public void call(int procedure, XdrAble args, XdrAble result, long timeoutValue, TimeUnit timeoutUnits)
+            throws IOException, TimeoutException {
         try {
-            Future<XdrAble> future = getCallFuture(procedure, args, result);
+            Future<XdrAble> future = getCallFuture(procedure, args, result, timeoutValue, timeoutUnits);
             future.get();
         } catch (InterruptedException e) {
             // workaround missing chained constructor
@@ -381,44 +410,25 @@ public class RpcCall {
             Throwable t = Throwables.getRootCause(e);
             Throwables.propagateIfInstanceOf(t, OncRpcException.class);
             Throwables.propagateIfInstanceOf(t, IOException.class);
-
+            Throwables.propagateIfInstanceOf(t, TimeoutException.class);
             throw new IOException(t);
         }
     }
 
     /**
-     * Send call to remove RPC server.
-     *
-     * @param procedure the number of the procedure.
-     * @param args the argument of the procedure.
-     * @param result the result of the procedure
-     * @param timeout
-     * @throws OncRpcException
-     * @throws IOException
-     * @throws TimeoutException if the wait timed out
+     * convenience version of {@link #call(int, XdrAble, XdrAble, long, TimeUnit)} with no timeout
      */
-    public void call(int procedure, XdrAble args, final XdrAble result, int timeout)
-            throws OncRpcException, IOException, TimeoutException {
-
+    public void call(int procedure, XdrAble args, XdrAble result)
+            throws IOException {
         try {
-            Future<XdrAble> future = getCallFuture(procedure, args, result);
-            future.get(timeout, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
-            // workaround missing chained constructor
-            IOException ioe = new InterruptedIOException(e.getMessage());
-            ioe.initCause(e);
-            throw ioe;
-        } catch (ExecutionException e) {
-            Throwable t = Throwables.getRootCause(e);
-            Throwables.propagateIfInstanceOf(t, OncRpcException.class);
-            Throwables.propagateIfInstanceOf(t, IOException.class);
-
-            throw new IOException(t);
+            call(procedure, args, result, 0, null);
+        } catch (TimeoutException e) {
+            throw new IllegalStateException(e); //theoretically impossible
         }
     }
 
-    private <T extends XdrAble> Future<T> getCallFuture(int procedure, XdrAble args, final T result)
-            throws OncRpcException, IOException {
+    private <T extends XdrAble> Future<T> getCallFuture(int procedure, XdrAble args, final T result, long timeoutValue, TimeUnit timeoutUnits)
+            throws IOException {
 
         final SettableFuture<T> future = SettableFuture.create();
         CompletionHandler<RpcReply, XdrTransport> callback = new CompletionHandler<RpcReply, XdrTransport>() {
@@ -439,7 +449,62 @@ public class RpcCall {
             }
         };
 
-        call(procedure, args, callback);
-        return future;
+        int xid = callInternal(procedure, args, callback, timeoutValue, timeoutUnits);
+        //wrap the future if no timeout provided up-front to properly un-register
+        //the handler if a timeout is later provided to Future.get()
+        return timeoutValue > 0 ? future : new TimeoutAwareFuture<>(future, xid);
+    }
+
+    private class TimeoutAwareFuture<T> implements Future<T> {
+        private final Future<T> delegate;
+        private final int xid;
+
+        public TimeoutAwareFuture(Future<T> delegate, int xid) {
+            this.delegate = delegate;
+            this.xid = xid;
+        }
+
+        @Override
+        public boolean cancel(boolean mayInterruptIfRunning) {
+            try {
+                return delegate.cancel(mayInterruptIfRunning);
+            } finally {
+                if (mayInterruptIfRunning) {
+                    unregisterXid();
+                }
+            }
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return delegate.isCancelled();
+        }
+
+        @Override
+        public boolean isDone() {
+            return delegate.isDone();
+        }
+
+        @Override
+        public T get() throws InterruptedException, ExecutionException {
+            try {
+                return delegate.get();
+            } finally {
+                unregisterXid();
+            }
+        }
+
+        @Override
+        public T get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+            try {
+                return delegate.get(timeout, unit);
+            } finally {
+                unregisterXid();
+            }
+        }
+
+        private void unregisterXid() {
+            _transport.getReplyQueue().get(xid); //make sure its removed from the reply queue
+        }
     }
 }

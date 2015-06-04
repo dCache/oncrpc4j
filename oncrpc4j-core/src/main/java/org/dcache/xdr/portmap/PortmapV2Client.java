@@ -19,11 +19,6 @@
  */
 package org.dcache.xdr.portmap;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.util.concurrent.TimeoutException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.dcache.utils.net.InetSocketAddresses;
 import org.dcache.xdr.OncRpcException;
 import org.dcache.xdr.RpcCall;
@@ -31,6 +26,13 @@ import org.dcache.xdr.XdrBoolean;
 import org.dcache.xdr.XdrInt;
 import org.dcache.xdr.XdrVoid;
 import org.dcache.xdr.netid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 public class PortmapV2Client implements OncPortmapClient {
 
@@ -54,7 +56,7 @@ public class PortmapV2Client implements OncPortmapClient {
         _log.debug("portmap ping");
         boolean pong = false;
         try {
-            _call.call(OncRpcPortmap.PMAPPROC_NULL, XdrVoid.XDR_VOID, XdrVoid.XDR_VOID, 2000);
+            _call.call(OncRpcPortmap.PMAPPROC_NULL, XdrVoid.XDR_VOID, XdrVoid.XDR_VOID, 2, TimeUnit.SECONDS);
             pong = true;
         }catch (TimeoutException | IOException e) {}
 

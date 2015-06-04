@@ -55,6 +55,7 @@
                                 <argument>-asyncfuture</argument>
                                 <argument>-asynccallback</argument>
                                 <argument>-oneway</argument>
+                                <argument>-timeouts</argument>
                                 <argument>-c</argument>
                                 <argument>CalculatorClient</argument>
                                 <argument>-s</argument>
