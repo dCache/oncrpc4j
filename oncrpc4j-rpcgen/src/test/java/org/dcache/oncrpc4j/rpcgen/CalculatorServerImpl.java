@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CalculatorServerImpl extends CalculatorServer {
+    public static final int SLEEP_MILLIS = 100;
     private List<MethodCall> methodCalls = new ArrayList<>();
 
     @Override
@@ -15,9 +16,9 @@ public class CalculatorServerImpl extends CalculatorServer {
         result.setStartMillis(start);
         result.setResult(arg1 + arg2);
         try {
-            Thread.sleep(100);
+            Thread.sleep(SLEEP_MILLIS);
         } catch (InterruptedException e) {
-            throw new IllegalStateException(e);
+            //ignore
         }
         long finish = System.currentTimeMillis();
         result.setFinishMillis(finish);
@@ -31,9 +32,9 @@ public class CalculatorServerImpl extends CalculatorServer {
     @Override
     public long addSimple_1(RpcCall call$, long arg1, long arg2) {
         try {
-            Thread.sleep(100);
+            Thread.sleep(SLEEP_MILLIS);
         } catch (InterruptedException e) {
-            throw new IllegalStateException(e);
+            //ignore
         }
         return arg1 + arg2;
     }
@@ -51,7 +52,7 @@ public class CalculatorServerImpl extends CalculatorServer {
                 if (System.currentTimeMillis() > deadline) {
                     throw new IllegalStateException("no method calls within the " + timeouts + " milli timeout");
                 }
-                Thread.sleep(100);
+                Thread.sleep(SLEEP_MILLIS);
             }
         } catch (InterruptedException e) {
             throw new IllegalStateException(e);

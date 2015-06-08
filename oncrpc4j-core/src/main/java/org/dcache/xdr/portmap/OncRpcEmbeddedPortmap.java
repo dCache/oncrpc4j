@@ -19,9 +19,6 @@
  */
 package org.dcache.xdr.portmap;
 
-import java.io.IOException;
-import java.net.InetAddress;
-import java.util.concurrent.TimeoutException;
 import org.dcache.xdr.IpProtocolType;
 import org.dcache.xdr.OncRpcClient;
 import org.dcache.xdr.OncRpcException;
@@ -34,6 +31,11 @@ import org.dcache.xdr.RpcCall;
 import org.dcache.xdr.XdrTransport;
 import org.dcache.xdr.XdrVoid;
 
+import java.io.IOException;
+import java.net.InetAddress;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
 /**
  * An instance of this class will create an embedded rpc portmap
  * service if OS does not provides one.
@@ -43,11 +45,11 @@ public class OncRpcEmbeddedPortmap {
     private static final RpcAuth _auth = new RpcAuthTypeNone();
     private final OncRpcSvc optionalEmbeddedServer;
 
-    public  OncRpcEmbeddedPortmap() throws IOException {
-        this(2000);
+    public OncRpcEmbeddedPortmap() throws IOException {
+        this(2, TimeUnit.SECONDS);
     }
 
-    public  OncRpcEmbeddedPortmap(int timeout) throws IOException {
+    public OncRpcEmbeddedPortmap(long timeoutValue, TimeUnit timeoutUnit) throws IOException {
 
         // we start embedded portmap only if there no other one is running
 
@@ -62,7 +64,7 @@ public class OncRpcEmbeddedPortmap {
                 RpcCall call = new RpcCall(OncRpcPortmap.PORTMAP_PROGRAMM,
                         i, _auth, transport);
                 try {
-                    call.call(0, XdrVoid.XDR_VOID, XdrVoid.XDR_VOID, timeout);
+                    call.call(0, XdrVoid.XDR_VOID, XdrVoid.XDR_VOID, timeoutValue, timeoutUnit);
                 } catch (TimeoutException | OncRpcException e) {}
                 localPortmapperRunning = true;
             }

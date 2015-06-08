@@ -19,10 +19,6 @@
  */
 package org.dcache.xdr.portmap;
 
-import java.io.IOException;
-import java.util.concurrent.TimeoutException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.dcache.xdr.OncRpcException;
 import org.dcache.xdr.RpcAuth;
 import org.dcache.xdr.RpcAuthTypeNone;
@@ -30,6 +26,12 @@ import org.dcache.xdr.RpcCall;
 import org.dcache.xdr.XdrBoolean;
 import org.dcache.xdr.XdrString;
 import org.dcache.xdr.XdrVoid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 public class RpcbindV4Client implements OncPortmapClient {
 
@@ -48,7 +50,7 @@ public class RpcbindV4Client implements OncPortmapClient {
         boolean pong = false;
 
         try {
-            _call.call(OncRpcPortmap.PMAPPROC_NULL, XdrVoid.XDR_VOID, XdrVoid.XDR_VOID, 2000);
+            _call.call(OncRpcPortmap.PMAPPROC_NULL, XdrVoid.XDR_VOID, XdrVoid.XDR_VOID, 2, TimeUnit.SECONDS);
             pong = true;
         }catch(IOException | TimeoutException e) {
         }
