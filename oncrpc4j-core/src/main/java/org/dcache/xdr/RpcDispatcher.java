@@ -92,6 +92,11 @@ public class RpcDispatcher extends BaseFilter {
                     }
                 }
             }
+
+            @Override
+            public String toString() {
+                return call.toString();
+            }
         });
         return ctx.getInvokeAction();
     }
