@@ -60,13 +60,14 @@ public class OncRpcEmbeddedPortmap {
                     IpProtocolType.UDP, OncRpcPortmap.PORTMAP_PORT);
             XdrTransport transport = rpcClient.connect();
             /* check for version 2, 3 and 4 */
-            for (int i = 2; i < 5; i++) {
+            for (int i = 2; i < 5 && !localPortmapperRunning; i++) {
                 RpcCall call = new RpcCall(OncRpcPortmap.PORTMAP_PROGRAMM,
                         i, _auth, transport);
                 try {
                     call.call(0, XdrVoid.XDR_VOID, XdrVoid.XDR_VOID, timeoutValue, timeoutUnit);
+                    localPortmapperRunning = true;
                 } catch (TimeoutException | OncRpcException e) {}
-                localPortmapperRunning = true;
+
             }
         } catch (IOException e) {
         } finally {
