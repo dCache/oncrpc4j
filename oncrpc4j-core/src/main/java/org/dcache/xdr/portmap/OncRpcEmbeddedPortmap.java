@@ -62,13 +62,15 @@ public class OncRpcEmbeddedPortmap {
 
             XdrTransport transport = rpcClient.connect();
             /* check for version 2, 3 and 4 */
-            for (int i = 2; i < 5 && !localPortmapperRunning; i++) {
+            for (int i = 4; i > 1 && !localPortmapperRunning; i--) {
                 RpcCall call = new RpcCall(OncRpcPortmap.PORTMAP_PROGRAMM, i, _auth, transport);
                 try {
                     call.call(0, XdrVoid.XDR_VOID, XdrVoid.XDR_VOID, timeoutValue, timeoutUnit);
                     localPortmapperRunning = true;
                     LOG.info("Local portmap service v{} detected", i);
-                } catch (TimeoutException | OncRpcException e) {}
+                } catch (TimeoutException | OncRpcException e) {
+                    LOG.debug("portmap ping failed: {}", e.getMessage());
+                }
 
             }
         } catch (IOException e) {
