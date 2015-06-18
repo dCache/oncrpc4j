@@ -349,8 +349,12 @@ public class RpcCall {
         args.xdrEncode(xdr);
         xdr.endEncoding();
 
+        ReplyQueue replyQueue = _transport.getReplyQueue();
         if (callback != null) {
-            _transport.getReplyQueue().registerKey(xid, callback, timeoutValue, timeoutUnits);
+            replyQueue.registerKey(xid, callback, timeoutValue, timeoutUnits);
+        } else {
+            //no handler, so we wont get any errors if connection was dropped. have to check.
+            replyQueue.assertConnected(); //EOFException if not
         }
         _transport.send(xdr);
         return xid;

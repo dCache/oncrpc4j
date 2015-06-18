@@ -47,6 +47,12 @@ public class ReplyQueue {
     private final Map<Integer, HandlerTimeoutPair> _queue = new HashMap<>();
     private boolean _isConnected = true;
 
+    public void assertConnected() throws EOFException {
+        if (!_isConnected) {
+            throw new EOFException("Disconnected");
+        }
+    }
+
     /**
      * Creates a placeholder for the specified key, and no timeout
      *

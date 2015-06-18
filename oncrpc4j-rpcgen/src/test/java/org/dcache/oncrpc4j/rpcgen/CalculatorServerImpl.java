@@ -22,21 +22,30 @@ public class CalculatorServerImpl extends CalculatorServer {
         }
         long finish = System.currentTimeMillis();
         result.setFinishMillis(finish);
-        Object[] args = new Object[2];
-        args[0] = arg1;
-        args[1] = arg2;
-        methodCalls.add(new MethodCall(start, finish, Thread.currentThread().getStackTrace()[0].getMethodName(), args, result.getResult(), null));
+        recordAddCall(start, finish, arg1, arg2, result.getResult(), null);
         return result;
     }
 
     @Override
     public long addSimple_1(RpcCall call$, long arg1, long arg2) {
+        long start = System.currentTimeMillis();
         try {
             Thread.sleep(SLEEP_MILLIS);
         } catch (InterruptedException e) {
             //ignore
         }
-        return arg1 + arg2;
+        long result = arg1 + arg2;
+        long finish = System.currentTimeMillis();
+        recordAddCall(start, finish, arg1, arg2, result, null);
+        return result;
+    }
+
+    private void recordAddCall(long start, long finish, long arg1, long arg2, long result, Throwable throwable) {
+        System.err.println(arg1 + " + " + arg2 + " = " + result);
+        Object[] args = new Object[2];
+        args[0] = arg1;
+        args[1] = arg2;
+        methodCalls.add(new MethodCall(start, finish, Thread.currentThread().getStackTrace()[1].getMethodName(), args, result, throwable));
     }
 
     public List<MethodCall> getMethodCalls() {

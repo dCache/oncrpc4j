@@ -3,6 +3,7 @@ package org.dcache.oncrpc4j.rpcgen;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.EOFException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -21,5 +22,19 @@ public class OnewayCalculatorTest extends AbstractCalculatorTest {
         MethodCall call = calls.get(0);
         Assert.assertEquals(3L, call.getReturnValue());
         Assert.assertTrue(retTime < call.getFinishTimestamp());
+    }
+
+    @Test
+    public void testDisconnection() throws Exception {
+        client.add_1_oneway(1, 2);
+        Thread.sleep(100);
+        server.stop();
+        Thread.sleep(100);
+        try {
+            client.add_1_oneway(1, 2);
+            Assert.fail("should have thrown an exception");
+        } catch (EOFException e) {
+            //expected
+        }
     }
 }
