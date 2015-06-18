@@ -50,23 +50,20 @@ public class OncRpcEmbeddedPortmap {
     private static final RpcAuth _auth = new RpcAuthTypeNone();
     private OncRpcSvc optionalEmbeddedServer = null;
 
-    public OncRpcEmbeddedPortmap() throws IOException {
+    public OncRpcEmbeddedPortmap() {
         this(2, TimeUnit.SECONDS);
     }
 
-    public OncRpcEmbeddedPortmap(long timeoutValue, TimeUnit timeoutUnit) throws IOException {
+    public OncRpcEmbeddedPortmap(long timeoutValue, TimeUnit timeoutUnit) {
 
         // we start embedded portmap only if there no other one is running
-        OncRpcClient rpcClient = null;
         boolean localPortmapperRunning = false;
-        try {
-            rpcClient = new OncRpcClient(InetAddress.getByName(null),
-                    IpProtocolType.UDP, OncRpcPortmap.PORTMAP_PORT);
+        try(OncRpcClient rpcClient = new OncRpcClient(InetAddress.getByName(null), IpProtocolType.UDP, OncRpcPortmap.PORTMAP_PORT)) {
+
             XdrTransport transport = rpcClient.connect();
             /* check for version 2, 3 and 4 */
             for (int i = 2; i < 5 && !localPortmapperRunning; i++) {
-                RpcCall call = new RpcCall(OncRpcPortmap.PORTMAP_PROGRAMM,
-                        i, _auth, transport);
+                RpcCall call = new RpcCall(OncRpcPortmap.PORTMAP_PROGRAMM, i, _auth, transport);
                 try {
                     call.call(0, XdrVoid.XDR_VOID, XdrVoid.XDR_VOID, timeoutValue, timeoutUnit);
                     localPortmapperRunning = true;
@@ -75,8 +72,6 @@ public class OncRpcEmbeddedPortmap {
 
             }
         } catch (IOException e) {
-        } finally {
-            if(rpcClient != null) rpcClient.close();
         }
 
         if (!localPortmapperRunning) {
