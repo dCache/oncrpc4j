@@ -19,6 +19,9 @@
  */
 package org.dcache.xdr.portmap;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.net.InetAddress;
 import org.dcache.xdr.IpProtocolType;
@@ -39,8 +42,10 @@ import org.dcache.xdr.XdrVoid;
  */
 public class OncRpcEmbeddedPortmap {
 
+    private static final Logger LOG = LoggerFactory.getLogger(OncRpcEmbeddedPortmap.class);
+
     private static final RpcAuth _auth = new RpcAuthTypeNone();
-    private final OncRpcSvc optionalEmbeddedServer;
+    private OncRpcSvc optionalEmbeddedServer = null;
 
     public  OncRpcEmbeddedPortmap() throws IOException {
         this(2000);
@@ -49,7 +54,6 @@ public class OncRpcEmbeddedPortmap {
     public  OncRpcEmbeddedPortmap(int timeout) throws IOException {
 
         // we start embedded portmap only if there no other one is running
-
         OncRpcClient rpcClient = null;
         boolean localPortmapperRunning = false;
         try {
@@ -62,26 +66,30 @@ public class OncRpcEmbeddedPortmap {
                         i, _auth, transport);
                 try {
                     call.call(0, XdrVoid.XDR_VOID, XdrVoid.XDR_VOID, timeout);
-                } catch (OncRpcException ex) {}
-                localPortmapperRunning = true;
+                    localPortmapperRunning = true;
+                    LOG.info("Local portmap service v{} detected", i);
+                } catch (OncRpcException e) {}
             }
         } catch (IOException e) {
         } finally {
             if(rpcClient != null) rpcClient.close();
         }
 
-        if(!localPortmapperRunning) {
-            OncRpcSvc rpcbindServer = new OncRpcSvcBuilder()
-                    .withPort(OncRpcPortmap.PORTMAP_PORT)
-                    .withTCP()
-                    .withUDP()
-                    .withoutAutoPublish()
-                    .build();
-            rpcbindServer.register(new OncRpcProgram( OncRpcPortmap.PORTMAP_PROGRAMM, OncRpcPortmap.PORTMAP_V2), new OncRpcbindServer());
-            rpcbindServer.start();
-            optionalEmbeddedServer = rpcbindServer;
-        } else {
-            optionalEmbeddedServer = null;
+        if (!localPortmapperRunning) {
+            try {
+                LOG.info("Starting embedded portmap service");
+                OncRpcSvc rpcbindServer = new OncRpcSvcBuilder()
+                        .withPort(OncRpcPortmap.PORTMAP_PORT)
+                        .withTCP()
+                        .withUDP()
+                        .withoutAutoPublish()
+                        .build();
+                rpcbindServer.register(new OncRpcProgram(OncRpcPortmap.PORTMAP_PROGRAMM, OncRpcPortmap.PORTMAP_V2), new OncRpcbindServer());
+                rpcbindServer.start();
+                optionalEmbeddedServer = rpcbindServer;
+            } catch (IOException e) {
+                LOG.error("Failed to start embedded portmap service: {}", e.getMessage());
+            }
         }
     }
 
