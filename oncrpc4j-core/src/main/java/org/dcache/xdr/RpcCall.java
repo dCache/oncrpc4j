@@ -292,6 +292,13 @@ public class RpcCall {
     }
 
     /**
+     * Reply to client with error system error.
+     */
+    public void failRpcSystem() {
+        acceptedReply(RpcAccepsStatus.SYSTEM, XdrVoid.XDR_VOID);
+    }
+
+    /**
      * Send asynchronous RPC request to a remove server.
      *
      * This method initiates an asynchronous RPC request. The handler parameter

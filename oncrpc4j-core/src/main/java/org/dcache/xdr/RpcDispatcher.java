@@ -89,6 +89,22 @@ public class RpcDispatcher extends BaseFilter {
                     } catch (IOException e) {
                         call.failRpcGarbage();
                         _log.warn("Failed to process RPC request: {}", e.getMessage());
+                    } catch (RuntimeException e) {
+                        /*
+                         * This looks like a bug in dispatcher implementation.
+                         * Log the error and tell client that we fail.
+                         */
+                        _log.error("Failed to process RPC request:", e);
+                        call.failRpcSystem();
+                    } catch (Throwable t) {
+                        /*
+                         * Hardcore errors.
+                         * Log the error and tell client that we fail and rethrow
+                         * to let thread pool to handle it.
+                         */
+                        _log.error("Failed to process RPC request:", t);
+                        call.failRpcSystem();
+                        throw t;
                     }
                 }
             }
