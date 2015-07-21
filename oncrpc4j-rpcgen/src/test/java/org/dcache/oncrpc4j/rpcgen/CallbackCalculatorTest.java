@@ -13,11 +13,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
-/**
- * @author Radai Rosenblatt
- * @version May 10, 2015
- * @since Phase1
- */
 public class CallbackCalculatorTest extends AbstractCalculatorTest {
 
     @Test

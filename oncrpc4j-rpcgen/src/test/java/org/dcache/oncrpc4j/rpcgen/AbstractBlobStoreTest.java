@@ -9,10 +9,10 @@ import org.junit.Before;
 
 import java.net.InetAddress;
 
-public abstract class AbstractCalculatorTest {
-    protected CalculatorServerImpl serverImpl = new CalculatorServerImpl();
+public abstract class AbstractBlobStoreTest {
+    protected BlobStoreServerImpl serverImpl = new BlobStoreServerImpl();
     protected OncRpcSvc server;
-    protected CalculatorClient client;
+    protected BlobStoreClient client;
     protected String address = "127.0.0.1";
     protected int port = 6666;
 
@@ -25,13 +25,13 @@ public abstract class AbstractCalculatorTest {
                 .withSameThreadIoStrategy()
                 .withBindAddress(address)
                 .build();
-        server.register(new OncRpcProgram(Calculator.CALCULATOR, Calculator.CALCULATORVERS), serverImpl);
+        server.register(new OncRpcProgram(BlobStore.BLOB_STORAGE, BlobStore.BLOB_STORAGE_VERS), serverImpl);
         server.start();
-        client = new CalculatorClient(
+        client = new BlobStoreClient(
                 InetAddress.getByName(address),
                 port,
-                Calculator.CALCULATOR,
-                Calculator.CALCULATORVERS,
+                BlobStore.BLOB_STORAGE,
+                BlobStore.BLOB_STORAGE_VERS,
                 IpProtocolType.TCP);
     }
 
