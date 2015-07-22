@@ -37,7 +37,7 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <executions>
                     <execution>
-                        <id>generate client and server for testing</id>
+                        <id>generate client and server calculator for testing</id>
                         <phase>generate-test-sources</phase>
                         <goals>
                             <goal>java</goal>
@@ -61,6 +61,34 @@
                                 <argument>-s</argument>
                                 <argument>CalculatorServer</argument>
                                 <argument>${project.basedir}/src/test/xdr/Calculator.x</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate client and server blob store for testing</id>
+                        <phase>generate-test-sources</phase>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <mainClass>org.acplt.oncrpc.apps.jrpcgen.jrpcgen</mainClass>
+                            <includePluginDependencies>true</includePluginDependencies>
+                            <arguments>
+                                <argument>-debug</argument>
+                                <argument>-d</argument>
+                                <argument>${project.build.directory}/generated-test-sources/rpc</argument>
+                                <argument>-p</argument>
+                                <argument>org.dcache.oncrpc4j.rpcgen</argument>
+                                <argument>-bean</argument>
+                                <argument>-asyncfuture</argument>
+                                <argument>-asynccallback</argument>
+                                <argument>-oneway</argument>
+                                <argument>-timeouts</argument>
+                                <argument>-c</argument>
+                                <argument>BlobStoreClient</argument>
+                                <argument>-s</argument>
+                                <argument>BlobStoreServer</argument>
+                                <argument>${project.basedir}/src/test/xdr/BlobStore.x</argument>
                             </arguments>
                         </configuration>
                     </execution>
@@ -98,6 +126,11 @@
             <groupId>org.dcache</groupId>
             <artifactId>oncrpc4j-core</artifactId>
             <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
