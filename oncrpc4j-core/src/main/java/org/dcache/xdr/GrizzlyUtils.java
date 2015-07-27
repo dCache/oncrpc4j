@@ -71,48 +71,54 @@ public class GrizzlyUtils {
     }
 
     static private int getSelectorPoolSize(IoStrategy ioStrategy) {
-	return ioStrategy == WORKER_THREAD
-		? Math.max(MIN_SELECTORS, CPUS / 4) : Math.max(MIN_WORKERS, CPUS);
+        return ioStrategy == WORKER_THREAD
+                ? Math.max(MIN_SELECTORS, CPUS / 4) : Math.max(MIN_WORKERS, CPUS);
     }
 
     static private int getWorkerPoolSize(IoStrategy ioStrategy) {
-	return ioStrategy == WORKER_THREAD
-		? Math.max(MIN_WORKERS, (CPUS * 2)) : 0;
+        return ioStrategy == WORKER_THREAD
+                ? Math.max(MIN_WORKERS, (CPUS * 2)) : 0;
     }
 
     /**
      * Pre-configure Selectors thread pool for given {@link IOStrategy}
      *
-     * @param ioStrategy in use
+     * @param ioStrategy to use
+     * @param serviceName service name (affects thread names)
      * @return thread pool configuration.
      */
-    static ThreadPoolConfig getSelectorPoolCfg(OncRpcSvc.IoStrategy ioStrategy) {
-	final int poolSize = getSelectorPoolSize(ioStrategy);
-	final ThreadPoolConfig poolCfg = ThreadPoolConfig.defaultConfig();
-	poolCfg.setCorePoolSize(poolSize).setMaxPoolSize(poolSize);
-	poolCfg.setPoolName("OncRpcSvc"); // grizzly will add "SelectorRunner"
+    static ThreadPoolConfig getSelectorPoolCfg(IoStrategy ioStrategy, String serviceName) {
+        final int poolSize = getSelectorPoolSize(ioStrategy);
+        final ThreadPoolConfig poolCfg = ThreadPoolConfig.defaultConfig();
+        poolCfg.setCorePoolSize(poolSize).setMaxPoolSize(poolSize);
+        if (serviceName != null) {
+            poolCfg.setPoolName(serviceName); //grizzly will add "SelectorRunner"
+        }
 
-	return poolCfg;
+        return poolCfg;
     }
 
     /**
      * Pre-configure Worker thread pool for given {@link IOStrategy}
      *
      * @param ioStrategy in use
+     * @param serviceName service name (affects thread names)
      * @return thread pool configuration or {@code null}, if ioStrategy don't
      * supports worker threads.
      */
-    static ThreadPoolConfig getWorkerPoolCfg(OncRpcSvc.IoStrategy ioStrategy) {
+    static ThreadPoolConfig getWorkerPoolCfg(IoStrategy ioStrategy, String serviceName) {
 
-	if (ioStrategy == SAME_THREAD) {
-	    return null;
-	}
+        if (ioStrategy == SAME_THREAD) {
+            return null;
+        }
 
-	final int poolSize = getWorkerPoolSize(ioStrategy);
-	final ThreadPoolConfig poolCfg = ThreadPoolConfig.defaultConfig();
-	poolCfg.setCorePoolSize(poolSize).setMaxPoolSize(poolSize);
-	poolCfg.setPoolName("OncRpcSvc Worker");
+        final int poolSize = getWorkerPoolSize(ioStrategy);
+        final ThreadPoolConfig poolCfg = ThreadPoolConfig.defaultConfig();
+        poolCfg.setCorePoolSize(poolSize).setMaxPoolSize(poolSize);
+        if (serviceName != null) {
+            poolCfg.setPoolName(serviceName + " Worker");
+        }
 
-	return poolCfg;
+        return poolCfg;
     }
 }
