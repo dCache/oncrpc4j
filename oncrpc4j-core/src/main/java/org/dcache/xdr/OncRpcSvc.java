@@ -107,7 +107,8 @@ public class OncRpcSvc {
         }
 
         IoStrategy ioStrategy = builder.getIoStrategy();
-        ThreadPoolConfig selectorPoolConfig = getSelectorPoolCfg(ioStrategy);
+        String serviceName = builder.getServiceName();
+        ThreadPoolConfig selectorPoolConfig = getSelectorPoolCfg(ioStrategy, serviceName);
 
         if ((protocol & IpProtocolType.TCP) != 0) {
             final TCPNIOTransport tcpTransport = TCPNIOTransportBuilder

@@ -20,12 +20,13 @@
 package org.dcache.xdr;
 
 import com.google.common.util.concurrent.MoreExecutors;
-import java.util.concurrent.ExecutorService;
 import org.dcache.xdr.gss.GssSessionManager;
 import org.glassfish.grizzly.threadpool.FixedThreadPool;
 import org.glassfish.grizzly.threadpool.ThreadPoolConfig;
 
-import static com.google.common.base.Preconditions.*;
+import java.util.concurrent.ExecutorService;
+
+import static com.google.common.base.Preconditions.checkArgument;
 import static org.dcache.xdr.GrizzlyUtils.getWorkerPoolCfg;
 
 
@@ -60,6 +61,7 @@ public class OncRpcSvcBuilder {
     private boolean _withJMX = false;
     private int _backlog = 4096;
     private String _bindAddress = "0.0.0.0";
+    private String _serviceName = "OncRpcSvc";
     private GssSessionManager _gssSessionManager;
     private ExecutorService _workerThreadExecutionService;
 
@@ -128,6 +130,11 @@ public class OncRpcSvcBuilder {
         return this;
     }
 
+    public OncRpcSvcBuilder withServiceName(String serviceName) {
+        _serviceName = serviceName;
+        return this;
+    }
+
     public OncRpcSvcBuilder withGssSessionManager(GssSessionManager gssSessionManager) {
         _gssSessionManager = gssSessionManager;
         return this;
@@ -170,20 +177,24 @@ public class OncRpcSvcBuilder {
         return _bindAddress;
     }
 
+    public String getServiceName() {
+        return _serviceName;
+    }
+
     public GssSessionManager getGssSessionManager() {
         return _gssSessionManager;
     }
 
     public ExecutorService getWorkerThreadExecutorService() {
         if (_ioStrategy == OncRpcSvc.IoStrategy.SAME_THREAD ) {
-            return MoreExecutors.sameThreadExecutor();
+            return MoreExecutors.newDirectExecutorService();
         }
 
         if (_workerThreadExecutionService != null) {
             return _workerThreadExecutionService;
         }
 
-        ThreadPoolConfig workerPoolConfig = getWorkerPoolCfg(_ioStrategy);
+        ThreadPoolConfig workerPoolConfig = getWorkerPoolCfg(_ioStrategy, _serviceName);
         return new FixedThreadPool(workerPoolConfig);
     }
 
