@@ -19,7 +19,6 @@
  */
 package org.dcache.xdr;
 
-import javax.annotation.Nonnull;
 import java.io.EOFException;
 import java.nio.channels.CompletionHandler;
 import java.util.HashMap;
@@ -38,7 +37,7 @@ public class ReplyQueue {
         private final AtomicInteger counter = new AtomicInteger();
 
         @Override
-        public Thread newThread(@Nonnull Runnable r) {
+        public Thread newThread(Runnable r) {
             Thread t = new Thread(r, "timeout thread #" + counter.incrementAndGet() + " for ReplyQueue " + ReplyQueue.this);
             t.setDaemon(true);
             return t;
