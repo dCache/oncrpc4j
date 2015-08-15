@@ -54,7 +54,7 @@ public class CalculatorServerImpl extends CalculatorServer {
         for (Principal p : subject.getPrincipals()) {
             principalNames.add(p.getName());
         }
-        methodCalls.add(new MethodCall(start, finish, Thread.currentThread().getStackTrace()[1].getMethodName(), args, result, throwable, principalNames));
+        methodCalls.add(new MethodCall(start, finish, Thread.currentThread().getStackTrace()[1].getMethodName(), args, result, throwable, principalNames, call.getTransport().getRemoteSocketAddress().getPort()));
     }
 
     public List<MethodCall> getMethodCalls() {

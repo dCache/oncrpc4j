@@ -10,8 +10,9 @@ public class MethodCall {
     private final Object returnValue;
     private final Throwable throwable;
     private final Set<String> principalNames;
+    private final int clientPort;
 
-    public MethodCall(long startTimestamp, long finishTimestamp, String methodName, Object[] arguments, Object returnValue, Throwable throwable, Set<String> principalNames) {
+    public MethodCall(long startTimestamp, long finishTimestamp, String methodName, Object[] arguments, Object returnValue, Throwable throwable, Set<String> principalNames, int clientPort) {
         this.startTimestamp = startTimestamp;
         this.finishTimestamp = finishTimestamp;
         this.methodName = methodName;
@@ -19,6 +20,7 @@ public class MethodCall {
         this.returnValue = returnValue;
         this.throwable = throwable;
         this.principalNames = principalNames;
+        this.clientPort = clientPort;
     }
 
     public long getStartTimestamp() {
@@ -47,5 +49,9 @@ public class MethodCall {
 
     public Set<String> getPrincipalNames() {
         return principalNames;
+    }
+
+    public int getClientPort() {
+        return clientPort;
     }
 }

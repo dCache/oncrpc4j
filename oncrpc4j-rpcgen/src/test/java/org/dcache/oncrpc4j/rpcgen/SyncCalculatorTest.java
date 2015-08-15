@@ -1,9 +1,13 @@
 package org.dcache.oncrpc4j.rpcgen;
 
+import org.dcache.xdr.IpProtocolType;
+import org.dcache.xdr.RpcAuthTypeNone;
 import org.dcache.xdr.RpcAuthTypeUnix;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.net.InetAddress;
+import java.net.ServerSocket;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -42,5 +46,37 @@ public class SyncCalculatorTest extends AbstractCalculatorTest {
         Assert.assertEquals(1, calls.size());
         call = calls.get(0);
         Assert.assertEquals(new HashSet<>(Arrays.asList("1", "2", "3", "4")), call.getPrincipalNames());
+    }
+
+    @Test
+    public void testCustomLocalPort() throws Exception {
+        serverImpl.getMethodCalls(); //clear it just in case
+        client.add_1(5, 6, 0, null, null);
+        List<MethodCall> calls = serverImpl.getMethodCalls();
+        Assert.assertEquals(1, calls.size());
+        MethodCall call = calls.get(0);
+        int existingClientPort = call.getClientPort();
+
+        int freeLocalPort;
+        try (ServerSocket s = new ServerSocket(0)) {
+            freeLocalPort = s.getLocalPort();
+        }
+        Assert.assertTrue(existingClientPort != freeLocalPort);
+
+        CalculatorClient customClient = new CalculatorClient(
+                InetAddress.getByName(address),
+                port,
+                new RpcAuthTypeNone(),
+                Calculator.CALCULATOR,
+                Calculator.CALCULATORVERS,
+                IpProtocolType.TCP,
+                freeLocalPort);
+
+        customClient.add_1(42, -1, 0, null, null);
+
+        calls = serverImpl.getMethodCalls();
+        Assert.assertEquals(1, calls.size());
+        call = calls.get(0);
+        Assert.assertEquals(freeLocalPort, call.getClientPort());
     }
 }

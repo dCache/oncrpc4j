@@ -1815,14 +1815,15 @@ public class jrpcgen {
         // used to create the necessary <code>OncRpcClient</code> for
         // communication when the client proxy stub is constructed.
         //
-        int version = Integer.parseInt(
-                ((JrpcgenVersionInfo) programInfo.versions.elementAt(0)).versionNumber);
-        int versionSize = programInfo.versions.size();
-        for (int idx = 1; idx < versionSize; ++idx) {
-            int anotherVersion = Integer.parseInt(
-                    ((JrpcgenVersionInfo) programInfo.versions.elementAt(idx)).versionNumber);
-            if (anotherVersion > version) {
-                version = anotherVersion;
+        int numVersions = programInfo.versions.size();
+        JrpcgenVersionInfo maxVersionInfo = null;
+        int maxVersion = Integer.MIN_VALUE;
+        for (Object o : programInfo.versions) {
+            JrpcgenVersionInfo versionInfo = (JrpcgenVersionInfo) o;
+            int version = Integer.parseInt(versionInfo.versionNumber);
+            if (maxVersionInfo == null || version > maxVersion) {
+                maxVersionInfo = versionInfo;
+                maxVersion = version;
             }
         }
 
@@ -1840,6 +1841,7 @@ public class jrpcgen {
         }
         PrintWriter out = createJavaSourceFile(clientClass);
 
+        out.println("import java.io.Closeable;");
         out.println("import java.net.InetAddress;");
         if (generateAsyncFutureClient) {
             out.println("import java.util.concurrent.Future;");
@@ -1858,7 +1860,7 @@ public class jrpcgen {
         out.println(" * for the " + programInfo.programId + " remote program. It provides method stubs");
         out.println(" * which, when called, in turn call the appropriate remote method (procedure).");
         out.println(" */");
-        out.println("public class " + clientClass + " {");
+        out.println("public class " + clientClass + " implements Closeable {");
         out.println();
 
         // generated class fields
@@ -1870,22 +1872,40 @@ public class jrpcgen {
         // Generate constructors...
         //
         out.println("    /**");
-        out.println("     * Constructs a <code>" + clientClass + "</code> client stub proxy object");
-        out.println("     * from which the " + programInfo.programId + " remote program can be accessed.");
-        out.println("     * The AuthNone is used for client authentication.");
-        out.println("     * @param host Internet address of host where to contact the remote program.");
-        out.println("     * @param port Port number at host where the remote program can be reached.");
-        out.println("     * @param program Remote program number.");
-        out.println("     * @param version Remote program version number.");
-        out.println("     * @param protocol {@link org.dcache.xdr.IpProtocolType} to be");
-        out.println("     *   used for ONC/RPC calls.");
-        out.println("     * @throws OncRpcException if an ONC/RPC error occurs.");
-        out.println("     * @throws IOException if an I/O error occurs.");
+        out.println("     * see {@link #" + clientClass + "(InetAddress, int, RpcAuth, int, int, int , int)}");
+        out.println("     */");
+        out.println("    public " + clientClass + "(InetAddress host, int port)");
+        out.println("           throws OncRpcException, IOException {");
+        out.println("        this(host, port, new RpcAuthTypeNone(), " + baseClassname + "." + programInfo.programId + ", " + baseClassname + "." + maxVersionInfo.versionId + ", IpProtocolType.TCP, -1);");
+        out.println("    }");
+        out.println();
+
+        out.println("    /**");
+        out.println("     * see {@link #" + clientClass + "(InetAddress, int, RpcAuth, int, int, int , int)}");
+        out.println("     */");
+        out.println("    public " + clientClass + "(InetAddress host, int port, int version)");
+        out.println("           throws OncRpcException, IOException {");
+        out.println("        this(host, port, new RpcAuthTypeNone(), " + baseClassname + "." + programInfo.programId + ", version, IpProtocolType.TCP, -1);");
+        out.println("    }");
+        out.println();
+
+        out.println("    /**");
+        out.println("     * see {@link #" + clientClass + "(InetAddress, int, RpcAuth, int, int, int , int)}");
         out.println("     */");
         out.println("    public " + clientClass + "(InetAddress host, int port, int program, int version, int protocol)");
         out.println("           throws OncRpcException, IOException {");
-        out.println("        this(host, port, new RpcAuthTypeNone(), program, version, protocol);");
+        out.println("        this(host, port, new RpcAuthTypeNone(), program, version, protocol, -1);");
         out.println("    }");
+        out.println();
+
+        out.println("    /**");
+        out.println("     * see {@link #" + clientClass + "(InetAddress, int, RpcAuth, int, int, int , int)}");
+        out.println("     */");
+        out.println("    public " + clientClass + "(InetAddress host, int port, RpcAuth auth, int program, int version, int protocol)");
+        out.println("           throws OncRpcException, IOException {");
+        out.println("        this(host, port, auth, program, version, protocol, -1);");
+        out.println("    }");
+        out.println();
 
         out.println("    /**");
         out.println("     * Constructs a <code>" + clientClass + "</code> client stub proxy object");
@@ -1897,15 +1917,17 @@ public class jrpcgen {
         out.println("     * @param version Remote program version number.");
         out.println("     * @param protocol {@link org.dcache.xdr.IpProtocolType} to be");
         out.println("     *   used for ONC/RPC calls.");
+        out.println("     * @param localPort local port to bind to. <=0 for any (ephemeral)");
         out.println("     * @throws OncRpcException if an ONC/RPC error occurs.");
         out.println("     * @throws IOException if an I/O error occurs.");
         out.println("     */");
-        out.println("    public " + clientClass + "(InetAddress host, int port, RpcAuth auth, int program, int version, int protocol)");
+        out.println("    public " + clientClass + "(InetAddress host, int port, RpcAuth auth, int program, int version, int protocol, int localPort)");
         out.println("           throws OncRpcException, IOException {");
-        out.println("        rpcClient = new OncRpcClient(host, protocol, port);");
+        out.println("        rpcClient = new OncRpcClient(host, protocol, port, localPort);");
         out.println("        client = new RpcCall(program, version, auth, rpcClient.connect());");
         out.println("    }");
         out.println();
+
         out.println("   /**");
         out.println("     * Shutdown client connection.");
         out.println("     *");
@@ -1914,13 +1936,21 @@ public class jrpcgen {
         out.println("    public void shutdown() throws IOException {");
         out.println("        rpcClient.close();");
         out.println("    }");
+        out.println();
+
+        out.println("    @Override");
+        out.println("    public void close() throws IOException {");
+        out.println("        shutdown();");
+        out.println("    }");
+        out.println();
+
         //
         // Generate method stubs... This is getting hairy in case someone
         // uses basic data types as parameters or the procedure's result.
         // In these cases we need to encapsulate these basic data types in
         // XDR-able data types.
         //
-        for (int versionIdx = 0; versionIdx < versionSize; ++versionIdx) {
+        for (int versionIdx = 0; versionIdx < numVersions; ++versionIdx) {
             JrpcgenVersionInfo versionInfo = (JrpcgenVersionInfo) programInfo.versions.elementAt(versionIdx);
             dumpClientStubMethods(out, versionInfo);
         }

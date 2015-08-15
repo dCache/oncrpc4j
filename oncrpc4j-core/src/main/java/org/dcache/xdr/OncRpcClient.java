@@ -21,7 +21,7 @@ package org.dcache.xdr;
 
 import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.ConnectionProbe;
-import org.glassfish.grizzly.ConnectorHandler;
+import org.glassfish.grizzly.SocketConnectorHandler;
 import org.glassfish.grizzly.Transport;
 import org.glassfish.grizzly.filterchain.FilterChainBuilder;
 import org.glassfish.grizzly.filterchain.TransportFilter;
@@ -45,17 +45,27 @@ public class OncRpcClient implements AutoCloseable {
 
     private final static Logger _log = LoggerFactory.getLogger(OncRpcClient.class);
     private final InetSocketAddress _socketAddress;
+    private final int _localPort;
     private final Transport _transport;
     private Connection<InetSocketAddress> _connection;
     private final ReplyQueue _replyQueue = new ReplyQueue();
 
     public OncRpcClient(InetAddress address, int protocol, int port) {
-        this(new InetSocketAddress(address, port), protocol);
+        this(new InetSocketAddress(address, port), protocol, -1);
+    }
+
+    public OncRpcClient(InetAddress address, int protocol, int port, int localPort) {
+        this(new InetSocketAddress(address, port), protocol, localPort);
     }
 
     public OncRpcClient(InetSocketAddress socketAddress, int protocol) {
+        this(socketAddress, protocol, -1);
+    }
+
+    public OncRpcClient(InetSocketAddress socketAddress, int protocol, int localPort) {
 
         _socketAddress = socketAddress;
+        _localPort = localPort;
 
         if (protocol == IpProtocolType.TCP) {
             _transport = TCPNIOTransportBuilder.newInstance().build();
@@ -87,10 +97,17 @@ public class OncRpcClient implements AutoCloseable {
     public XdrTransport connect(long timeout, TimeUnit timeUnit) throws IOException {
 
         _transport.start();
-        Future<Connection> future = ((ConnectorHandler) _transport).connect(_socketAddress);
+        SocketConnectorHandler asConnectionHandler = (SocketConnectorHandler) _transport;
+        Future<Connection> connectFuture;
+        if (_localPort > 0) {
+            InetSocketAddress localAddress = new InetSocketAddress(_localPort);
+            connectFuture = asConnectionHandler.connect(_socketAddress, localAddress);
+        } else {
+            connectFuture = asConnectionHandler.connect(_socketAddress);
+        }
 
         try {
-            _connection = future.get(timeout, timeUnit);
+            _connection = connectFuture.get(timeout, timeUnit);
         } catch (TimeoutException | InterruptedException | ExecutionException e) {
             throw new IOException(e.toString(), e);
         }
