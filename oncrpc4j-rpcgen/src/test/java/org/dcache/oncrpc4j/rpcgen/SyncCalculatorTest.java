@@ -1,5 +1,6 @@
 package org.dcache.oncrpc4j.rpcgen;
 
+import org.dcache.xdr.IoStrategy;
 import org.dcache.xdr.IpProtocolType;
 import org.dcache.xdr.RpcAuthTypeNone;
 import org.dcache.xdr.RpcAuthTypeUnix;
@@ -78,5 +79,21 @@ public class SyncCalculatorTest extends AbstractCalculatorTest {
         Assert.assertEquals(1, calls.size());
         call = calls.get(0);
         Assert.assertEquals(freeLocalPort, call.getClientPort());
+    }
+
+    @Test
+    public void testIoStrategy() throws Exception {
+        CalculatorClient customClient = new CalculatorClient(
+                InetAddress.getByName(address),
+                port,
+                new RpcAuthTypeNone(),
+                Calculator.CALCULATOR,
+                Calculator.CALCULATORVERS,
+                IpProtocolType.TCP,
+                -1,
+                IoStrategy.SAME_THREAD
+        );
+
+        Assert.assertEquals(41, customClient.add_1(42, -1, 0, null, null).getResult());
     }
 }

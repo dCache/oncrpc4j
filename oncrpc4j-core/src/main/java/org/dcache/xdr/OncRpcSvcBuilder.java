@@ -57,7 +57,7 @@ public class OncRpcSvcBuilder {
     private int _minPort = 0;
     private int _maxPort = 0;
     private boolean _autoPublish = true;
-    private OncRpcSvc.IoStrategy _ioStrategy = OncRpcSvc.IoStrategy.SAME_THREAD;
+    private IoStrategy _ioStrategy = IoStrategy.SAME_THREAD;
     private boolean _withJMX = false;
     private int _backlog = 4096;
     private String _bindAddress = "0.0.0.0";
@@ -106,12 +106,12 @@ public class OncRpcSvcBuilder {
     }
 
     public OncRpcSvcBuilder withSameThreadIoStrategy() {
-        _ioStrategy = OncRpcSvc.IoStrategy.SAME_THREAD;
+        _ioStrategy = IoStrategy.SAME_THREAD;
         return this;
     }
 
     public OncRpcSvcBuilder withWorkerThreadIoStrategy() {
-        _ioStrategy = OncRpcSvc.IoStrategy.WORKER_THREAD;
+        _ioStrategy = IoStrategy.WORKER_THREAD;
         return this;
     }
 
@@ -161,7 +161,7 @@ public class OncRpcSvcBuilder {
         return _autoPublish;
     }
 
-    public OncRpcSvc.IoStrategy getIoStrategy() {
+    public IoStrategy getIoStrategy() {
         return _ioStrategy;
     }
 
@@ -186,7 +186,7 @@ public class OncRpcSvcBuilder {
     }
 
     public ExecutorService getWorkerThreadExecutorService() {
-        if (_ioStrategy == OncRpcSvc.IoStrategy.SAME_THREAD ) {
+        if (_ioStrategy == IoStrategy.SAME_THREAD ) {
             return MoreExecutors.newDirectExecutorService();
         }
 

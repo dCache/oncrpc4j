@@ -21,6 +21,7 @@ package org.dcache.xdr;
 
 import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.ConnectionProbe;
+import org.glassfish.grizzly.NIOTransportBuilder;
 import org.glassfish.grizzly.SocketConnectorHandler;
 import org.glassfish.grizzly.Transport;
 import org.glassfish.grizzly.filterchain.FilterChainBuilder;
@@ -47,33 +48,43 @@ public class OncRpcClient implements AutoCloseable {
     private final InetSocketAddress _socketAddress;
     private final int _localPort;
     private final Transport _transport;
-    private Connection<InetSocketAddress> _connection;
     private final ReplyQueue _replyQueue = new ReplyQueue();
 
     public OncRpcClient(InetAddress address, int protocol, int port) {
-        this(new InetSocketAddress(address, port), protocol, -1);
+        this(new InetSocketAddress(address, port), protocol, -1, null);
     }
 
     public OncRpcClient(InetAddress address, int protocol, int port, int localPort) {
-        this(new InetSocketAddress(address, port), protocol, localPort);
+        this(new InetSocketAddress(address, port), protocol, localPort, null);
+    }
+
+    public OncRpcClient(InetAddress address, int protocol, int port, int localPort, IoStrategy ioStrategy) {
+        this(new InetSocketAddress(address, port), protocol, localPort, ioStrategy);
     }
 
     public OncRpcClient(InetSocketAddress socketAddress, int protocol) {
-        this(socketAddress, protocol, -1);
+        this(socketAddress, protocol, -1, null);
     }
 
-    public OncRpcClient(InetSocketAddress socketAddress, int protocol, int localPort) {
+    public OncRpcClient(InetSocketAddress socketAddress, int protocol, int localPort, IoStrategy ioStrategy) {
 
         _socketAddress = socketAddress;
         _localPort = localPort;
 
+        NIOTransportBuilder transportBuilder;
+
         if (protocol == IpProtocolType.TCP) {
-            _transport = TCPNIOTransportBuilder.newInstance().build();
+            transportBuilder = TCPNIOTransportBuilder.newInstance();
         } else if (protocol == IpProtocolType.UDP) {
-            _transport = UDPNIOTransportBuilder.newInstance().build();
+            transportBuilder = UDPNIOTransportBuilder.newInstance();
         } else {
             throw new IllegalArgumentException("Unsupported protocol type: " + protocol);
         }
+
+        if (ioStrategy != null) {
+            transportBuilder.setIOStrategy(GrizzlyUtils.translate(ioStrategy));
+        }
+        _transport = transportBuilder.build();
 
         FilterChainBuilder filterChain = FilterChainBuilder.stateless();
         filterChain.add(new TransportFilter());
@@ -106,7 +117,9 @@ public class OncRpcClient implements AutoCloseable {
             connectFuture = asConnectionHandler.connect(_socketAddress);
         }
 
+        Connection<InetSocketAddress> _connection;
         try {
+            //noinspection unchecked
             _connection = connectFuture.get(timeout, timeUnit);
         } catch (TimeoutException | InterruptedException | ExecutionException e) {
             throw new IOException(e.toString(), e);
@@ -117,6 +130,6 @@ public class OncRpcClient implements AutoCloseable {
 
     @Override
     public void close() throws IOException {
-        _transport.shutdownNow();
+        _transport.shutdown();
     }
 }

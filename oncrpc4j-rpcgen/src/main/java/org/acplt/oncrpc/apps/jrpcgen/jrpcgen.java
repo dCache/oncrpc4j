@@ -1872,38 +1872,47 @@ public class jrpcgen {
         // Generate constructors...
         //
         out.println("    /**");
-        out.println("     * see {@link #" + clientClass + "(InetAddress, int, RpcAuth, int, int, int , int)}");
+        out.println("     * see {@link #" + clientClass + "(InetAddress, int, RpcAuth, int, int, int , int, IoStrategy)}");
         out.println("     */");
         out.println("    public " + clientClass + "(InetAddress host, int port)");
         out.println("           throws OncRpcException, IOException {");
-        out.println("        this(host, port, new RpcAuthTypeNone(), " + baseClassname + "." + programInfo.programId + ", " + baseClassname + "." + maxVersionInfo.versionId + ", IpProtocolType.TCP, -1);");
+        out.println("        this(host, port, new RpcAuthTypeNone(), " + baseClassname + "." + programInfo.programId + ", " + baseClassname + "." + maxVersionInfo.versionId + ", IpProtocolType.TCP, -1, null);");
         out.println("    }");
         out.println();
 
         out.println("    /**");
-        out.println("     * see {@link #" + clientClass + "(InetAddress, int, RpcAuth, int, int, int , int)}");
+        out.println("     * see {@link #" + clientClass + "(InetAddress, int, RpcAuth, int, int, int , int, IoStrategy)}");
         out.println("     */");
         out.println("    public " + clientClass + "(InetAddress host, int port, int version)");
         out.println("           throws OncRpcException, IOException {");
-        out.println("        this(host, port, new RpcAuthTypeNone(), " + baseClassname + "." + programInfo.programId + ", version, IpProtocolType.TCP, -1);");
+        out.println("        this(host, port, new RpcAuthTypeNone(), " + baseClassname + "." + programInfo.programId + ", version, IpProtocolType.TCP, -1, null);");
         out.println("    }");
         out.println();
 
         out.println("    /**");
-        out.println("     * see {@link #" + clientClass + "(InetAddress, int, RpcAuth, int, int, int , int)}");
+        out.println("     * see {@link #" + clientClass + "(InetAddress, int, RpcAuth, int, int, int , int, IoStrategy)}");
         out.println("     */");
         out.println("    public " + clientClass + "(InetAddress host, int port, int program, int version, int protocol)");
         out.println("           throws OncRpcException, IOException {");
-        out.println("        this(host, port, new RpcAuthTypeNone(), program, version, protocol, -1);");
+        out.println("        this(host, port, new RpcAuthTypeNone(), program, version, protocol, -1, null);");
         out.println("    }");
         out.println();
 
         out.println("    /**");
-        out.println("     * see {@link #" + clientClass + "(InetAddress, int, RpcAuth, int, int, int , int)}");
+        out.println("     * see {@link #" + clientClass + "(InetAddress, int, RpcAuth, int, int, int , int, IoStrategy)}");
         out.println("     */");
         out.println("    public " + clientClass + "(InetAddress host, int port, RpcAuth auth, int program, int version, int protocol)");
         out.println("           throws OncRpcException, IOException {");
-        out.println("        this(host, port, auth, program, version, protocol, -1);");
+        out.println("        this(host, port, auth, program, version, protocol, -1, null);");
+        out.println("    }");
+        out.println();
+
+        out.println("    /**");
+        out.println("     * see {@link #" + clientClass + "(InetAddress, int, RpcAuth, int, int, int , int, IoStrategy)}");
+        out.println("     */");
+        out.println("    public " + clientClass + "(InetAddress host, int port, RpcAuth auth, int program, int version, int protocol, int localPort)");
+        out.println("           throws OncRpcException, IOException {");
+        out.println("        this(host, port, auth, program, version, protocol, localPort, null);");
         out.println("    }");
         out.println();
 
@@ -1918,12 +1927,13 @@ public class jrpcgen {
         out.println("     * @param protocol {@link org.dcache.xdr.IpProtocolType} to be");
         out.println("     *   used for ONC/RPC calls.");
         out.println("     * @param localPort local port to bind to. <=0 for any (ephemeral)");
+        out.println("     * @param ioStrategy io handling strategy. null for default");
         out.println("     * @throws OncRpcException if an ONC/RPC error occurs.");
         out.println("     * @throws IOException if an I/O error occurs.");
         out.println("     */");
-        out.println("    public " + clientClass + "(InetAddress host, int port, RpcAuth auth, int program, int version, int protocol, int localPort)");
+        out.println("    public " + clientClass + "(InetAddress host, int port, RpcAuth auth, int program, int version, int protocol, int localPort, IoStrategy ioStrategy)");
         out.println("           throws OncRpcException, IOException {");
-        out.println("        rpcClient = new OncRpcClient(host, protocol, port, localPort);");
+        out.println("        rpcClient = new OncRpcClient(host, protocol, port, localPort, ioStrategy);");
         out.println("        client = new RpcCall(program, version, auth, rpcClient.connect());");
         out.println("    }");
         out.println();
