@@ -2,8 +2,12 @@ package org.dcache.oncrpc4j.rpcgen;
 
 import org.dcache.xdr.RpcCall;
 
+import javax.security.auth.Subject;
+import java.security.Principal;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class CalculatorServerImpl extends CalculatorServer {
     public static final int SLEEP_MILLIS = 100;
@@ -22,7 +26,7 @@ public class CalculatorServerImpl extends CalculatorServer {
         }
         long finish = System.currentTimeMillis();
         result.setFinishMillis(finish);
-        recordAddCall(start, finish, arg1, arg2, result.getResult(), null);
+        recordAddCall(call$, start, finish, arg1, arg2, result.getResult(), null);
         return result;
     }
 
@@ -36,16 +40,21 @@ public class CalculatorServerImpl extends CalculatorServer {
         }
         long result = arg1 + arg2;
         long finish = System.currentTimeMillis();
-        recordAddCall(start, finish, arg1, arg2, result, null);
+        recordAddCall(call$, start, finish, arg1, arg2, result, null);
         return result;
     }
 
-    private void recordAddCall(long start, long finish, long arg1, long arg2, long result, Throwable throwable) {
+    private void recordAddCall(RpcCall call, long start, long finish, long arg1, long arg2, long result, Throwable throwable) {
         System.err.println(arg1 + " + " + arg2 + " = " + result);
         Object[] args = new Object[2];
         args[0] = arg1;
         args[1] = arg2;
-        methodCalls.add(new MethodCall(start, finish, Thread.currentThread().getStackTrace()[1].getMethodName(), args, result, throwable));
+        Subject subject = call.getCredential().getSubject();
+        Set<String> principalNames = new HashSet<>();
+        for (Principal p : subject.getPrincipals()) {
+            principalNames.add(p.getName());
+        }
+        methodCalls.add(new MethodCall(start, finish, Thread.currentThread().getStackTrace()[1].getMethodName(), args, result, throwable, principalNames));
     }
 
     public List<MethodCall> getMethodCalls() {

@@ -13,7 +13,7 @@ public class FutureCalculatorTest extends AbstractCalculatorTest {
     @Test
     public void testFutureAdd() throws Exception {
         long callTime = System.currentTimeMillis();
-        Future<CalculationResult> future = client.add_1_future(1, 2);
+        Future<CalculationResult> future = client.add_1_future(1, 2, null);
         long retTime = System.currentTimeMillis();
         Assert.assertNotNull(future);
         CalculationResult result = future.get();
@@ -31,7 +31,7 @@ public class FutureCalculatorTest extends AbstractCalculatorTest {
     @Test
     public void testFutureAddSimple() throws Exception {
         long callTime = System.nanoTime();
-        Future<XdrLong> future = client.addSimple_1_future(1, 2);
+        Future<XdrLong> future = client.addSimple_1_future(1, 2, null);
         long retTime = System.nanoTime();
         XdrLong result = future.get();
         long resTime = System.nanoTime();
@@ -48,7 +48,7 @@ public class FutureCalculatorTest extends AbstractCalculatorTest {
 
     @Test(expected = TimeoutException.class)
     public void testFutureAddTimeout() throws Exception {
-        Future<CalculationResult> future = client.add_1_future(3, 4);
+        Future<CalculationResult> future = client.add_1_future(3, 4, null);
         future.get(CalculatorServerImpl.SLEEP_MILLIS / 10, TimeUnit.MILLISECONDS);
     }
 }

@@ -330,6 +330,14 @@ public class RpcCall {
     }
 
     /**
+     * convenience version of {@link #call(int, XdrAble, CompletionHandler, long, TimeUnit, RpcAuth)} with no timeout
+     */
+    public void call(int procedure, XdrAble args, CompletionHandler<RpcReply, XdrTransport> callback, RpcAuth auth)
+            throws IOException {
+        callInternal(procedure, args, callback, 0, null, auth);
+    }
+
+    /**
      * convenience version of {@link #call(int, XdrAble, CompletionHandler, long, TimeUnit, RpcAuth)} with no timeout or auth
      */
     public void call(int procedure, XdrAble args, CompletionHandler<RpcReply, XdrTransport> callback)
