@@ -468,6 +468,18 @@ public class RpcCall {
     }
 
     /**
+     * convenience version of {@link #call(int, XdrAble, XdrAble, long, TimeUnit, RpcAuth)} with no timeout
+     */
+    public void call(int procedure, XdrAble args, XdrAble result, RpcAuth auth)
+            throws IOException {
+        try {
+            call(procedure, args, result, 0, null, auth);
+        } catch (TimeoutException e) {
+            throw new IllegalStateException(e); //theoretically impossible
+        }
+    }
+
+    /**
      * convenience version of {@link #call(int, XdrAble, XdrAble, long, TimeUnit, RpcAuth)} with no timeout or auth
      */
     public void call(int procedure, XdrAble args, XdrAble result)
