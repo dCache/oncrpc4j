@@ -1,6 +1,5 @@
 package org.dcache.oncrpc4j.rpcgen;
 
-import org.dcache.xdr.IpProtocolType;
 import org.dcache.xdr.OncRpcProgram;
 import org.dcache.xdr.OncRpcSvc;
 import org.dcache.xdr.OncRpcSvcBuilder;
@@ -27,12 +26,7 @@ public abstract class AbstractBlobStoreTest {
                 .build();
         server.register(new OncRpcProgram(BlobStore.BLOB_STORAGE, BlobStore.BLOB_STORAGE_VERS), serverImpl);
         server.start();
-        client = new BlobStoreClient(
-                InetAddress.getByName(address),
-                port,
-                BlobStore.BLOB_STORAGE,
-                BlobStore.BLOB_STORAGE_VERS,
-                IpProtocolType.TCP);
+        client = new BlobStoreClient(InetAddress.getByName(address), port);
     }
 
     @After

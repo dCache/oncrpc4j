@@ -76,11 +76,6 @@ public class OncRpcSvc {
 
     private final ExecutorService _requestExecutor;
 
-    public enum IoStrategy {
-        SAME_THREAD,
-        WORKER_THREAD
-    }
-
     private final ReplyQueue _replyQueue = new ReplyQueue();
 
     /**

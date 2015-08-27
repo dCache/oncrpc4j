@@ -311,21 +311,38 @@ public class RpcCall {
      * @param callback The completion handler.
      * @param timeoutValue timeout value. 0 means no timeout
      * @param timeoutUnits units for timeout value
+     * @param auth auth to use for the call
      * @throws OncRpcException
      * @throws IOException
      * @since 2.4.0
      */
-    public void call(int procedure, XdrAble args, CompletionHandler<RpcReply, XdrTransport> callback, long timeoutValue, TimeUnit timeoutUnits)
+    public void call(int procedure, XdrAble args, CompletionHandler<RpcReply, XdrTransport> callback, long timeoutValue, TimeUnit timeoutUnits, RpcAuth auth)
             throws IOException {
-        callInternal(procedure, args, callback, timeoutValue, timeoutUnits);
+        callInternal(procedure, args, callback, timeoutValue, timeoutUnits, auth);
     }
 
     /**
-     * convenience version of {@link #call(int, XdrAble, CompletionHandler, long, TimeUnit)} with no timeout
+     * convenience version of {@link #call(int, XdrAble, CompletionHandler, long, TimeUnit, RpcAuth)} with no auth
+     */
+    public void call(int procedure, XdrAble args, CompletionHandler<RpcReply, XdrTransport> callback, long timeoutValue, TimeUnit timeoutUnits)
+            throws IOException {
+        callInternal(procedure, args, callback, timeoutValue, timeoutUnits, null);
+    }
+
+    /**
+     * convenience version of {@link #call(int, XdrAble, CompletionHandler, long, TimeUnit, RpcAuth)} with no timeout
+     */
+    public void call(int procedure, XdrAble args, CompletionHandler<RpcReply, XdrTransport> callback, RpcAuth auth)
+            throws IOException {
+        callInternal(procedure, args, callback, 0, null, auth);
+    }
+
+    /**
+     * convenience version of {@link #call(int, XdrAble, CompletionHandler, long, TimeUnit, RpcAuth)} with no timeout or auth
      */
     public void call(int procedure, XdrAble args, CompletionHandler<RpcReply, XdrTransport> callback)
             throws IOException {
-        call(procedure, args, callback, 0, null);
+        callInternal(procedure, args, callback, 0, null, null);
     }
 
     /**
@@ -335,11 +352,13 @@ public class RpcCall {
      * @param callback The completion handler.
      * @param timeoutValue timeout value. 0 means no timeout
      * @param timeoutUnits units for timeout value
+     * @param auth auth to use for this call. null for constructor-provided default
      * @return the xid for the call
      * @throws OncRpcException
      * @throws IOException
      */
-    private int callInternal(int procedure, XdrAble args, CompletionHandler<RpcReply, XdrTransport> callback, long timeoutValue, TimeUnit timeoutUnits)
+    private int callInternal(int procedure, XdrAble args, CompletionHandler<RpcReply, XdrTransport> callback,
+                             long timeoutValue, TimeUnit timeoutUnits, RpcAuth auth)
             throws IOException {
 
         int xid = NEXT_XID.incrementAndGet();
@@ -352,7 +371,11 @@ public class RpcCall {
         xdr.xdrEncodeInt(_prog);
         xdr.xdrEncodeInt(_version);
         xdr.xdrEncodeInt(procedure);
-        _cred.xdrEncode(xdr);
+        if (auth != null) {
+            auth.xdrEncode(xdr);
+        } else {
+            _cred.xdrEncode(xdr);
+        }
         args.xdrEncode(xdr);
         xdr.endEncoding();
 
@@ -380,20 +403,29 @@ public class RpcCall {
      * @param procedure The number of the procedure.
      * @param args The argument of the procedure.
      * @param type The expected type of the reply
+     * @param auth auth to use for the call
      * @return A Future representing the result of the operation.
      * @throws OncRpcException
      * @throws IOException
      * @since 2.4.0
      */
-    public <T extends XdrAble> Future<T> call(int procedure, XdrAble args, final Class<T> type)
+    public <T extends XdrAble> Future<T> call(int procedure, XdrAble args, final Class<T> type, final RpcAuth auth)
             throws IOException {
         try {
             T result = type.newInstance();
-            return getCallFuture(procedure, args, result, 0, null);
+            return getCallFuture(procedure, args, result, 0, null, auth);
         } catch (InstantiationException | IllegalAccessException e) {
             // this exceptions point to bugs
             throw new RuntimeException("Failed to create in instance of " + type, e);
         }
+    }
+
+    /**
+     * convenience version of {@link #call(int, XdrAble, Class, RpcAuth)} with no auth
+     */
+    public <T extends XdrAble> Future<T> call(int procedure, XdrAble args, final Class<T> type)
+            throws IOException {
+        return call(procedure, args, type, null);
     }
 
     /**
@@ -404,13 +436,14 @@ public class RpcCall {
      * @param result the result of the procedure
      * @param timeoutValue timeout value. 0 means no timeout
      * @param timeoutUnits units for timeout value
+     * @param auth auth to use for the call
      * @throws OncRpcException
      * @throws IOException
      */
-    public void call(int procedure, XdrAble args, XdrAble result, long timeoutValue, TimeUnit timeoutUnits)
+    public void call(int procedure, XdrAble args, XdrAble result, long timeoutValue, TimeUnit timeoutUnits, RpcAuth auth)
             throws IOException, TimeoutException {
         try {
-            Future<XdrAble> future = getCallFuture(procedure, args, result, timeoutValue, timeoutUnits);
+            Future<XdrAble> future = getCallFuture(procedure, args, result, timeoutValue, timeoutUnits, auth);
             future.get();
         } catch (InterruptedException e) {
             // workaround missing chained constructor
@@ -427,18 +460,38 @@ public class RpcCall {
     }
 
     /**
-     * convenience version of {@link #call(int, XdrAble, XdrAble, long, TimeUnit)} with no timeout
+     * convenience version of {@link #call(int, XdrAble, XdrAble, long, TimeUnit, RpcAuth)} with default auth
      */
-    public void call(int procedure, XdrAble args, XdrAble result)
+    public void call(int procedure, XdrAble args, XdrAble result, long timeoutValue, TimeUnit timeoutUnits)
+            throws IOException, TimeoutException {
+        call(procedure, args, result, timeoutValue, timeoutUnits, null);
+    }
+
+    /**
+     * convenience version of {@link #call(int, XdrAble, XdrAble, long, TimeUnit, RpcAuth)} with no timeout
+     */
+    public void call(int procedure, XdrAble args, XdrAble result, RpcAuth auth)
             throws IOException {
         try {
-            call(procedure, args, result, 0, null);
+            call(procedure, args, result, 0, null, auth);
         } catch (TimeoutException e) {
             throw new IllegalStateException(e); //theoretically impossible
         }
     }
 
-    private <T extends XdrAble> Future<T> getCallFuture(int procedure, XdrAble args, final T result, long timeoutValue, TimeUnit timeoutUnits)
+    /**
+     * convenience version of {@link #call(int, XdrAble, XdrAble, long, TimeUnit, RpcAuth)} with no timeout or auth
+     */
+    public void call(int procedure, XdrAble args, XdrAble result)
+            throws IOException {
+        try {
+            call(procedure, args, result, 0, null, null);
+        } catch (TimeoutException e) {
+            throw new IllegalStateException(e); //theoretically impossible
+        }
+    }
+
+    private <T extends XdrAble> Future<T> getCallFuture(int procedure, XdrAble args, final T result, long timeoutValue, TimeUnit timeoutUnits, RpcAuth auth)
             throws IOException {
 
         final SettableFuture<T> future = SettableFuture.create();
@@ -460,7 +513,7 @@ public class RpcCall {
             }
         };
 
-        int xid = callInternal(procedure, args, callback, timeoutValue, timeoutUnits);
+        int xid = callInternal(procedure, args, callback, timeoutValue, timeoutUnits, auth);
         //wrap the future if no timeout provided up-front to properly un-register
         //the handler if a timeout is later provided to Future.get()
         return timeoutValue > 0 ? future : new TimeoutAwareFuture<>(future, xid);

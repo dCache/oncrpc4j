@@ -39,7 +39,7 @@ public class CallbackCalculatorTest extends AbstractCalculatorTest {
             public void failed(Throwable exc, XdrTransport attachment) {
                 throw new IllegalStateException(exc);
             }
-        }, 0, null);
+        }, 0, null, null);
         long retTime = System.currentTimeMillis();
         latch.await(3, TimeUnit.SECONDS);
         long resTime = System.currentTimeMillis();
@@ -81,7 +81,7 @@ public class CallbackCalculatorTest extends AbstractCalculatorTest {
             public void failed(Throwable exc, XdrTransport attachment) {
                 throw new IllegalStateException(exc);
             }
-        }, 0, null);
+        }, 0, null, null);
         long retTime = System.currentTimeMillis();
         latch.await(3, TimeUnit.SECONDS);
         long resTime = System.currentTimeMillis();
@@ -117,7 +117,7 @@ public class CallbackCalculatorTest extends AbstractCalculatorTest {
                 }
                 latch.countDown();
             }
-        }, CalculatorServerImpl.SLEEP_MILLIS/10, TimeUnit.MILLISECONDS);
+        }, CalculatorServerImpl.SLEEP_MILLIS/10, TimeUnit.MILLISECONDS, null);
         latch.await(1, TimeUnit.SECONDS);
         Assert.assertNull(failureMsgRef.get());
     }

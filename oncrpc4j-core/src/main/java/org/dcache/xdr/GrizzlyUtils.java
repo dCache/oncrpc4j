@@ -24,10 +24,12 @@ import org.glassfish.grizzly.Transport;
 import org.glassfish.grizzly.filterchain.Filter;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 import org.glassfish.grizzly.nio.transport.UDPNIOTransport;
+import org.glassfish.grizzly.strategies.LeaderFollowerNIOStrategy;
+import org.glassfish.grizzly.strategies.SameThreadIOStrategy;
+import org.glassfish.grizzly.strategies.WorkerThreadIOStrategy;
 import org.glassfish.grizzly.threadpool.ThreadPoolConfig;
 
-import static org.dcache.xdr.OncRpcSvc.IoStrategy;
-import static org.dcache.xdr.OncRpcSvc.IoStrategy.*;
+import static org.dcache.xdr.IoStrategy.*;
 
 /**
  * Class with utility methods for Grizzly
@@ -120,5 +122,18 @@ public class GrizzlyUtils {
         }
 
         return poolCfg;
+    }
+
+    static IOStrategy translate(IoStrategy ioStrategy) {
+        switch (ioStrategy) {
+            case SAME_THREAD:
+                return SameThreadIOStrategy.getInstance();
+            case WORKER_THREAD:
+                return WorkerThreadIOStrategy.getInstance();
+            case LEADER_FOLLOWER:
+                return LeaderFollowerNIOStrategy.getInstance();
+            default:
+                throw new UnsupportedOperationException("unhandled " + ioStrategy);
+        }
     }
 }

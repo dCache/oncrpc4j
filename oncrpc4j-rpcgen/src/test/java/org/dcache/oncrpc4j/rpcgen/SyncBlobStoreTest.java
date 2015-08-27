@@ -12,8 +12,8 @@ public class SyncBlobStoreTest extends AbstractBlobStoreTest {
         Value value = new Value();
         value.notNull = true;
         value.data = new byte[]{4,5,6};
-        client.put_1(key, value, 0, null);
-        Value returned = client.get_1(key, 0, null);
+        client.put_1(key, value, 0, null, null);
+        Value returned = client.get_1(key, 0, null, null);
         Assert.assertNotNull(returned);
         Assert.assertTrue(returned != value);
         byte[] returnedValue = returned.data;
@@ -24,7 +24,7 @@ public class SyncBlobStoreTest extends AbstractBlobStoreTest {
     public void testNoSuchValue() throws Exception {
         Key key = new Key();
         key.setData(new byte[]{1,2,3});
-        Value returned = client.get_1(key, 0, null);
+        Value returned = client.get_1(key, 0, null, null);
         int g = 8;
     }
 }
