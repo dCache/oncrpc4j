@@ -1934,7 +1934,12 @@ public class jrpcgen {
         out.println("    public " + clientClass + "(InetAddress host, int port, RpcAuth auth, int program, int version, int protocol, int localPort, IoStrategy ioStrategy)");
         out.println("           throws OncRpcException, IOException {");
         out.println("        rpcClient = new OncRpcClient(host, protocol, port, localPort, ioStrategy);");
-        out.println("        client = new RpcCall(program, version, auth, rpcClient.connect());");
+        out.println("        try {");
+        out.println("            client = new RpcCall(program, version, auth, rpcClient.connect());");
+        out.println("        } catch (IOException e) {");
+        out.println("            rpcClient.close();");
+        out.println("            throw e;");
+        out.println("        } ");
         out.println("    }");
         out.println();
 
