@@ -1,5 +1,6 @@
 package org.dcache.oncrpc4j.rpcgen;
 
+import com.google.common.base.Throwables;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -16,7 +17,7 @@ public class LeakTest {
                 new BlobStoreClient(localAddress, 60666);
                 Assert.fail("connection expected to fail");
             } catch (Throwable t) {
-                Throwable cause = TestUtil.getRootCause(t);
+                Throwable cause = Throwables.getRootCause(t);
                 if ((cause instanceof ConnectException) && "Connection refused".equals(cause.getMessage())) {
                     //this is expected
                     continue;
