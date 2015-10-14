@@ -41,6 +41,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import static org.dcache.xdr.GrizzlyUtils.rpcMessageReceiverFor;
+import static com.google.common.base.Throwables.getRootCause;
+import static com.google.common.base.Throwables.propagateIfPossible;
 
 public class OncRpcClient implements AutoCloseable {
 
@@ -121,7 +123,11 @@ public class OncRpcClient implements AutoCloseable {
         try {
             //noinspection unchecked
             _connection = connectFuture.get(timeout, timeUnit);
-        } catch (TimeoutException | InterruptedException | ExecutionException e) {
+        } catch (ExecutionException e) {
+            Throwable t = getRootCause(e);
+            propagateIfPossible(t, IOException.class);
+            throw new IOException(e.toString(), e);
+        } catch (TimeoutException | InterruptedException e) {
             throw new IOException(e.toString(), e);
         }
 
