@@ -22,10 +22,9 @@ package org.dcache.xdr;
 import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.ConnectionProbe;
 import org.glassfish.grizzly.NIOTransportBuilder;
-import org.glassfish.grizzly.SocketConnectorHandler;
-import org.glassfish.grizzly.Transport;
 import org.glassfish.grizzly.filterchain.FilterChainBuilder;
 import org.glassfish.grizzly.filterchain.TransportFilter;
+import org.glassfish.grizzly.nio.NIOTransport;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransportBuilder;
 import org.glassfish.grizzly.nio.transport.UDPNIOTransportBuilder;
 import org.glassfish.grizzly.strategies.SameThreadIOStrategy;
@@ -49,7 +48,7 @@ public class OncRpcClient implements AutoCloseable {
     private final static Logger _log = LoggerFactory.getLogger(OncRpcClient.class);
     private final InetSocketAddress _socketAddress;
     private final int _localPort;
-    private final Transport _transport;
+    private final NIOTransport _transport;
     private final ReplyQueue _replyQueue = new ReplyQueue();
 
     public OncRpcClient(InetAddress address, int protocol, int port) {
@@ -110,19 +109,19 @@ public class OncRpcClient implements AutoCloseable {
     public XdrTransport connect(long timeout, TimeUnit timeUnit) throws IOException {
 
         _transport.start();
-        SocketConnectorHandler asConnectionHandler = (SocketConnectorHandler) _transport;
+
         Future<Connection> connectFuture;
         if (_localPort > 0) {
             InetSocketAddress localAddress = new InetSocketAddress(_localPort);
-            connectFuture = asConnectionHandler.connect(_socketAddress, localAddress);
+            connectFuture = _transport.connect(_socketAddress, localAddress);
         } else {
-            connectFuture = asConnectionHandler.connect(_socketAddress);
+            connectFuture = _transport.connect(_socketAddress);
         }
 
-        Connection<InetSocketAddress> _connection;
         try {
             //noinspection unchecked
-            _connection = connectFuture.get(timeout, timeUnit);
+            Connection<InetSocketAddress> connection = connectFuture.get(timeout, timeUnit);
+            return new ClientTransport(connection, _replyQueue);
         } catch (ExecutionException e) {
             Throwable t = getRootCause(e);
             propagateIfPossible(t, IOException.class);
@@ -130,8 +129,6 @@ public class OncRpcClient implements AutoCloseable {
         } catch (TimeoutException | InterruptedException e) {
             throw new IOException(e.toString(), e);
         }
-
-        return new ClientTransport(_connection, _replyQueue);
     }
 
     @Override
