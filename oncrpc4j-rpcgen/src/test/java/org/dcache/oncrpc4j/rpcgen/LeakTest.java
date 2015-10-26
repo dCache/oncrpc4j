@@ -14,7 +14,7 @@ public class LeakTest {
         InetAddress localAddress = InetAddress.getByName("localhost");
         for (int i=0; i<10000; i++) {
             try {
-                new BlobStoreClient(localAddress, 60666);
+                new BlobStoreClient(localAddress, 666); //<1024 target port so that we dont "succeed" in connecting with the outgoing socket assigned to a prev iteration
                 Assert.fail("connection expected to fail");
             } catch (Throwable t) {
                 Throwable cause = Throwables.getRootCause(t);
