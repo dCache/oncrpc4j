@@ -26,6 +26,7 @@ import org.dcache.xdr.portmap.GenericPortmapClient;
 import org.dcache.xdr.portmap.OncPortmapClient;
 import org.dcache.xdr.portmap.OncRpcPortmap;
 import org.glassfish.grizzly.Connection;
+import org.glassfish.grizzly.ConnectionProbe;
 import org.glassfish.grizzly.GrizzlyFuture;
 import org.glassfish.grizzly.PortRange;
 import org.glassfish.grizzly.SocketBinder;
@@ -34,6 +35,7 @@ import org.glassfish.grizzly.filterchain.FilterChain;
 import org.glassfish.grizzly.filterchain.FilterChainBuilder;
 import org.glassfish.grizzly.filterchain.TransportFilter;
 import org.glassfish.grizzly.jmxbase.GrizzlyJmxManager;
+import org.glassfish.grizzly.nio.NIOTransport;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransportBuilder;
 import org.glassfish.grizzly.nio.transport.UDPNIOTransport;
@@ -54,10 +56,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import static com.google.common.base.Throwables.getRootCause;
+import static com.google.common.base.Throwables.propagateIfPossible;
 import static org.dcache.xdr.GrizzlyUtils.getSelectorPoolCfg;
 import static org.dcache.xdr.GrizzlyUtils.rpcMessageReceiverFor;
 import static org.dcache.xdr.GrizzlyUtils.transportFor;
@@ -70,7 +76,8 @@ public class OncRpcSvc {
     private final boolean _publish;
     private final PortRange _portRange;
     private final String _bindAddress;
-    private final List<Transport> _transports = new ArrayList<>();
+    private final boolean _isClient;
+    private final List<NIOTransport> _transports = new ArrayList<>();
     private final Set<Connection<InetSocketAddress>> _boundConnections =
             new HashSet<>();
 
@@ -124,7 +131,10 @@ public class OncRpcSvc {
                     .build();
             _transports.add(udpTransport);
         }
-        _portRange = new PortRange(builder.getMinPort(), builder.getMaxPort());
+        _isClient = builder.isClient();
+        _portRange = builder.getMinPort() > 0 ?
+                new PortRange(builder.getMinPort(), builder.getMaxPort()) : null;
+
         _backlog = builder.getBacklog();
         _bindAddress = builder.getBindAddress();
 
@@ -258,7 +268,7 @@ public class OncRpcSvc {
 
     public void start() throws IOException {
 
-        if(_publish) {
+        if(!_isClient && _publish) {
             clearPortmap(_programs.keySet());
         }
 
@@ -277,20 +287,32 @@ public class OncRpcSvc {
             final FilterChain filters = filterChain.build();
 
             t.setProcessor(filters);
-            Connection<InetSocketAddress> connection =
-                    ((SocketBinder) t).bind(_bindAddress, _portRange, _backlog);
+            t.getConnectionMonitoringConfig().addProbes(new ConnectionProbe.Adapter() {
+                @Override
+                public void onCloseEvent(Connection connection) {
+                    _replyQueue.handleDisconnect();
+                }
+            });
+
+            if(!_isClient) {
+                Connection<InetSocketAddress> connection = _portRange == null ?
+                        ((SocketBinder) t).bind(_bindAddress, 0, _backlog) :
+                        ((SocketBinder) t).bind(_bindAddress, _portRange, _backlog);
+
+                _boundConnections.add(connection);
+
+                if (_publish) {
+                    publishToPortmap(connection, _programs.keySet());
+                }
+            }
             t.start();
 
-            _boundConnections.add(connection);
-            if (_publish) {
-                publishToPortmap(connection, _programs.keySet());
-            }
         }
     }
 
     public void stop() throws IOException {
 
-        if (_publish) {
+        if (!_isClient && _publish) {
             clearPortmap(_programs.keySet());
         }
 
@@ -303,7 +325,7 @@ public class OncRpcSvc {
 
     public void stop(long gracePeriod, TimeUnit timeUnit) throws IOException {
 
-        if (_publish) {
+        if (!_isClient && _publish) {
             clearPortmap(_programs.keySet());
         }
 
@@ -324,6 +346,36 @@ public class OncRpcSvc {
         }
 
         _requestExecutor.shutdown();
+    }
+
+    public XdrTransport connect(InetSocketAddress socketAddress) throws IOException {
+        return connect(socketAddress, Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+    }
+
+    public XdrTransport connect(InetSocketAddress socketAddress, long timeout, TimeUnit timeUnit) throws IOException {
+
+        // in client mode only one transport is defined
+        NIOTransport transport = _transports.get(0);
+
+        Future<Connection> connectFuture;
+        if (_portRange != null) {
+            InetSocketAddress localAddress = new InetSocketAddress(_portRange.getLower());
+            connectFuture = transport.connect(socketAddress, localAddress);
+        } else {
+            connectFuture = transport.connect(socketAddress);
+        }
+
+        try {
+            //noinspection unchecked
+            Connection<InetSocketAddress> connection = connectFuture.get(timeout, timeUnit);
+            return new ClientTransport(connection, _replyQueue);
+        } catch (ExecutionException e) {
+            Throwable t = getRootCause(e);
+            propagateIfPossible(t, IOException.class);
+            throw new IOException(e.toString(), e);
+        } catch (TimeoutException | InterruptedException e) {
+            throw new IOException(e.toString(), e);
+        }
     }
 
     /**

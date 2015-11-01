@@ -19,44 +19,22 @@
  */
 package org.dcache.xdr;
 
-import org.glassfish.grizzly.Connection;
-import org.glassfish.grizzly.ConnectionProbe;
-import org.glassfish.grizzly.NIOTransportBuilder;
-import org.glassfish.grizzly.filterchain.FilterChainBuilder;
-import org.glassfish.grizzly.filterchain.TransportFilter;
-import org.glassfish.grizzly.nio.NIOTransport;
-import org.glassfish.grizzly.nio.transport.TCPNIOTransportBuilder;
-import org.glassfish.grizzly.nio.transport.UDPNIOTransportBuilder;
-import org.glassfish.grizzly.strategies.SameThreadIOStrategy;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
-import static org.dcache.xdr.GrizzlyUtils.rpcMessageReceiverFor;
-import static com.google.common.base.Throwables.getRootCause;
-import static com.google.common.base.Throwables.propagateIfPossible;
 
 public class OncRpcClient implements AutoCloseable {
 
-    private final static Logger _log = LoggerFactory.getLogger(OncRpcClient.class);
     private final InetSocketAddress _socketAddress;
-    private final int _localPort;
-    private final NIOTransport _transport;
-    private final ReplyQueue _replyQueue = new ReplyQueue();
+    private final OncRpcSvc _rpcsvc;
 
     public OncRpcClient(InetAddress address, int protocol, int port) {
-        this(new InetSocketAddress(address, port), protocol, -1, null);
+        this(new InetSocketAddress(address, port), protocol, 0, IoStrategy.SAME_THREAD);
     }
 
     public OncRpcClient(InetAddress address, int protocol, int port, int localPort) {
-        this(new InetSocketAddress(address, port), protocol, localPort, null);
+        this(new InetSocketAddress(address, port), protocol, localPort, IoStrategy.SAME_THREAD);
     }
 
     public OncRpcClient(InetAddress address, int protocol, int port, int localPort, IoStrategy ioStrategy) {
@@ -64,42 +42,18 @@ public class OncRpcClient implements AutoCloseable {
     }
 
     public OncRpcClient(InetSocketAddress socketAddress, int protocol) {
-        this(socketAddress, protocol, -1, null);
+        this(socketAddress, protocol, 0, null);
     }
 
     public OncRpcClient(InetSocketAddress socketAddress, int protocol, int localPort, IoStrategy ioStrategy) {
 
         _socketAddress = socketAddress;
-        _localPort = localPort;
-
-        NIOTransportBuilder transportBuilder;
-
-        if (protocol == IpProtocolType.TCP) {
-            transportBuilder = TCPNIOTransportBuilder.newInstance();
-        } else if (protocol == IpProtocolType.UDP) {
-            transportBuilder = UDPNIOTransportBuilder.newInstance();
-        } else {
-            throw new IllegalArgumentException("Unsupported protocol type: " + protocol);
-        }
-
-        if (ioStrategy != null) {
-            transportBuilder.setIOStrategy(GrizzlyUtils.translate(ioStrategy));
-        }
-        _transport = transportBuilder.build();
-
-        FilterChainBuilder filterChain = FilterChainBuilder.stateless();
-        filterChain.add(new TransportFilter());
-        filterChain.add(rpcMessageReceiverFor(_transport));
-        filterChain.add(new RpcProtocolFilter(_replyQueue));
-
-        _transport.setProcessor(filterChain.build());
-        _transport.setIOStrategy(SameThreadIOStrategy.getInstance());
-        _transport.getConnectionMonitoringConfig().addProbes( new ConnectionProbe.Adapter() {
-            @Override
-            public void onCloseEvent(Connection connection) {
-                _replyQueue.handleDisconnect();
-            }
-        });
+        _rpcsvc = new OncRpcSvcBuilder()
+                .withClientMode()
+                .withPort(localPort)
+                .withIpProtocolType(protocol)
+                .withIoStrategy(ioStrategy)
+                .build();
     }
 
     public XdrTransport connect() throws IOException {
@@ -107,32 +61,19 @@ public class OncRpcClient implements AutoCloseable {
     }
 
     public XdrTransport connect(long timeout, TimeUnit timeUnit) throws IOException {
-
-        _transport.start();
-
-        Future<Connection> connectFuture;
-        if (_localPort > 0) {
-            InetSocketAddress localAddress = new InetSocketAddress(_localPort);
-            connectFuture = _transport.connect(_socketAddress, localAddress);
-        } else {
-            connectFuture = _transport.connect(_socketAddress);
-        }
-
+        XdrTransport t;
         try {
-            //noinspection unchecked
-            Connection<InetSocketAddress> connection = connectFuture.get(timeout, timeUnit);
-            return new ClientTransport(connection, _replyQueue);
-        } catch (ExecutionException e) {
-            Throwable t = getRootCause(e);
-            propagateIfPossible(t, IOException.class);
-            throw new IOException(e.toString(), e);
-        } catch (TimeoutException | InterruptedException e) {
-            throw new IOException(e.toString(), e);
+        _rpcsvc.start();
+            t =_rpcsvc.connect(_socketAddress, timeout, timeUnit);
+        } catch (IOException e ) {
+            _rpcsvc.stop();
+            throw e;
         }
+        return t;
     }
 
     @Override
     public void close() throws IOException {
-        _transport.shutdown();
+        _rpcsvc.stop();
     }
 }

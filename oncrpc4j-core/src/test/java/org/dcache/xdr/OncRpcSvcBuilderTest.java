@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2014 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2015 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -79,6 +79,24 @@ public class OncRpcSvcBuilderTest {
 
         ExecutorService executorService = builder.getWorkerThreadExecutorService();
         assertTrue("Provided executor service not used", mockedExecutorService  == executorService);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldThrowExceptionOnInvalidProtocol() {
+
+        OncRpcSvc svc = new OncRpcSvcBuilder()
+                .withIpProtocolType(1)
+                .build();
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldThrowExceptionIfClientUsesTwoProtocols() {
+
+        OncRpcSvc svc = new OncRpcSvcBuilder()
+                .withClientMode()
+                .withTCP()
+                .withUDP()
+                .build();
     }
 
 }

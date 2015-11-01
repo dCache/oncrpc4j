@@ -90,7 +90,7 @@ public class SyncCalculatorTest extends AbstractCalculatorTest {
                 Calculator.CALCULATOR,
                 Calculator.CALCULATORVERS,
                 IpProtocolType.TCP,
-                -1,
+                0,
                 IoStrategy.SAME_THREAD
         );
 

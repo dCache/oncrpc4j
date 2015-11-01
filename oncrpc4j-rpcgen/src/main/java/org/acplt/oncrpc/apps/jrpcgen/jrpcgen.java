@@ -1876,7 +1876,7 @@ public class jrpcgen {
         out.println("     */");
         out.println("    public " + clientClass + "(InetAddress host, int port)");
         out.println("           throws OncRpcException, IOException {");
-        out.println("        this(host, port, new RpcAuthTypeNone(), " + baseClassname + "." + programInfo.programId + ", " + baseClassname + "." + maxVersionInfo.versionId + ", IpProtocolType.TCP, -1, null);");
+        out.println("        this(host, port, new RpcAuthTypeNone(), " + baseClassname + "." + programInfo.programId + ", " + baseClassname + "." + maxVersionInfo.versionId + ", IpProtocolType.TCP, 0, IoStrategy.SAME_THREAD);");
         out.println("    }");
         out.println();
 
@@ -1885,7 +1885,7 @@ public class jrpcgen {
         out.println("     */");
         out.println("    public " + clientClass + "(InetAddress host, int port, int version)");
         out.println("           throws OncRpcException, IOException {");
-        out.println("        this(host, port, new RpcAuthTypeNone(), " + baseClassname + "." + programInfo.programId + ", version, IpProtocolType.TCP, -1, null);");
+        out.println("        this(host, port, new RpcAuthTypeNone(), " + baseClassname + "." + programInfo.programId + ", version, IpProtocolType.TCP, 0, IoStrategy.SAME_THREAD);");
         out.println("    }");
         out.println();
 
@@ -1894,7 +1894,7 @@ public class jrpcgen {
         out.println("     */");
         out.println("    public " + clientClass + "(InetAddress host, int port, int program, int version, int protocol)");
         out.println("           throws OncRpcException, IOException {");
-        out.println("        this(host, port, new RpcAuthTypeNone(), program, version, protocol, -1, null);");
+        out.println("        this(host, port, new RpcAuthTypeNone(), program, version, protocol, 0, IoStrategy.SAME_THREAD);");
         out.println("    }");
         out.println();
 
@@ -1903,7 +1903,7 @@ public class jrpcgen {
         out.println("     */");
         out.println("    public " + clientClass + "(InetAddress host, int port, RpcAuth auth, int program, int version, int protocol)");
         out.println("           throws OncRpcException, IOException {");
-        out.println("        this(host, port, auth, program, version, protocol, -1, null);");
+        out.println("        this(host, port, auth, program, version, protocol, 0, IoStrategy.SAME_THREAD);");
         out.println("    }");
         out.println();
 
@@ -1912,7 +1912,7 @@ public class jrpcgen {
         out.println("     */");
         out.println("    public " + clientClass + "(InetAddress host, int port, RpcAuth auth, int program, int version, int protocol, int localPort)");
         out.println("           throws OncRpcException, IOException {");
-        out.println("        this(host, port, auth, program, version, protocol, localPort, null);");
+        out.println("        this(host, port, auth, program, version, protocol, localPort, IoStrategy.SAME_THREAD);");
         out.println("    }");
         out.println();
 

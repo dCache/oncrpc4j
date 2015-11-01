@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2014 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2015 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -28,6 +28,7 @@ import java.util.concurrent.ExecutorService;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.dcache.xdr.GrizzlyUtils.getWorkerPoolCfg;
+import static org.dcache.xdr.IpProtocolType.*;
 
 
 /**
@@ -64,6 +65,7 @@ public class OncRpcSvcBuilder {
     private String _serviceName = "OncRpcSvc";
     private GssSessionManager _gssSessionManager;
     private ExecutorService _workerThreadExecutionService;
+    private boolean _isClient = false;
 
     public OncRpcSvcBuilder withAutoPublish() {
         _autoPublish = true;
@@ -96,12 +98,17 @@ public class OncRpcSvcBuilder {
     }
 
     public OncRpcSvcBuilder withTCP() {
-        _protocol |= IpProtocolType.TCP;
+        _protocol |= TCP;
         return this;
     }
 
     public OncRpcSvcBuilder withUDP() {
-        _protocol |= IpProtocolType.UDP;
+        _protocol |= UDP;
+        return this;
+    }
+
+    public OncRpcSvcBuilder withIpProtocolType(int protocolType) {
+        _protocol = protocolType;
         return this;
     }
 
@@ -112,6 +119,11 @@ public class OncRpcSvcBuilder {
 
     public OncRpcSvcBuilder withWorkerThreadIoStrategy() {
         _ioStrategy = IoStrategy.WORKER_THREAD;
+        return this;
+    }
+
+    public OncRpcSvcBuilder withIoStrategy(IoStrategy ioStrategy) {
+        _ioStrategy = ioStrategy;
         return this;
     }
 
@@ -142,6 +154,11 @@ public class OncRpcSvcBuilder {
 
     public OncRpcSvcBuilder withWorkerThreadExecutionService(ExecutorService executorService) {
         _workerThreadExecutionService = executorService;
+        return this;
+    }
+
+    public OncRpcSvcBuilder withClientMode() {
+        _isClient = true;
         return this;
     }
 
@@ -198,11 +215,24 @@ public class OncRpcSvcBuilder {
         return new FixedThreadPool(workerPoolConfig);
     }
 
+    public boolean isClient() {
+        return _isClient;
+    }
+
     public OncRpcSvc build() {
 
-        if (_protocol == 0) {
-            throw new IllegalArgumentException("invalid protocol");
+        if (_protocol == 0 || (((_protocol & TCP) != TCP) && ((_protocol & UDP) != UDP))) {
+            throw new IllegalArgumentException("invalid protocol: " + _protocol);
         }
+
+        if (_isClient && (_protocol == (TCP | UDP)) ) {
+            throw new IllegalArgumentException("Client mode can't be TCP and UDP at the same time");
+        }
+
+        if (_isClient && (_maxPort != _minPort)) {
+            throw new IllegalArgumentException("Can't use port range in client mode");
+        }
+
         return new OncRpcSvc(this);
     }
 }
