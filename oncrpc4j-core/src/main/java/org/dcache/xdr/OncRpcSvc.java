@@ -315,8 +315,11 @@ public class OncRpcSvc {
         for (GrizzlyFuture<Transport> transportShuttingDown : transportsShuttingDown) {
             try {
                 transportShuttingDown.get();
-            } catch (Exception e) {
-                _log.warn("Exception while waiting for transport to shut down gracefully",e);
+            } catch (InterruptedException e) {
+                _log.info("Waiting for graceful shut down interrupted");
+            } catch (ExecutionException e) {
+                Throwable t = getRootCause(e);
+                _log.warn("Exception while waiting for transport to shut down gracefully",t);
             }
         }
 
