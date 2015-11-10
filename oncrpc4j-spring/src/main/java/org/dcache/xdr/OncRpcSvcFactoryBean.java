@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2014 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2015 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -19,9 +19,12 @@
  */
 package org.dcache.xdr;
 
-import java.util.concurrent.ExecutorService;
-import org.dcache.xdr.gss.GssSessionManager;
 import org.springframework.beans.factory.FactoryBean;
+
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+
+import org.dcache.xdr.gss.GssSessionManager;
 
 /**
  * A {@link FactoryBean} to use {@link OncRpcSvcBuilder}
@@ -104,5 +107,11 @@ public class OncRpcSvcFactoryBean implements FactoryBean<OncRpcSvcBuilder> {
 
     public void setWorkerThreadExecutionService(ExecutorService executorService) {
         builder.withWorkerThreadExecutionService(executorService);
+    }
+
+    public void setRpcServices(Map<OncRpcProgram, RpcDispatchable> services) {
+        for(Map.Entry<OncRpcProgram, RpcDispatchable> program: services.entrySet()) {
+            builder.withRpcService(program.getKey(), program.getValue());
+        }
     }
 }

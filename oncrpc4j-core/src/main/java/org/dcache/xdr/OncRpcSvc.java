@@ -146,6 +146,7 @@ public class OncRpcSvc {
         }
         _requestExecutor = builder.getWorkerThreadExecutorService();
         _gssSessionManager = builder.getGssSessionManager();
+        _programs.putAll(builder.getRpcServices());
     }
 
     /**
@@ -172,6 +173,7 @@ public class OncRpcSvc {
     /**
      * Add programs to existing services.
      * @param services
+     * @deprecated use {@link OncRpcSvcBuilder#withRpcService} instead.
      */
     public void setPrograms(Map<OncRpcProgram, RpcDispatchable> services) {
         _programs.putAll(services);

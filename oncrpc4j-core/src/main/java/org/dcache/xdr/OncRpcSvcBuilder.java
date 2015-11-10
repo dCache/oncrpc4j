@@ -24,6 +24,8 @@ import org.dcache.xdr.gss.GssSessionManager;
 import org.glassfish.grizzly.threadpool.FixedThreadPool;
 import org.glassfish.grizzly.threadpool.ThreadPoolConfig;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -48,6 +50,8 @@ import static org.dcache.xdr.IpProtocolType.*;
  *     .withTCP()
  *     .withUDP()
  *     .withAutoPublish()
+ *     .withRpcService(program1, service1)
+ *     .withRpcService(program3, service2)
  *     .build();
  * </pre>
  * @since 2.0
@@ -66,6 +70,7 @@ public class OncRpcSvcBuilder {
     private GssSessionManager _gssSessionManager;
     private ExecutorService _workerThreadExecutionService;
     private boolean _isClient = false;
+    private final Map<OncRpcProgram, RpcDispatchable> _programs = new HashMap<>();
 
     public OncRpcSvcBuilder withAutoPublish() {
         _autoPublish = true;
@@ -162,6 +167,11 @@ public class OncRpcSvcBuilder {
         return this;
     }
 
+    public OncRpcSvcBuilder withRpcService(OncRpcProgram program, RpcDispatchable service) {
+        _programs.put(program, service);
+        return this;
+    }
+
     public int getProtocol() {
         return _protocol;
     }
@@ -217,6 +227,10 @@ public class OncRpcSvcBuilder {
 
     public boolean isClient() {
         return _isClient;
+    }
+
+    public Map<OncRpcProgram, RpcDispatchable> getRpcServices() {
+        return _programs;
     }
 
     public OncRpcSvc build() {

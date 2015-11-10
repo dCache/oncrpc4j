@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2012 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2015 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -56,9 +56,9 @@ public class SimpleRpcServer {
                 .withPort(port)
                 .withSameThreadIoStrategy()
                 .withJMX()
+                .withRpcService(new OncRpcProgram(PROG_NUMBER, PROG_VERS), dummy)
                 .build();
 
-        svc.register(new OncRpcProgram(PROG_NUMBER, PROG_VERS), dummy);
         svc.start();
         System.in.read();
 

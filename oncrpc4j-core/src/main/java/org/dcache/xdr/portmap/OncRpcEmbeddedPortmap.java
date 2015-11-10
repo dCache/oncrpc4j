@@ -84,8 +84,8 @@ public class OncRpcEmbeddedPortmap {
                         .withTCP()
                         .withUDP()
                         .withoutAutoPublish()
+                        .withRpcService(new OncRpcProgram(OncRpcPortmap.PORTMAP_PROGRAMM, OncRpcPortmap.PORTMAP_V2), new OncRpcbindServer())
                         .build();
-                rpcbindServer.register(new OncRpcProgram(OncRpcPortmap.PORTMAP_PROGRAMM, OncRpcPortmap.PORTMAP_V2), new OncRpcbindServer());
                 rpcbindServer.start();
                 optionalEmbeddedServer = rpcbindServer;
             } catch (IOException e) {

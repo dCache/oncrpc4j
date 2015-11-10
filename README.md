@@ -85,8 +85,8 @@ public class Svcd {
                 .withAutoPublish()
                 .withPort(port)
                 .withSameThreadIoStrategy()
+                .withRpcService(new OncRpcProgram(PROG_NUMBER, PROG_VERS), dummy)
                 .build();
-        service.register(new OncRpcProgram(PROG_NUMBER, PROG_VERS), dummy);
         service.start();
     }
 }
@@ -134,16 +134,17 @@ public class Svcd implements RpcDispatchable {
         <description>Onc RPC service builder</description>
         <property name="port" value="1717"/>
         <property name="useTCP" value="true"/>
+        <property name="rpcServices">
+            <map>
+                <entry key-ref="my-rpc" value-ref="my-rpc-svc"/>
+            </map>
+        </property>
+
     </bean>
 
     <bean id="oncrpcsvc" class="org.dcache.xdr.OncRpcSvc" init-method="start" destroy-method="stop">
         <description>My RPC service</description>
         <constructor-arg ref="rpcsvc-builder"/>
-        <property name="programs">
-            <map>
-                <entry key-ref="my-rpc" value-ref="my-rpc-svc"/>
-            </map>
-        </property>
     </bean>
 </beans>
 ```
@@ -205,8 +206,8 @@ public class StrlenServerApp {
                 .withAutoPublish()
                 .withPort(DEFAULT_PORT)
                 .withSameThreadIoStrategy()
+                .withRpcService(new OncRpcProgram(strlen.STRLEN, strlen.STRLENVERS), new StrlenSvcImpl())
                 .build();
-        service.register(new OncRpcProgram(strlen.STRLEN, strlen.STRLENVERS), new StrlenSvcImpl());
         service.start();
         System.in.read();
     }
