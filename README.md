@@ -44,42 +44,6 @@ public class Svcd {
             }
         };
 
-        OncRpcSvc service = new OncRpcSvc(port);
-        service.register(new OncRpcProgram(PROG_NUMBER, PROG_VERS), dummy);
-        service.start();
-    }
-}
-```
-
-###or with builder###
-
-```java
-package me.mypackage;
-
-import org.dcache.xdr.RpcDispatchable;
-import org.dcache.xdr.RpcCall;
-import org.dcache.xdr.XdrVoid;
-import org.dcache.xdr.OncRpcException;
-
-public class Svcd {
-
-    private static final int DEFAULT_PORT = 1717;
-    private static final int PROG_NUMBER = 111017;
-    private static final int PROG_VERS = 1;
-
-    public static void main(String[] args) throws Exception {
-
-        int port = DEFAULT_PORT;
-
-        RpcDispatchable dummy = new RpcDispatchable() {
-
-            @Override
-            public void dispatchOncRpcCall(RpcCall call)
-                          throws OncRpcException, IOException {
-                call.reply(XdrVoid.XDR_VOID);
-            }
-        };
-
         OncRpcSvc service = new OncRpcSvcBuilder()
                 .withTCP()
                 .withAutoPublish()
