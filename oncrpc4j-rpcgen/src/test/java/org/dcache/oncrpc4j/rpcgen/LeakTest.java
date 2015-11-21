@@ -18,7 +18,7 @@ public class LeakTest {
                 Assert.fail("connection expected to fail");
             } catch (Throwable t) {
                 Throwable cause = Throwables.getRootCause(t);
-                if ((cause instanceof ConnectException) && "Connection refused".equals(cause.getMessage())) {
+                if ((cause instanceof ConnectException) && cause.getMessage().startsWith("Connection refused")) {
                     //this is expected
                     continue;
                 }
