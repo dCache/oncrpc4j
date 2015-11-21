@@ -32,6 +32,7 @@ import org.acplt.oncrpc.apps.jrpcgen.cup_runtime.Symbol;
 import java.io.*;
 import java.util.*;
 import java.text.SimpleDateFormat;
+import java.util.regex.Matcher;
 
 /**
  * The class <code>jrpcgen</code> implements a Java-based rpcgen RPC protocol
@@ -2424,7 +2425,7 @@ public class jrpcgen {
             }
         }
         if (packageName != null && !packageName.isEmpty()) {
-            destinationDir = new File(destinationDir, packageName.replaceAll("\\.", File.separator));
+            destinationDir = new File(destinationDir, packageName.replaceAll("\\.", Matcher.quoteReplacement(File.separator)));
             if (!destinationDir.exists() && !destinationDir.mkdirs()) {
                 throw new IllegalStateException("unable to create path " + destinationDir);
             }
