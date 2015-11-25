@@ -31,6 +31,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -42,14 +44,21 @@ public class PortmapV2Client implements OncPortmapClient {
     public PortmapV2Client(RpcCall call) {
         _call = call;
     }
-
-    public void dump() throws OncRpcException, IOException, TimeoutException {
+	
+    public List<rpcb> dump() throws OncRpcException, IOException, TimeoutException {
         _log.debug("portmap dump");
-
         pmaplist list_reply = new pmaplist();
         _call.call(OncRpcPortmap.PMAPPROC_DUMP, XdrVoid.XDR_VOID, list_reply);
-
-        System.out.println(list_reply);
+		List<rpcb> out = new LinkedList<>();
+		// walk entries and add to list
+		out.add( new rpcb(list_reply.getEntry() ) );
+		while( (list_reply = list_reply.getNext()) != null ) {
+			mapping c = list_reply.getEntry();
+			if ( c != null ) {
+				out.add( new rpcb(c) );
+			}
+		}
+		return out;
     }
 
     public boolean ping() {

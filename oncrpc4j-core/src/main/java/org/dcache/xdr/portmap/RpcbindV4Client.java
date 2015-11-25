@@ -30,6 +30,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -96,13 +98,19 @@ public class RpcbindV4Client implements OncPortmapClient {
         return xdrString.stringValue();
     }
 
-    public void dump() throws OncRpcException, IOException, TimeoutException {
-
+    public List<rpcb> dump() throws OncRpcException, IOException, TimeoutException {
         _log.debug("portmap dump");
-
         rpcb_list rpcb_list_reply = new rpcb_list();
         _call.call(OncRpcPortmap.RPCBPROC_DUMP, XdrVoid.XDR_VOID, rpcb_list_reply);
-
-        System.out.println(rpcb_list_reply);
+		List<rpcb> out = new LinkedList<>();
+		// walk entries and add to list
+		out.add(rpcb_list_reply.getEntry());
+		while( (rpcb_list_reply=rpcb_list_reply.getNext()) != null ) {
+			rpcb c = rpcb_list_reply.getEntry();
+			if ( c != null ) {
+				out.add(c);
+			}
+		}
+		return out;
     }
 }

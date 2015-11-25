@@ -21,6 +21,8 @@ package org.dcache.xdr.portmap;
 
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.ListIterator;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,11 +75,41 @@ public class OncRpcbindServer implements RpcDispatchable {
                 call.retrieveCall(newMapping);
                 // we sore every thing in v4 format
                 rpcb rpcbMapping = new rpcb(newMapping);
+				Boolean found = false;
                 synchronized(_services) {
-                    _services.add(rpcbMapping);
+					for ( rpcb c : _services ) {
+						if ( c.getProg() == rpcbMapping.getProg() &&  c.getVers() == rpcbMapping.getVers() && c.getNetid().equals(rpcbMapping.getNetid()) ) {
+							found = true;
+						}
+					}
+					if ( found == false) { // only add if not found already
+						_services.add(rpcbMapping);
+					}
                 }
-                call.reply(XdrBoolean.True);
+                call.reply( (found?XdrBoolean.False:XdrBoolean.True) );
                 break;
+            case OncRpcPortmap.PMAPPROC_UNSET:
+                mapping unsetMapping = new mapping();
+                call.retrieveCall(unsetMapping);
+                // we sore everything in v4 format
+                rpcb rpcbUnsetMapping = new rpcb(unsetMapping);
+				Boolean removed = false;
+                synchronized(_services) {
+					Set<rpcb> target = new HashSet<>();
+					// lookup entries
+					for ( rpcb c : _services ) {
+						if ( c.getProg() == rpcbUnsetMapping.getProg() &&  c.getVers() == rpcbUnsetMapping.getVers() && c.getOwner().equals(rpcbUnsetMapping.getOwner()) ) {
+							target.add(c);
+						}
+					}
+					// clear entries
+					for ( rpcb c: target ) {
+						_services.remove(c);
+						removed = true;
+					}
+                }
+                call.reply( (removed?XdrBoolean.True:XdrBoolean.False) );
+                break;				
             case OncRpcPortmap.PMAPPROC_DUMP:
                 pmaplist list = new pmaplist();
                 pmaplist next = list;
