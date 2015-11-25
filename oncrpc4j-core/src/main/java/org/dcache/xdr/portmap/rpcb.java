@@ -62,9 +62,6 @@ public class rpcb implements XdrAble {
         _netid = IpProtocolType.toString(old.getProt());
         _addr = netid.toString(old.getPort());
         _owner = "unspecified";
-
-
-
     }
 
     public rpcb(int prog, int vers, String netid, String addr, String owner) {
@@ -74,7 +71,23 @@ public class rpcb implements XdrAble {
         _addr = addr;
         _owner = owner;
     }
+	
+	public int getProg() {
+		return _prog;
+	}
+	
+	public int getVers() {
+		return _vers;
+	}
+	
+	public String getNetid() {
+		return _netid;
+	}	
 
+	public String getOwner() {
+		return _owner;
+	}	
+	
     public void xdrDecode(XdrDecodingStream xdr) throws OncRpcException, IOException {
         _prog = xdr.xdrDecodeInt();
         _vers = xdr.xdrDecodeInt();

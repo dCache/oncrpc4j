@@ -40,6 +40,14 @@ public class rpcb_list implements XdrAble{
         _rpcbMap = rpcbMap;
     }
 
+	public rpcb getEntry() {
+		return _rpcbMap;
+	}
+	
+	public rpcb_list getNext() {
+		return _next;
+	}
+		
     private rpcb_list _next;
 
     public rpcb_list() {}

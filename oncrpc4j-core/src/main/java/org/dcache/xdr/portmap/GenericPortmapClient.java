@@ -22,6 +22,7 @@ package org.dcache.xdr.portmap;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.util.List;
 import java.util.concurrent.TimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,8 +57,8 @@ public class GenericPortmapClient implements OncPortmapClient {
         _portmapClient = portmapClient;
     }
 
-    public void dump() throws OncRpcException, IOException, TimeoutException {
-        _portmapClient.dump();
+    public List<rpcb> dump() throws OncRpcException, IOException, TimeoutException {
+        return _portmapClient.dump();
     }
 
     public boolean ping() {
