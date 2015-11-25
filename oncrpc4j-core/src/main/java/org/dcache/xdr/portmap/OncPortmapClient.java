@@ -22,14 +22,12 @@ package org.dcache.xdr.portmap;
 import org.dcache.xdr.OncRpcException;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.TimeoutException;
 
 public interface OncPortmapClient {
-
-    void dump() throws OncRpcException, IOException, TimeoutException;
-
+    List<rpcb> dump() throws OncRpcException, IOException, TimeoutException;
     boolean ping();
-
     boolean setPort(int program, int version, String netid, String addr, String owner) throws OncRpcException, IOException, TimeoutException;
     boolean unsetPort(int program, int version, String owner) throws OncRpcException, IOException, TimeoutException;
     String  getPort(int program, int version, String netid) throws OncRpcException, IOException, TimeoutException;
