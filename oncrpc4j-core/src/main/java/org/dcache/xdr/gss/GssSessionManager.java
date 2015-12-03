@@ -22,18 +22,24 @@ package org.dcache.xdr.gss;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import javax.security.auth.Subject;
 import javax.security.auth.kerberos.KerberosPrincipal;
+
 import org.dcache.xdr.RpcLoginService;
 import org.dcache.utils.Opaque;
+
 import org.ietf.jgss.GSSContext;
 import org.ietf.jgss.GSSCredential;
 import org.ietf.jgss.GSSException;
 import org.ietf.jgss.GSSManager;
 import org.ietf.jgss.GSSName;
 import org.ietf.jgss.Oid;
+
+import org.dcache.xdr.XdrTransport;
 
 public class GssSessionManager {
 
@@ -97,7 +103,7 @@ public class GssSessionManager {
         return context;
     }
 
-    public Subject subjectOf(GSSName name) {
-        return _loginService.login(  new KerberosPrincipal(name.toString()));
+    public Subject subjectOf(XdrTransport transport, GSSContext context) {
+        return _loginService.login(transport, context);
     }
 }

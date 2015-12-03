@@ -130,11 +130,10 @@ public class GssProtocolFilter extends BaseFilter {
                 case GssProc.RPCSEC_GSS_DATA:
                     gssContext =  _gssSessionManager.getEstablishedContext(authGss.getHandle());
                     validateVerifier(authGss, gssContext);
-                    GSSName sourceName = gssContext.getSrcName();
                     authGss.getSubject()
                             .getPrincipals()
-                            .addAll(_gssSessionManager.subjectOf(sourceName).getPrincipals());
-                    _log.debug("RPCGSS_SEC: {}",sourceName);
+                            .addAll(_gssSessionManager.subjectOf(call.getTransport(), gssContext).getPrincipals());
+                    _log.debug("RPCGSS_SEC: {}", gssContext.getSrcName());
                     byte[] crc = Ints.toByteArray(authGss.getSequence());
                     crc = gssContext.getMIC(crc, 0, 4, new MessageProp(false));
                     authGss.setVerifier(new RpcAuthVerifier(authGss.type(), crc));

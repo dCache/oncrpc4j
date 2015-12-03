@@ -19,10 +19,11 @@
  */
 package org.dcache.xdr;
 
-import java.security.Principal;
+import org.ietf.jgss.GSSContext;
+
 import javax.security.auth.Subject;
 
 public interface RpcLoginService {
 
-    Subject login(Principal principal);
+    Subject login(XdrTransport transport, GSSContext context);
 }
