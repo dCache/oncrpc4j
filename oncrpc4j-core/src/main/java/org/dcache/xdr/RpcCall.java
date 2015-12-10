@@ -85,7 +85,7 @@ public class RpcCall {
     private final Xdr _xdr;
 
     public RpcCall(int prog, int ver, RpcAuth cred, XdrTransport transport) {
-        this(prog, ver, cred, new Xdr(Xdr.MAX_XDR_SIZE), transport);
+        this(prog, ver, cred, new Xdr(Xdr.INITIAL_XDR_SIZE), transport);
     }
 
     public RpcCall(int prog, int ver, RpcAuth cred, Xdr xdr, XdrTransport transport) {
@@ -363,7 +363,7 @@ public class RpcCall {
 
         int xid = NEXT_XID.incrementAndGet();
 
-        Xdr xdr = new Xdr(Xdr.MAX_XDR_SIZE);
+        Xdr xdr = new Xdr(Xdr.INITIAL_XDR_SIZE);
         xdr.beginEncoding();
         RpcMessage rpcMessage = new RpcMessage(xid, RpcMessageType.CALL);
         rpcMessage.xdrEncode(xdr);

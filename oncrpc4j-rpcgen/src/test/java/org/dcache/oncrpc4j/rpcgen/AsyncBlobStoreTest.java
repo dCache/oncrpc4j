@@ -1,7 +1,6 @@
 package org.dcache.oncrpc4j.rpcgen;
 
 import org.dcache.xdr.RpcAuthTypeNone;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -10,7 +9,6 @@ import org.junit.Test;
 public class AsyncBlobStoreTest extends AbstractBlobStoreTest {
 
     @Test
-    @Ignore("issue not resolved yet")
     public void testTonsOfQueuedRequests() throws Exception {
         Key k = new Key();
         byte[] blob = {1, 2, 3, 4};
