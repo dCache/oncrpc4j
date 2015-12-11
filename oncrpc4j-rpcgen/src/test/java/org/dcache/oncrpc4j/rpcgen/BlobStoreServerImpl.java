@@ -11,6 +11,9 @@ public class BlobStoreServerImpl extends BlobStoreServer {
     public void put_1(RpcCall call$, Key key, Value value) {
         String hexKey = bytesToHex(key.data);
         store.put(hexKey, value.data);
+        try {
+            Thread.sleep(1L);
+        } catch (InterruptedException ignored) {}
     }
 
     @Override

@@ -35,6 +35,11 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
     public final static int MAX_XDR_SIZE = 512 * 1024;
 
     /**
+     * Initial size of a freshly-allocated Xdr message
+     */
+    public final static int INITIAL_XDR_SIZE = 1024;
+
+    /**
      * Byte buffer used by XDR record.
      */
     protected volatile Buffer _buffer;
