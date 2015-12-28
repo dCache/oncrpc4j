@@ -214,7 +214,7 @@ As maven dependency
 <dependency>
     <groupId>org.dcache</groupId>
     <artifactId>oncrpc4j-core</artifactId>
-    <version>2.4.2</version>
+    <version>2.5.0</version>
 </dependency>
 
 <repositories>
