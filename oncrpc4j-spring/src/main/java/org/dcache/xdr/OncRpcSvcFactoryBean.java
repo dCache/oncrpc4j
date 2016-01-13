@@ -114,4 +114,8 @@ public class OncRpcSvcFactoryBean implements FactoryBean<OncRpcSvcBuilder> {
             builder.withRpcService(program.getKey(), program.getValue());
         }
     }
+
+    public void setServiceName(String serviceName) {
+        builder.withServiceName(serviceName);
+    }
 }
