@@ -254,7 +254,7 @@ class JrpcgenScanner implements org.acplt.oncrpc.apps.jrpcgen.cup_runtime.Scanne
     private boolean yy_eof_done;
 
     /* user code: */
-    StringBuffer string = new StringBuffer();
+    StringBuilder  string = new StringBuilder();
 
     private Symbol symbol(int type) {
         return new Symbol(type, yyline + 1, yycolumn + 1);

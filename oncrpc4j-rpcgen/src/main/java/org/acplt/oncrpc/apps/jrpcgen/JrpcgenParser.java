@@ -317,7 +317,7 @@ public class JrpcgenParser extends org.acplt.oncrpc.apps.jrpcgen.cup_runtime.lr_
     }
 
     public void report_error(String message, Object info) {
-        StringBuffer msg = new StringBuffer("jrpcgen: error");
+        StringBuilder  msg = new StringBuilder("jrpcgen: error");
         if (info instanceof Symbol) {
             Symbol s = (Symbol) info;
             msg.append(" in line ");
@@ -330,7 +330,7 @@ public class JrpcgenParser extends org.acplt.oncrpc.apps.jrpcgen.cup_runtime.lr_
     }
 
     public void report_error(String message, int line) {
-        StringBuffer msg = new StringBuffer("jrpcgen: error in line ");
+        StringBuilder  msg = new StringBuilder("jrpcgen: error in line ");
         msg.append(line);
         msg.append(": ");
         msg.append(message);
@@ -339,7 +339,7 @@ public class JrpcgenParser extends org.acplt.oncrpc.apps.jrpcgen.cup_runtime.lr_
     }
 
     public void syntax_error(Symbol cur_token) {
-        StringBuffer msg = new StringBuffer("jrpcgen: syntax error in line ");
+        StringBuilder  msg = new StringBuilder("jrpcgen: syntax error in line ");
         msg.append(cur_token.left);
         System.out.println(msg);
         throw (new JrpcgenParserException());

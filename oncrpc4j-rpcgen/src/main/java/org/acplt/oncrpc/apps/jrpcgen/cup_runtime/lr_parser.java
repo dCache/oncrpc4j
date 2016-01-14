@@ -620,13 +620,13 @@ public abstract class lr_parser {
     /** Do debug output for stack state. [CSA]
      */
     public void debug_stack() {
-        StringBuffer sb = new StringBuffer("## STACK:");
+        StringBuilder  sb = new StringBuilder("## STACK:");
         for (int i = 0; i < stack.size(); i++) {
             Symbol s = (Symbol) stack.elementAt(i);
             sb.append(" <state " + s.parse_state + ", sym " + s.sym + ">");
             if ((i % 3) == 2 || (i == (stack.size() - 1))) {
                 debug_message(sb.toString());
-                sb = new StringBuffer("         ");
+                sb = new StringBuilder("         ");
             }
         }
     }
