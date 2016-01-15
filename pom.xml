@@ -9,7 +9,7 @@
 
   <groupId>org.dcache</groupId>
   <artifactId>oncrpc4j</artifactId>
-  <version>2.5.1-SNAPSHOT</version>
+  <version>2.5.2-SNAPSHOT</version>
   <name>ONCRPC4J parent project</name>
   <packaging>pom</packaging>
 
