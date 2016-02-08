@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2015 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2016 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -20,6 +20,7 @@
 package org.dcache.xdr;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.nio.channels.CompletionHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +49,12 @@ public class RpcProtocolFilter extends BaseFilter {
         xdr.beginDecoding();
 
         RpcMessage message = new RpcMessage(xdr);
-        XdrTransport transport = new GrizzlyXdrTransport(ctx, _replyQueue);
+        /**
+         * In case of UDP grizzly does not populates connection with correct destination address.
+         * We have to get peer address from the request context, which will contain SocketAddress where from
+         * request was coming.
+         */
+        XdrTransport transport = new GrizzlyXdrTransport(ctx.getConnection(), (InetSocketAddress)ctx.getAddress(), _replyQueue);
 
         switch (message.type()) {
             case RpcMessageType.CALL:

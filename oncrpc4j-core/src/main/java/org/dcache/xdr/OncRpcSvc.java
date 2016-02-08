@@ -372,7 +372,7 @@ public class OncRpcSvc {
         try {
             //noinspection unchecked
             Connection<InetSocketAddress> connection = connectFuture.get(timeout, timeUnit);
-            return new ClientTransport(connection, _replyQueue);
+            return new GrizzlyXdrTransport(connection, _replyQueue);
         } catch (ExecutionException e) {
             Throwable t = getRootCause(e);
             propagateIfPossible(t, IOException.class);

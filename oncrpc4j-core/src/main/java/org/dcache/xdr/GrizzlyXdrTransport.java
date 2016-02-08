@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2015 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2016 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -29,7 +29,6 @@ import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.EmptyCompletionHandler;
 import org.glassfish.grizzly.WriteResult;
 import org.glassfish.grizzly.asyncqueue.WritableMessage;
-import org.glassfish.grizzly.filterchain.FilterChainContext;
 
 public class GrizzlyXdrTransport implements XdrTransport {
 
@@ -40,15 +39,15 @@ public class GrizzlyXdrTransport implements XdrTransport {
 
     private final static Logger _log = LoggerFactory.getLogger(GrizzlyXdrTransport.class);
 
-    public GrizzlyXdrTransport(FilterChainContext context, ReplyQueue replyQueue) {
-        _connection = context.getConnection();
-        _replyQueue = replyQueue;
-        _localAddress = (InetSocketAddress)context.getConnection().getLocalAddress();
-        _remoteAddress = (InetSocketAddress)context.getAddress();
+    public GrizzlyXdrTransport(Connection<InetSocketAddress> connection, ReplyQueue replyQueue) {
+        this(connection, connection.getPeerAddress(), replyQueue);
     }
 
-    public GrizzlyXdrTransport(FilterChainContext context) {
-        this(context, null);
+    public GrizzlyXdrTransport(Connection<InetSocketAddress> connection, InetSocketAddress remoteAddress, ReplyQueue replyQueue) {
+        _connection = connection;
+        _replyQueue = replyQueue;
+        _localAddress = _connection.getLocalAddress();
+        _remoteAddress = remoteAddress;
     }
 
     @Override
@@ -83,7 +82,7 @@ public class GrizzlyXdrTransport implements XdrTransport {
 
     @Override
     public XdrTransport getPeerTransport() {
-        return new ClientTransport(_connection, getReplyQueue());
+        return new GrizzlyXdrTransport(_connection, getReplyQueue());
     }
 
     @Override
