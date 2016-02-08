@@ -42,7 +42,7 @@ public class OncRpcClient implements AutoCloseable {
     }
 
     public OncRpcClient(InetSocketAddress socketAddress, int protocol) {
-        this(socketAddress, protocol, 0, null);
+        this(socketAddress, protocol, 0, IoStrategy.SAME_THREAD);
     }
 
     public OncRpcClient(InetSocketAddress socketAddress, int protocol, int localPort, IoStrategy ioStrategy) {
