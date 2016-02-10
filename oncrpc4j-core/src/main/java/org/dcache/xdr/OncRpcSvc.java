@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2015 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2016 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -110,7 +110,9 @@ public class OncRpcSvc {
 
         IoStrategy ioStrategy = builder.getIoStrategy();
         String serviceName = builder.getServiceName();
-        ThreadPoolConfig selectorPoolConfig = getSelectorPoolCfg(ioStrategy, serviceName);
+        ThreadPoolConfig selectorPoolConfig = getSelectorPoolCfg(ioStrategy,
+                serviceName,
+                builder.getSelectorThreadPoolSize());
 
         if ((protocol & IpProtocolType.TCP) != 0) {
             final TCPNIOTransport tcpTransport = TCPNIOTransportBuilder

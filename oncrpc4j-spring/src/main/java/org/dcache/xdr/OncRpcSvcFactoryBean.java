@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2015 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2016 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -117,5 +117,13 @@ public class OncRpcSvcFactoryBean implements FactoryBean<OncRpcSvcBuilder> {
 
     public void setServiceName(String serviceName) {
         builder.withServiceName(serviceName);
+    }
+
+    public void setSelectorThreadPoolSize(int poolSize) {
+        builder.withSelectorThreadPoolSize(poolSize);
+    }
+
+    public void setWorkerThreadPoolSize(int poolSize) {
+        builder.withWorkerThreadPoolSize(poolSize);
     }
 }

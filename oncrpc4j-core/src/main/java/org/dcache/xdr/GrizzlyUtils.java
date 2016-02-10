@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2014 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2016 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -30,6 +30,7 @@ import org.glassfish.grizzly.strategies.WorkerThreadIOStrategy;
 import org.glassfish.grizzly.threadpool.ThreadPoolConfig;
 
 import static org.dcache.xdr.IoStrategy.*;
+import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * Class with utility methods for Grizzly
@@ -39,12 +40,12 @@ public class GrizzlyUtils {
     /**
      * Minimal number of threads used by selector.
      */
-    private final static int MIN_SELECTORS = 2;
+    final static int MIN_SELECTORS = 2;
 
     /**
      * Minimal number of threads used by for request execution.
      */
-    private final static int MIN_WORKERS = 5;
+    final static int MIN_WORKERS = 5;
 
     final static int CPUS = Runtime.getRuntime().availableProcessors();
 
@@ -83,16 +84,23 @@ public class GrizzlyUtils {
     }
 
     /**
-     * Pre-configure Selectors thread pool for given {@link IOStrategy}
+     * Pre-configure Selectors thread pool for given {@link IOStrategy},
+     * {@code serviceName} and {@code poolSize}. If {@code poolSize} is zero,
+     * then default value will be used. If {@code poolSize} is smaller than minimal
+     * allowed number of threads, then {@link MIN_SELECTORS} will be used.
      *
      * @param ioStrategy to use
      * @param serviceName service name (affects thread names)
+     * @param poolSize thread pool size. If zero, default thread pool is used.
      * @return thread pool configuration.
      */
-    static ThreadPoolConfig getSelectorPoolCfg(IoStrategy ioStrategy, String serviceName) {
-        final int poolSize = getSelectorPoolSize(ioStrategy);
+    static ThreadPoolConfig getSelectorPoolCfg(IoStrategy ioStrategy, String serviceName, int poolSize) {
+
+        checkArgument(poolSize >= 0, "Negative  thread pool size");
+
+        final int threadPoolSize = poolSize > 0 ? Math.max(poolSize, MIN_SELECTORS) : getSelectorPoolSize(ioStrategy);
         final ThreadPoolConfig poolCfg = ThreadPoolConfig.defaultConfig();
-        poolCfg.setCorePoolSize(poolSize).setMaxPoolSize(poolSize);
+        poolCfg.setCorePoolSize(threadPoolSize).setMaxPoolSize(threadPoolSize);
         if (serviceName != null) {
             poolCfg.setPoolName(serviceName); //grizzly will add "SelectorRunner"
         }
@@ -101,22 +109,28 @@ public class GrizzlyUtils {
     }
 
     /**
-     * Pre-configure Worker thread pool for given {@link IOStrategy}
+     * Pre-configure Worker thread pool for given {@link IOStrategy},
+     * {@code serviceName} and {@code poolSize}. If {@code poolSize} is zero,
+     * then default value will be used. If {@code poolSize} is smaller than minimal
+     * allowed number of threads, then {@link MIN_WORKERS} will be used.
      *
      * @param ioStrategy in use
      * @param serviceName service name (affects thread names)
+     * @param poolSize thread pool size. If zero, default thread pool is used.
      * @return thread pool configuration or {@code null}, if ioStrategy don't
      * supports worker threads.
      */
-    static ThreadPoolConfig getWorkerPoolCfg(IoStrategy ioStrategy, String serviceName) {
+    static ThreadPoolConfig getWorkerPoolCfg(IoStrategy ioStrategy, String serviceName, int poolSize) {
 
         if (ioStrategy == SAME_THREAD) {
             return null;
         }
 
-        final int poolSize = getWorkerPoolSize(ioStrategy);
+        checkArgument(poolSize >= 0, "Negative  thread pool size");
+
+        final int threadPoolSize = poolSize > 0 ? Math.max(poolSize, MIN_WORKERS) : getWorkerPoolSize(ioStrategy);
         final ThreadPoolConfig poolCfg = ThreadPoolConfig.defaultConfig();
-        poolCfg.setCorePoolSize(poolSize).setMaxPoolSize(poolSize);
+        poolCfg.setCorePoolSize(threadPoolSize).setMaxPoolSize(threadPoolSize);
         if (serviceName != null) {
             poolCfg.setPoolName(serviceName + " Worker");
         }

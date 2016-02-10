@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2015 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2016 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -52,6 +52,7 @@ import static org.dcache.xdr.IpProtocolType.*;
  *     .withAutoPublish()
  *     .withRpcService(program1, service1)
  *     .withRpcService(program3, service2)
+ *     .withWorkerThreadPoolSize(64)
  *     .build();
  * </pre>
  * @since 2.0
@@ -71,6 +72,8 @@ public class OncRpcSvcBuilder {
     private ExecutorService _workerThreadExecutionService;
     private boolean _isClient = false;
     private final Map<OncRpcProgram, RpcDispatchable> _programs = new HashMap<>();
+    private int _selectorThreadPoolSize = 0;
+    private int _workerThreadPoolSize = 0;
 
     public OncRpcSvcBuilder withAutoPublish() {
         _autoPublish = true;
@@ -122,8 +125,20 @@ public class OncRpcSvcBuilder {
         return this;
     }
 
+    public OncRpcSvcBuilder withSelectorThreadPoolSize(int threadPoolSize) {
+        checkArgument(threadPoolSize > 0, "thread pool size must be positive");
+        _selectorThreadPoolSize = threadPoolSize;
+        return this;
+    }
+
     public OncRpcSvcBuilder withWorkerThreadIoStrategy() {
         _ioStrategy = IoStrategy.WORKER_THREAD;
+        return this;
+    }
+
+    public OncRpcSvcBuilder withWorkerThreadPoolSize(int threadPoolSize) {
+        checkArgument(threadPoolSize > 0, "thread pool size must be positive");
+        _workerThreadPoolSize = threadPoolSize;
         return this;
     }
 
@@ -221,8 +236,17 @@ public class OncRpcSvcBuilder {
             return _workerThreadExecutionService;
         }
 
-        ThreadPoolConfig workerPoolConfig = getWorkerPoolCfg(_ioStrategy, _serviceName);
+        ThreadPoolConfig workerPoolConfig = getWorkerPoolCfg(_ioStrategy,
+                _serviceName, _workerThreadPoolSize);
         return new FixedThreadPool(workerPoolConfig);
+    }
+
+    public int getSelectorThreadPoolSize() {
+        return _selectorThreadPoolSize;
+    }
+
+    public int getWorkerThreadPoolSize() {
+        return _workerThreadPoolSize;
     }
 
     public boolean isClient() {
@@ -245,6 +269,10 @@ public class OncRpcSvcBuilder {
 
         if (_isClient && (_maxPort != _minPort)) {
             throw new IllegalArgumentException("Can't use port range in client mode");
+        }
+
+        if (_workerThreadExecutionService != null && _workerThreadPoolSize > 0) {
+            throw new IllegalArgumentException("Can't set worker thread pool size with external execution service");
         }
 
         return new OncRpcSvc(this);

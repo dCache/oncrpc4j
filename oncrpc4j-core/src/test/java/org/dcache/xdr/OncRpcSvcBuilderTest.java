@@ -20,6 +20,7 @@
 package org.dcache.xdr;
 
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import org.junit.Test;
 
 import static org.mockito.Mockito.mock;
@@ -96,6 +97,17 @@ public class OncRpcSvcBuilderTest {
                 .withClientMode()
                 .withTCP()
                 .withUDP()
+                .build();
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldThrowExceptionDefinedWorkerThreadPoolWithExtern() {
+
+        OncRpcSvc svc = new OncRpcSvcBuilder()
+                .withTCP()
+                .withUDP()
+                .withWorkerThreadExecutionService(Executors.newCachedThreadPool())
+                .withWorkerThreadPoolSize(2)
                 .build();
     }
 
