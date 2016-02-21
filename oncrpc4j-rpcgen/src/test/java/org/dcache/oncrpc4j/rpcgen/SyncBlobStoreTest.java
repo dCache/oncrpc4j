@@ -25,6 +25,6 @@ public class SyncBlobStoreTest extends AbstractBlobStoreTest {
         Key key = new Key();
         key.setData(new byte[]{1,2,3});
         Value returned = client.get_1(key, 0, null, null);
-        int g = 8;
+        Assert.assertFalse(returned.notNull);
     }
 }
