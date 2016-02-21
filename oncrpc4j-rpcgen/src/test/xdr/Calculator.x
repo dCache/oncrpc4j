@@ -1,3 +1,7 @@
+const SMALL_CONST = 0xFF00;
+const LARGE_CONST = 0xFFF000000000;
+const HUGE_CONST  = 0xFFF000000000000000000;
+
 struct CalculationResult {
     hyper  result;
     unsigned hyper startMillis;

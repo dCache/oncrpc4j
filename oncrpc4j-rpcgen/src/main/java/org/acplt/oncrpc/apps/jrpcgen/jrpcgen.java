@@ -30,6 +30,7 @@ package org.acplt.oncrpc.apps.jrpcgen;
 import org.acplt.oncrpc.apps.jrpcgen.cup_runtime.Symbol;
 
 import java.io.*;
+import java.math.BigInteger;
 import java.util.*;
 import java.text.SimpleDateFormat;
 import java.util.regex.Matcher;
@@ -388,7 +389,7 @@ public class jrpcgen {
      * Dump the value of a constant and optionally first dump all constants
      * it depends on.
      */
-    public static void dumpConstantAndDependency(PrintWriter out, JrpcgenConst c) {
+    public static void dumpConstantAndDependency(JrpcgenConst c, List<String> declarations, Set<String> imports) {
         //
         // This simple test avoids endless recursions: we already dumped this
         // particular constant in some place, so we should not proceed.
@@ -423,24 +424,59 @@ public class jrpcgen {
                     // with the identifier we depend on (which is currently
                     // the case), so we just need to prepend the enclosure.
                     //
-                    out.println("    public static final int "
-                            + c.identifier
-                            + " = " + dc.enclosure + "." + c.value + ";");
+                    translateConstant(c, declarations, imports, dc.enclosure + "." + c.value);
                     return;
                 }
                 //
                 // Only dump the identifier we're dependent on, if it's in
                 // the same enclosure.
                 //
-                dumpConstantAndDependency(out, dc);
+                dumpConstantAndDependency(dc, declarations, imports);
             }
         }
         //
         // Just dump the plain value (without enclosure).
         //
-        out.println("    public static final int "
-                + c.identifier
-                + " = " + c.value + ";");
+        translateConstant(c, declarations, imports, null);
+    }
+
+    public static void translateConstant(JrpcgenConst constDecl, List<String> declarations, Set<String> imports, String valueOverride) {
+        String rawValue = constDecl.resolveValue();
+        String str = rawValue.toLowerCase(Locale.ROOT);
+
+        //parse the numeric value of the constant
+        BigInteger value;
+        String valueSansPrefix;
+        int radix;
+        if (str.startsWith("0x")) { //hex
+            valueSansPrefix = rawValue.substring(2);
+            radix = 16;
+            value = new BigInteger(str.substring(2), 16);
+        } else if (str.startsWith("0")) { //octal
+            valueSansPrefix = rawValue.substring(1);
+            radix = 8;
+            value = new BigInteger(str.substring(1), 8);
+        } else { //decimal (possibly negative)
+            valueSansPrefix = rawValue;
+            radix = 10;
+            value = new BigInteger(str, 10);
+        }
+
+        //now figure out what type the constant fits in
+        if (value.compareTo(BigInteger.valueOf(Long.MAX_VALUE)) > 0 || value.compareTo(BigInteger.valueOf(Long.MIN_VALUE)) < 0) {
+            //outside long representation range. use BigInt
+            imports.add("import " + BigInteger.class.getCanonicalName() + ";");
+            String val = valueOverride != null ? valueOverride : "new BigInteger(\"" + valueSansPrefix + "\", " + radix + ")";
+            declarations.add("    public static final BigInteger " + constDecl.identifier + " = " + val + ";");
+        } else if (value.compareTo(BigInteger.valueOf(Integer.MAX_VALUE)) > 0 || value.compareTo(BigInteger.valueOf(Integer.MIN_VALUE)) < 0) {
+            //outside int range, use long
+            String val = valueOverride != null ? valueOverride : rawValue + "L";
+            declarations.add("    public static final long " + constDecl.identifier + " = " + val + ";");
+        } else {
+            //default to int
+            String val = valueOverride != null ? valueOverride : rawValue;
+            declarations.add("    public static final int " + constDecl.identifier + " = " + val + ";");
+        }
     }
 
     /**
@@ -462,7 +498,9 @@ public class jrpcgen {
         out.println(" * A collection of constants used by the \"" + baseClassname
                 + "\" ONC/RPC program.");
         out.println(" */");
-        out.println("public interface " + baseClassname + " {");
+
+        List<String> declarations = new ArrayList<>();
+        Set<String> imports = new HashSet<>();
 
         for (Object o: globalIdentifiers.values()) {
             if (o instanceof JrpcgenConst) {
@@ -473,9 +511,23 @@ public class jrpcgen {
                 // belong to other Java class enclosures.
                 //
                 if (baseClassname.equals(c.enclosure)) {
-                    dumpConstantAndDependency(out, c);
+                    dumpConstantAndDependency(c, declarations, imports);
                 }
             }
+        }
+
+        if (!imports.isEmpty()) {
+            out.println("");
+            for (String importLine : imports) {
+                out.println(importLine);
+            }
+            out.println("");
+        }
+
+        out.println("public interface " + baseClassname + " {");
+
+        for (String declLine : declarations) {
+            out.println(declLine);
         }
 
         out.println("}");
@@ -512,7 +564,13 @@ public class jrpcgen {
             // this constant will automatically be duplicated as part
             // of this enumeration.
             //
-            dumpConstantAndDependency(out, c);
+            List<String> declLines = new ArrayList<>();
+            Set<String> imports = Collections.emptySet(); //will throw if modified
+            //enums are ints in xdrs, so we dont expect to need imports, hence the unmodifiable set above
+            dumpConstantAndDependency(c, declLines, imports);
+            for (String line : declLines) {
+                out.println(line);
+            }
         }
         //
         // Close class...
