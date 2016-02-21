@@ -2,12 +2,22 @@ package org.dcache.oncrpc4j.rpcgen;
 
 import com.google.common.base.Throwables;
 import org.junit.Assert;
+import org.junit.Assume;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.net.ConnectException;
 import java.net.InetAddress;
+import java.util.Locale;
 
 public class LeakTest {
+
+    @Before
+    public void checkForWindows() {
+        String osName = System.getProperty("os.name");
+        //the test below runs unreasonably slow on windows
+        Assume.assumeTrue(osName != null && !osName.toLowerCase(Locale.ROOT).contains("windows"));
+    }
 
     @Test
     public void testLeakOnConnectionRefused() throws Throwable {
