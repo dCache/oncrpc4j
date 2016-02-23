@@ -11,6 +11,8 @@ import java.math.BigInteger;
 public class BigConstsGenerationTest {
     @Test
     public void testBigCostsGeneration() throws Exception{
+        Assert.assertEquals(Calculator.PLAIN_ZERO, 0);
+        Assert.assertEquals(Calculator.HEX_ZERO, 0);
         //small is within int range
         Assert.assertTrue(Calculator.SMALL_CONST <= Integer.MAX_VALUE);
         Assert.assertTrue(Calculator.SMALL_CONST >= Integer.MIN_VALUE);

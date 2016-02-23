@@ -452,7 +452,7 @@ public class jrpcgen {
             valueSansPrefix = rawValue.substring(2);
             radix = 16;
             value = new BigInteger(str.substring(2), 16);
-        } else if (str.startsWith("0")) { //octal
+        } else if (str.length() > 1 && str.startsWith("0")) { //octal
             valueSansPrefix = rawValue.substring(1);
             radix = 8;
             value = new BigInteger(str.substring(1), 8);
