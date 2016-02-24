@@ -29,10 +29,25 @@ package org.acplt.oncrpc.apps.jrpcgen;
 
 import org.acplt.oncrpc.apps.jrpcgen.cup_runtime.Symbol;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.Writer;
 import java.math.BigInteger;
-import java.util.*;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 
 /**
@@ -448,27 +463,32 @@ public class jrpcgen {
         BigInteger value;
         String valueSansPrefix;
         int radix;
+        boolean hexOrOctal = true;
         if (str.startsWith("0x")) { //hex
             valueSansPrefix = rawValue.substring(2);
             radix = 16;
             value = new BigInteger(str.substring(2), 16);
-        } else if (str.startsWith("0")) { //octal
+        } else if (str.length() > 1 && str.startsWith("0")) { //octal
             valueSansPrefix = rawValue.substring(1);
             radix = 8;
             value = new BigInteger(str.substring(1), 8);
         } else { //decimal (possibly negative)
+            hexOrOctal = false;
             valueSansPrefix = rawValue;
             radix = 10;
             value = new BigInteger(str, 10);
         }
 
         //now figure out what type the constant fits in
-        if (value.compareTo(BigInteger.valueOf(Long.MAX_VALUE)) > 0 || value.compareTo(BigInteger.valueOf(Long.MIN_VALUE)) < 0) {
+        BigInteger maxLongBound = hexOrOctal ? new BigInteger("FFFFFFFFFFFFFFFF", 16) : BigInteger.valueOf(Long.MAX_VALUE);
+        BigInteger maxIntBound = hexOrOctal ? new BigInteger("FFFFFFFF", 16) : BigInteger.valueOf(Integer.MAX_VALUE);
+        //remember hex and octal constants are unsigned and so positive, so we dont bother fixing up the negative range ends
+        if (value.compareTo(maxLongBound) > 0 || value.compareTo(BigInteger.valueOf(Long.MIN_VALUE)) < 0) {
             //outside long representation range. use BigInt
             imports.add("import " + BigInteger.class.getCanonicalName() + ";");
             String val = valueOverride != null ? valueOverride : "new BigInteger(\"" + valueSansPrefix + "\", " + radix + ")";
             declarations.add("    public static final BigInteger " + constDecl.identifier + " = " + val + ";");
-        } else if (value.compareTo(BigInteger.valueOf(Integer.MAX_VALUE)) > 0 || value.compareTo(BigInteger.valueOf(Integer.MIN_VALUE)) < 0) {
+        } else if (value.compareTo(maxIntBound) > 0 || value.compareTo(BigInteger.valueOf(Integer.MIN_VALUE)) < 0) {
             //outside int range, use long
             String val = valueOverride != null ? valueOverride : rawValue + "L";
             declarations.add("    public static final long " + constDecl.identifier + " = " + val + ";");
