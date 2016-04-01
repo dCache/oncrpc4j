@@ -74,8 +74,7 @@ public class GrizzlyUtils {
     }
 
     static private int getSelectorPoolSize(IoStrategy ioStrategy) {
-        return ioStrategy == WORKER_THREAD
-                ? Math.max(MIN_SELECTORS, CPUS / 4) : Math.max(MIN_WORKERS, CPUS);
+        return Runtime.getRuntime().availableProcessors() + 1; //see TCPNIOTransport.getDefaultSelectorRunnersCount()
     }
 
     static private int getWorkerPoolSize(IoStrategy ioStrategy) {
