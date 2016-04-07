@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2012 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2016 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -24,4 +24,5 @@ public interface RpcGssService {
     public static final int RPC_GSS_SVC_NONE = 1;
     public static final int RPC_GSS_SVC_INTEGRITY = 2;
     public static final int RPC_GSS_SVC_PRIVACY = 3;
+    public static final int RPC_GSS_SVC_CHANNEL_PROT = 4;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2012 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2016 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -74,6 +74,14 @@ public final class RpcAuthStat {
     /** problem with context */
     public static final int RPCSEC_GSS_CTXPROBLEM = 14;
 
+    /*
+     * RPCSEC_GSSv3 errors
+     */
+    public static final int RPCSEC_GSS_INNER_CREDPROBLEM = 15;
+    public static final int RPCSEC_GSS_LABEL_PROBLEM = 16;
+    public static final int RPCSEC_GSS_PRIVILEGE_PROBLEM = 17;
+    public static final int RPCSEC_GSS_UNKNOWN_MESSAGE = 18;
+
     /**
      * Get human readable {@link String} representation of error code.
      */
@@ -109,6 +117,14 @@ public final class RpcAuthStat {
                 return "RPCSEC_GSS_CREDPROBLEM";
             case RPCSEC_GSS_CTXPROBLEM:
                 return "RPCSEC_GSS_CTXPROBLEM";
+            case RPCSEC_GSS_INNER_CREDPROBLEM:
+                return "RPCSEC_GSS_INNER_CREDPROBLEM";
+            case RPCSEC_GSS_LABEL_PROBLEM:
+                return "RPCSEC_GSS_LABEL_PROBLEM";
+            case RPCSEC_GSS_PRIVILEGE_PROBLEM:
+                return "RPCSEC_GSS_PRIVILEGE_PROBLEM";
+            case RPCSEC_GSS_UNKNOWN_MESSAGE:
+                return "RPCSEC_GSS_UNKNOWN_MESSAGE";
         }
         return "Unknow state " + i;
     }
