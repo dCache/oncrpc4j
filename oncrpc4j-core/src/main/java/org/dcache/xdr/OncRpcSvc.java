@@ -119,7 +119,8 @@ public class OncRpcSvc {
                     .newInstance()
                     .setReuseAddress(true)
                     .setIOStrategy(SameThreadIOStrategy.getInstance())
-		    .setSelectorThreadPoolConfig(selectorPoolConfig)
+                    .setSelectorThreadPoolConfig(selectorPoolConfig)
+                    .setSelectorRunnersCount(selectorPoolConfig.getMaxPoolSize())
                     .build();
             _transports.add(tcpTransport);
         }
@@ -129,7 +130,8 @@ public class OncRpcSvc {
                     .newInstance()
                     .setReuseAddress(true)
                     .setIOStrategy(SameThreadIOStrategy.getInstance())
-		    .setSelectorThreadPoolConfig(selectorPoolConfig)
+                    .setSelectorThreadPoolConfig(selectorPoolConfig)
+                    .setSelectorRunnersCount(selectorPoolConfig.getMaxPoolSize())
                     .build();
             _transports.add(udpTransport);
         }
