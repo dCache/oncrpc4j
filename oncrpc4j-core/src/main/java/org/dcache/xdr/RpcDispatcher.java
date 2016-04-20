@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2015 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2016 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -19,9 +19,14 @@
  */
 package org.dcache.xdr;
 
+import javax.security.auth.Subject;
 import java.io.IOException;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
+
+import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.glassfish.grizzly.filterchain.BaseFilter;
@@ -45,20 +50,28 @@ public class RpcDispatcher extends BaseFilter {
     private final ExecutorService _asyncExecutorService;
 
     /**
+     * If {@code true}, then request will be performed as {@link Subject} created
+     * from request credentials.
+     */
+    private final boolean _withSubjectPropagation;
+    /**
      * Create new RPC dispatcher for given program.
      *
      * @param executor {@link ExecutorService} to use for request processing
      * @param programs {@link Map}
      *     with a mapping between program number and program
      *     handler.
+     * @param withSubjectPropagation use {@link Subject#doAs} to exacerbate request.
      *
      * @throws NullPointerException if executor or program is null
      */
-    public RpcDispatcher(ExecutorService executor, Map<OncRpcProgram, RpcDispatchable> programs)
+    public RpcDispatcher(ExecutorService executor, Map<OncRpcProgram,
+            RpcDispatchable> programs, boolean withSubjectPropagation)
             throws NullPointerException {
 
         _programs = requireNonNull(programs, "Programs is NULL");
         _asyncExecutorService = requireNonNull(executor, "ExecutorService is NULL");
+        _withSubjectPropagation = withSubjectPropagation;
     }
 
     @Override
@@ -79,7 +92,22 @@ public class RpcDispatcher extends BaseFilter {
                     call.failProgramUnavailable();
                 } else {
                     try {
-                        program.dispatchOncRpcCall(call);
+                        if (_withSubjectPropagation) {
+                            Subject subject = call.getCredential().getSubject();
+
+                            try {
+                                Subject.doAs(subject, (PrivilegedExceptionAction<Void>) () -> {
+                                    program.dispatchOncRpcCall(call);
+                                    return null;
+                                });
+                            } catch (PrivilegedActionException e) {
+                                Throwable t = e.getCause();
+                                Throwables.propagateIfInstanceOf(t, IOException.class);
+                                Throwables.propagate(t);
+                            }
+                        } else {
+                            program.dispatchOncRpcCall(call);
+                        }
                     } catch (RpcException e) {
                         call.reject(e.getStatus(), e.getRpcReply());
                         _log.warn("Failed to process RPC request: {}", e.getMessage());
@@ -96,15 +124,7 @@ public class RpcDispatcher extends BaseFilter {
                          */
                         _log.error("Failed to process RPC request:", e);
                         call.failRpcSystem();
-                    } catch (Throwable t) {
-                        /*
-                         * Hardcore errors.
-                         * Log the error and tell client that we fail and rethrow
-                         * to let thread pool to handle it.
-                         */
-                        _log.error("Failed to process RPC request:", t);
-                        call.failRpcSystem();
-                        throw t;
+                        throw e;
                     }
                 }
             }

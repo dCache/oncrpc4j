@@ -227,6 +227,45 @@ As maven dependency
 </repositories>
 ```
 
+Accessing client subject inside RPC service
+-------------------------------------------
+In some situation, OncRpcSvc can internally call other services which require client subject to be set in the
+context of the current thread. We use standard Java's Subject.doAs() mechanism to inject user subject
+into processing thread. As a result, the user subject can be extracted from AccessControlContext.
+
+```java
+// SomeService.java
+import javax.security.auth.Subject;
+import java.security.AccessController;
+
+public class SomeService {
+    public void doSomeTask() {
+        Subject subject = Subject.getSubject(AccessController.getContext());
+        // start using subject
+    }
+}
+
+// SubjectAvareSvcImpl.java
+public class SubjectAvareSvcImpl implements RpcDispatchable {
+    @Override
+    public void dispatchOncRpcCall(RpcCall call)
+                throws OncRpcException, IOException {
+        externalService.doSomeTask();
+        call.reply(XdrVoid.XDR_VOID);
+    }
+}
+```
+
+To avoid unnecessary overhead, subject propagation is not enabled by default:
+```java
+OncRpcSvc service = new OncRpcSvcBuilder()
+        .withTCP()
+        .withAutoPublish()
+        .withSameThreadIoStrategy()
+        .withRpcService(... , new SubjectAvareSvcImpl())
+        .withSubjectPropagation()
+        .build();
+```
 
 How to contribute
 =================

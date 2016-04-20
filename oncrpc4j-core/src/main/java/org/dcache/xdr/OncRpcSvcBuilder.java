@@ -74,6 +74,7 @@ public class OncRpcSvcBuilder {
     private final Map<OncRpcProgram, RpcDispatchable> _programs = new HashMap<>();
     private int _selectorThreadPoolSize = 0;
     private int _workerThreadPoolSize = 0;
+    private boolean _subjectPropagation = false;
 
     public OncRpcSvcBuilder withAutoPublish() {
         _autoPublish = true;
@@ -185,6 +186,20 @@ public class OncRpcSvcBuilder {
     public OncRpcSvcBuilder withRpcService(OncRpcProgram program, RpcDispatchable service) {
         _programs.put(program, service);
         return this;
+    }
+
+    public OncRpcSvcBuilder withSubjectPropagation() {
+        _subjectPropagation = true;
+        return this;
+    }
+
+    public OncRpcSvcBuilder withoutSubjectPropagation() {
+        _subjectPropagation = false;
+        return this;
+    }
+
+    public boolean getSubjectPropagation() {
+        return _subjectPropagation;
     }
 
     public int getProtocol() {

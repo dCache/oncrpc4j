@@ -85,6 +85,7 @@ public class OncRpcSvc {
 
     private final ReplyQueue _replyQueue = new ReplyQueue();
 
+    private final boolean _withSubjectPropagation;
     /**
      * Handle RPCSEC_GSS
      */
@@ -151,6 +152,7 @@ public class OncRpcSvc {
         _requestExecutor = builder.getWorkerThreadExecutorService();
         _gssSessionManager = builder.getGssSessionManager();
         _programs.putAll(builder.getRpcServices());
+        _withSubjectPropagation = builder.getSubjectPropagation();
     }
 
     /**
@@ -288,7 +290,7 @@ public class OncRpcSvc {
             if (_gssSessionManager != null) {
                 filterChain.add(new GssProtocolFilter(_gssSessionManager));
             }
-            filterChain.add(new RpcDispatcher(_requestExecutor, _programs));
+            filterChain.add(new RpcDispatcher(_requestExecutor, _programs, _withSubjectPropagation));
 
             final FilterChain filters = filterChain.build();
 
