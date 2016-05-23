@@ -85,12 +85,12 @@ public class RpcDispatcher extends BaseFilter {
         _log.debug("processing request {}", call);
 
         final RpcDispatchable program = _programs.get(new OncRpcProgram(prog, vers));
-        _asyncExecutorService.execute(new Runnable() {
-            @Override
-            public void run() {
-                if (program == null) {
-                    call.failProgramUnavailable();
-                } else {
+        if (program == null) {
+            call.failProgramUnavailable();
+        } else {
+            _asyncExecutorService.execute(new Runnable() {
+                @Override
+                public void run() {
                     try {
                         if (_withSubjectPropagation) {
                             Subject subject = call.getCredential().getSubject();
@@ -127,13 +127,13 @@ public class RpcDispatcher extends BaseFilter {
                         throw e;
                     }
                 }
-            }
 
-            @Override
-            public String toString() {
-                return call.toString();
-            }
-        });
+                @Override
+                public String toString() {
+                    return call.toString();
+                }
+            });
+        }
         return ctx.getInvokeAction();
     }
 }
