@@ -93,7 +93,14 @@ public class OncRpcEmbeddedPortmap {
             }
         }
     }
-
+	
+	/**
+	 * Check if running Embedded <tt>portmap</tt> service (for JUnit assume)
+	 * @return if embedded port mapper
+	 */
+	public boolean isEmbeddedPortmapper() {
+		return (optionalEmbeddedServer!=null);
+	}
     /**
      * Shutdown embedded <tt>portmap</tt> service if running.
      * @throws IOException
@@ -103,4 +110,6 @@ public class OncRpcEmbeddedPortmap {
             optionalEmbeddedServer.stop();
         }
     }
+
+
 }
