@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2012 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2016 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -44,7 +44,7 @@ public class PortmapV2Client implements OncPortmapClient {
     public PortmapV2Client(RpcCall call) {
         _call = call;
     }
-	
+
     public List<rpcb> dump() throws OncRpcException, IOException, TimeoutException {
         _log.debug("portmap dump");
         pmaplist list_reply = new pmaplist();
@@ -77,8 +77,12 @@ public class PortmapV2Client implements OncPortmapClient {
         _log.debug("portmap set port: prog: {} vers: {}, netid: {} addr: {}, owner: {}",
                 new Object[]{program, version, netids, addr, owner});
 
+        int protocol = netid.idOf(netids);
+        if (protocol == -1) {
+            return false;
+        }
         InetSocketAddress address = org.dcache.xdr.netid.toInetSocketAddress(addr);
-        mapping m1 = new mapping(program, version, netid.idOf(netids), address.getPort());
+        mapping m1 = new mapping(program, version, protocol, address.getPort());
 
         XdrBoolean isSet = new XdrBoolean();
         _call.call(OncRpcPortmap.PMAPPROC_SET, m1, isSet);
