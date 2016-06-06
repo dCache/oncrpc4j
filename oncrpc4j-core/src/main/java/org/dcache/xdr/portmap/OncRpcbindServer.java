@@ -20,8 +20,10 @@
 package org.dcache.xdr.portmap;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.ListIterator;
 import java.util.Set;
 import org.slf4j.Logger;
@@ -37,6 +39,10 @@ import org.dcache.xdr.XdrVoid;
 
 
 public class OncRpcbindServer implements RpcDispatchable {
+	static final ArrayList<String> v2NetIDs = new ArrayList<String>() {{
+		add("tcp");
+		add("udp");
+	}};
 
     private final static Logger _log = LoggerFactory.getLogger(OncRpcbindServer.class);
 
@@ -115,6 +121,9 @@ public class OncRpcbindServer implements RpcDispatchable {
                 pmaplist next = list;
                 synchronized(_services) {
                     for(rpcb mapping: _services) {
+						if ( ! v2NetIDs.contains(mapping.getNetid()) ) { // skip netid's which are not v2
+							continue;
+						}
                         next.setEntry(mapping.toMapping());
                         pmaplist n = new pmaplist();
                         next.setNext(n);
