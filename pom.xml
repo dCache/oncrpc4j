@@ -19,7 +19,7 @@
         <url>https://github.com/dCache/oncrpc4j.git</url>
         <connection>scm:git:https://github.com/dCache/oncrpc4j.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/dCache/oncrpc4j.git</developerConnection>
-        <tag>HEAD</tag>
+        <tag>2.6</tag>
     </scm>
 
   <!--
