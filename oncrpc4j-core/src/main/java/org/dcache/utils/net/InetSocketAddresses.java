@@ -62,7 +62,7 @@ public class InetSocketAddresses {
      * Additionally, the two alternative forms specified in Section 2.2
      * of RFC 4291 are also acceptable.
      * </pre>
-     * @param address
+     * @param uaddr
      * @return socket address
      */
     public static InetSocketAddress forUaddrString(String uaddr) {
@@ -96,7 +96,7 @@ public class InetSocketAddresses {
     public static InetSocketAddress inetAddressOf(String address) {
 
         HostAndPort hostAndPort = HostAndPort.fromString(address);
-        return new InetSocketAddress(hostAndPort.getHostText(), hostAndPort.getPort());
+        return new InetSocketAddress(hostAndPort.getHost(), hostAndPort.getPort());
     }
 
     private static String stripScopeId(String s) {

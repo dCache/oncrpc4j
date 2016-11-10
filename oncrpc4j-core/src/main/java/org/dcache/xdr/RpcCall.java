@@ -452,9 +452,9 @@ public class RpcCall {
             throw ioe;
         } catch (ExecutionException e) {
             Throwable t = Throwables.getRootCause(e);
-            Throwables.propagateIfInstanceOf(t, OncRpcException.class);
-            Throwables.propagateIfInstanceOf(t, IOException.class);
-            Throwables.propagateIfInstanceOf(t, TimeoutException.class);
+            Throwables.throwIfInstanceOf(t, OncRpcException.class);
+            Throwables.throwIfInstanceOf(t, IOException.class);
+            Throwables.throwIfInstanceOf(t, TimeoutException.class);
             throw new IOException(t);
         }
     }

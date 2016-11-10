@@ -73,6 +73,8 @@
         <configuration>
           <source>1.8</source>
           <target>1.8</target>
+          <showDeprecation>true</showDeprecation>
+          <encoding>UTF-8</encoding>
         </configuration>
       </plugin>
 
@@ -147,7 +149,7 @@
           <dependency>
               <groupId>com.google.guava</groupId>
               <artifactId>guava</artifactId>
-              <version>18.0</version>
+              <version>20.0</version>
           </dependency>
           <dependency>
               <groupId>org.dcache.common</groupId>

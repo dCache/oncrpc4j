@@ -102,8 +102,9 @@ public class RpcDispatcher extends BaseFilter {
                                 });
                             } catch (PrivilegedActionException e) {
                                 Throwable t = e.getCause();
-                                Throwables.propagateIfInstanceOf(t, IOException.class);
-                                Throwables.propagate(t);
+                                Throwables.throwIfInstanceOf(t, IOException.class);
+                                Throwables.throwIfUnchecked(t);
+                                throw new RuntimeException("Unexpected exception", e);
                             }
                         } else {
                             program.dispatchOncRpcCall(call);
