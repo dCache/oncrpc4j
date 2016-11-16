@@ -59,6 +59,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
         _buffer.order(ByteOrder.BIG_ENDIAN);
     }
 
+    @Override
     public void beginDecoding() {
         /*
          * Set potision to the beginning of this XDR in back end buffer.
@@ -66,14 +67,17 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
         _buffer.rewind();
     }
 
+    @Override
     public void endDecoding() {
         _buffer.rewind();
     }
 
+    @Override
     public void beginEncoding() {
         _buffer.clear();
     }
 
+    @Override
     public void endEncoding() {
         _buffer.flip();
     }
@@ -94,7 +98,9 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      * implement it.
      *
      * @return The decoded int value.
+     * @throws BadXdrOncRpcException if xdr stream can't be decoded.
      */
+    @Override
     public int xdrDecodeInt() throws BadXdrOncRpcException {
         ensureBytes(Integer.BYTES);
         int val = _buffer.getInt();
@@ -105,7 +111,9 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      * Get next array of integers.
      *
      * @return the array on integers
+     * @throws BadXdrOncRpcException if xdr stream can't be decoded.
      */
+    @Override
     public int[] xdrDecodeIntVector() throws BadXdrOncRpcException {
 
         int len = xdrDecodeInt();
@@ -121,7 +129,9 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      * Get next array of long.
      *
      * @return the array on integers
+     * @throws BadXdrOncRpcException if xdr stream can't be decoded.
      */
+    @Override
     public long[] xdrDecodeLongVector() throws BadXdrOncRpcException {
 
         int len = xdrDecodeInt();
@@ -138,7 +148,9 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      * point entity) read from a XDR stream.
      *
      * @return Decoded float value.rs.
+     * @throws BadXdrOncRpcException if xdr stream can't be decoded.
      */
+    @Override
     public float xdrDecodeFloat() throws BadXdrOncRpcException {
         return Float.intBitsToFloat(xdrDecodeInt());
     }
@@ -148,7 +160,9 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      * point entity) read from a XDR stream.
      *
      * @return Decoded double value.rs.
+     * @throws BadXdrOncRpcException if xdr stream can't be decoded.
      */
+    @Override
     public double xdrDecodeDouble() throws BadXdrOncRpcException {
         return Double.longBitsToDouble(xdrDecodeLong());
     }
@@ -157,7 +171,9 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      * Decodes (aka "deserializes") a vector of doubles read from a XDR stream.
      *
      * @return Decoded double vector.
+     * @throws BadXdrOncRpcException if xdr stream can't be decoded.
      */
+    @Override
     public double[] xdrDecodeDoubleVector() throws BadXdrOncRpcException {
         int length = xdrDecodeInt();
         checkArraySize(length);
@@ -169,8 +185,10 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      *
      * @param length of vector to read.
      *
-     * @return Decoded double vector..
+     * @return Decoded double vector.
+     * @throws BadXdrOncRpcException if xdr stream can't be decoded.
      */
+    @Override
     public double[] xdrDecodeDoubleFixedVector(int length) throws BadXdrOncRpcException {
         double[] value = new double[length];
         for (int i = 0; i < length; ++i) {
@@ -183,7 +201,9 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      * Decodes (aka "deserializes") a vector of floats read from a XDR stream.
      *
      * @return Decoded float vector.
+     * @throws BadXdrOncRpcException if xdr stream can't be decoded.
      */
+    @Override
     public float[] xdrDecodeFloatVector() throws BadXdrOncRpcException {
         int length = xdrDecodeInt();
         checkArraySize(length);
@@ -196,7 +216,9 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      * @param length of vector to read.
      *
      * @return Decoded float vector.
+     * @throws BadXdrOncRpcException if xdr stream can't be decoded.
      */
+    @Override
     public float[] xdrDecodeFloatFixedVector(int length) throws BadXdrOncRpcException {
         float[] value = new float[length];
         for (int i = 0; i < length; ++i) {
@@ -212,7 +234,9 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      * @param buf buffer where date have to be stored
      * @param offset in the buffer.
      * @param len number of bytes to read.
+     * @throws BadXdrOncRpcException if xdr stream can't be decoded.
      */
+    @Override
     public void xdrDecodeOpaque(byte[] buf, int offset, int len) throws BadXdrOncRpcException {
         int padding = (4 - (len & 3)) & 3;
         ensureBytes(len + padding);
@@ -224,6 +248,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
         xdrDecodeOpaque(buf, 0, len);
     }
 
+    @Override
     public byte[] xdrDecodeOpaque(int len) throws BadXdrOncRpcException {
         byte[] opaque = new byte[len];
         xdrDecodeOpaque(opaque, len);
@@ -236,7 +261,9 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      * is pulled off of the XDR stream, so the caller does not need to know
      * the exact length in advance. The decoded data is always padded to be
      * a multiple of four (because that's what the sender does).
+     * @throws BadXdrOncRpcException if xdr stream can't be decoded.
      */
+    @Override
     public byte [] xdrDecodeDynamicOpaque() throws BadXdrOncRpcException {
         int length = xdrDecodeInt();
         checkArraySize(length);
@@ -251,7 +278,9 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      * Get next String.
      *
      * @return decoded string
+     * @throws BadXdrOncRpcException if xdr stream can't be decoded.
      */
+    @Override
     public String xdrDecodeString() throws BadXdrOncRpcException {
         int len = xdrDecodeInt();
         checkArraySize(len);
@@ -260,6 +289,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
         return new String(bytes, StandardCharsets.US_ASCII);
     }
 
+    @Override
     public boolean xdrDecodeBoolean() throws BadXdrOncRpcException {
         int bool = xdrDecodeInt();
         return bool != 0;
@@ -270,12 +300,15 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      * babble and is 64&nbsp;bits wide) read from a XDR stream.
      *
      * @return Decoded long value.
+     * @throws BadXdrOncRpcException if xdr stream can't be decoded.
      */
+    @Override
     public long xdrDecodeLong() throws BadXdrOncRpcException {
         ensureBytes(Long.BYTES);
         return _buffer.getLong();
     }
 
+    @Override
     public ByteBuffer xdrDecodeByteBuffer() throws BadXdrOncRpcException {
         int len = this.xdrDecodeInt();
         checkArraySize(len);
@@ -302,7 +335,9 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      * length of the vector in advance.
      *
      * @return The byte vector containing the decoded data.
+     * @throws BadXdrOncRpcException if xdr stream can't be decoded.
      */
+    @Override
     public byte[] xdrDecodeByteVector() throws BadXdrOncRpcException {
         int length = xdrDecodeInt();
         checkArraySize(length);
@@ -317,7 +352,9 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      * @param length of vector to read.
      *
      * @return The byte vector containing the decoded data.
+     * @throws BadXdrOncRpcException if xdr stream can't be decoded.
      */
+    @Override
     public byte[] xdrDecodeByteFixedVector(int length) throws BadXdrOncRpcException {
 
         byte[] bytes = new byte[length];
@@ -331,7 +368,9 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      * Decodes (aka "deserializes") a byte read from this XDR stream.
      *
      * @return Decoded byte value.
+     * @throws BadXdrOncRpcException if xdr stream can't be decoded.
      */
+    @Override
     public byte xdrDecodeByte() throws BadXdrOncRpcException {
         return (byte) xdrDecodeInt();
     }
@@ -341,7 +380,9 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      * from this XDR stream.
      *
      * @return Decoded short value.
+     * @throws BadXdrOncRpcException if xdr stream can't be decoded.
      */
+    @Override
     public short xdrDecodeShort() throws BadXdrOncRpcException {
         return (short) xdrDecodeInt();
     }
@@ -350,8 +391,10 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      * Decodes (aka "deserializes") a vector of short integers read from a XDR
      * stream.
      *
-     * @return Decoded vector of short integers..
+     * @return Decoded vector of short integers.
+     * @throws BadXdrOncRpcException if xdr stream can't be decoded.
      */
+    @Override
     public short[] xdrDecodeShortVector() throws BadXdrOncRpcException {
         int length = xdrDecodeInt();
         checkArraySize(length);
@@ -365,7 +408,9 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      * @param length of vector to read.
      *
      * @return Decoded vector of short integers.
+     * @throws BadXdrOncRpcException if xdr stream can't be decoded.
      */
+    @Override
     public short[] xdrDecodeShortFixedVector(int length) throws BadXdrOncRpcException {
         short[] value = new short[length];
         for (int i = 0; i < length; ++i) {
@@ -385,6 +430,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      * data type has. This method is one of the basic methods all other
      * methods can rely on.
      */
+    @Override
     public void xdrEncodeInt(int value) {
         ensureCapacity(Integer.BYTES);
         _buffer.putInt(value);
@@ -409,6 +455,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      * @param values int vector to be encoded.
      *
      */
+    @Override
     public void xdrEncodeIntVector(int[] values) {
         ensureCapacity(Integer.BYTES+Integer.BYTES*values.length);
         _buffer.putInt(values.length);
@@ -424,6 +471,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      * @param values long vector to be encoded.
      *
      */
+    @Override
     public void xdrEncodeLongVector(long[] values) {
         ensureCapacity(Integer.BYTES+Long.BYTES*values.length);
         _buffer.putInt(values.length);
@@ -438,6 +486,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      *
      * @param value Float value to encode.
      */
+    @Override
     public void xdrEncodeFloat(float value) {
         xdrEncodeInt(Float.floatToIntBits(value));
     }
@@ -448,6 +497,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      *
      * @param value Double value to encode.
      */
+    @Override
     public void xdrEncodeDouble(double value) {
         xdrEncodeLong(Double.doubleToLongBits(value));
     }
@@ -458,6 +508,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      *
      * @param value float vector to be encoded.
      */
+    @Override
     public void xdrEncodeFloatVector(float[] value) {
         int size = value.length;
         xdrEncodeInt(size);
@@ -474,6 +525,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      * @param length of vector to write. This parameter is used as a sanity
      * check.
      */
+    @Override
     public void xdrEncodeFloatFixedVector(float[] value, int length) {
         if (value.length != length) {
             throw (new IllegalArgumentException("array size does not match protocol specification"));
@@ -489,6 +541,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      *
      * @param value double vector to be encoded.
      */
+    @Override
     public void xdrEncodeDoubleVector(double[] value) {
         int size = value.length;
         xdrEncodeInt(size);
@@ -505,6 +558,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      * @param length of vector to write. This parameter is used as a sanity
      * check.
      */
+    @Override
     public void xdrEncodeDoubleFixedVector(double[] value, int length) {
         if (value.length != length) {
             throw (new IllegalArgumentException("array size does not match protocol specification"));
@@ -518,6 +572,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      * Encodes (aka "serializes") a string and writes it down this XDR stream.
      *
      */
+    @Override
     public void xdrEncodeString(String string) {
         if( string == null ) string = "";
         xdrEncodeDynamicOpaque(string.getBytes());
@@ -533,6 +588,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      * always padded to be a multiple of four. If the length of the given byte
      * vector is not a multiple of four, zero bytes will be used for padding.
      */
+    @Override
     public void xdrEncodeOpaque(byte[] bytes, int offset, int len) {
         int padding = (4 - (len & 3)) & 3;
         ensureCapacity(len+padding);
@@ -540,6 +596,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
         _buffer.put(paddingZeros, 0, padding);
     }
 
+    @Override
     public void xdrEncodeOpaque(byte[] bytes, int len) {
         xdrEncodeOpaque(bytes, 0, len);
     }
@@ -552,11 +609,13 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      * a multiple of four to maintain XDR alignment.
      *
      */
+    @Override
     public void xdrEncodeDynamicOpaque(byte [] opaque) {
         xdrEncodeInt(opaque.length);
         xdrEncodeOpaque(opaque, 0, opaque.length);
     }
 
+    @Override
     public void xdrEncodeBoolean(boolean bool) {
         xdrEncodeInt( bool ? 1 : 0);
     }
@@ -565,11 +624,13 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      * Encodes (aka "serializes") a long (which is called a "hyper" in XDR
      * babble and is 64&nbsp;bits wide) and write it down this XDR stream.
      */
+    @Override
     public void xdrEncodeLong(long value) {
         ensureCapacity(Long.BYTES);
        _buffer.putLong(value);
     }
 
+    @Override
     public void xdrEncodeByteBuffer(ByteBuffer buf) {
         buf.flip();
         int len = buf.remaining();
@@ -589,6 +650,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      *
      * @param value Byte vector to encode.
      */
+    @Override
     public void xdrEncodeByteVector(byte[] value) {
         int length = value.length; // well, silly optimizations appear here...
         xdrEncodeInt(length);
@@ -610,6 +672,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      * @param length of vector to write. This parameter is used as a sanity
      * check.
      */
+    @Override
     public void xdrEncodeByteFixedVector(byte[] value, int length) {
         if (value.length != length) {
             throw (new IllegalArgumentException("array size does not match protocol specification"));
@@ -631,6 +694,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      * @throws OncRpcException if an ONC/RPC error occurs.
      * @throws IOException if an I/O error occurs.
      */
+    @Override
     public void xdrEncodeByte(byte value) {
         //
         // For speed reasons, we do sign extension here, but the higher bits
@@ -645,6 +709,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      *
      * @param value Short value to encode.
      */
+    @Override
     public void xdrEncodeShort(short value) {
         xdrEncodeInt((int) value);
     }
@@ -655,6 +720,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      *
      * @param value short vector to be encoded.
      */
+    @Override
     public void xdrEncodeShortVector(short[] value) {
         int size = value.length;
         xdrEncodeInt(size);
@@ -671,6 +737,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      * @param length of vector to write. This parameter is used as a sanity
      * check.
      */
+    @Override
     public void xdrEncodeShortFixedVector(short[] value, int length) {
         if (value.length != length) {
             throw (new IllegalArgumentException("array size does not match protocol specification"));
