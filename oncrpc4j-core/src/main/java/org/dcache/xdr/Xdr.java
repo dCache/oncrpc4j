@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2015 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2016 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -25,9 +25,6 @@ import java.nio.charset.StandardCharsets;
 import org.glassfish.grizzly.Buffer;
 
 public class Xdr implements XdrDecodingStream, XdrEncodingStream {
-
-    private final static int SIZE_OF_LONG = Long.SIZE / 8;
-    private final static int SIZE_OF_INT = Integer.SIZE / 8;
 
     /**
      * Maximal size of a XDR message.
@@ -99,7 +96,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      * @return The decoded int value.
      */
     public int xdrDecodeInt() throws BadXdrOncRpcException {
-        ensureBytes(SIZE_OF_INT);
+        ensureBytes(Integer.BYTES);
         int val = _buffer.getInt();
         return val;
     }
@@ -275,7 +272,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      * @return Decoded long value.
      */
     public long xdrDecodeLong() throws BadXdrOncRpcException {
-        ensureBytes(SIZE_OF_LONG);
+        ensureBytes(Long.BYTES);
         return _buffer.getLong();
     }
 
@@ -389,7 +386,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      * methods can rely on.
      */
     public void xdrEncodeInt(int value) {
-        ensureCapacity(SIZE_OF_INT);
+        ensureCapacity(Integer.BYTES);
         _buffer.putInt(value);
     }
 
@@ -413,7 +410,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      *
      */
     public void xdrEncodeIntVector(int[] values) {
-        ensureCapacity(SIZE_OF_INT+SIZE_OF_INT*values.length);
+        ensureCapacity(Integer.BYTES+Integer.BYTES*values.length);
         _buffer.putInt(values.length);
         for (int value: values) {
             _buffer.putInt( value );
@@ -428,7 +425,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      *
      */
     public void xdrEncodeLongVector(long[] values) {
-        ensureCapacity(SIZE_OF_INT+SIZE_OF_LONG*values.length);
+        ensureCapacity(Integer.BYTES+Long.BYTES*values.length);
         _buffer.putInt(values.length);
         for (long value : values) {
             _buffer.putLong(value);
@@ -569,7 +566,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      * babble and is 64&nbsp;bits wide) and write it down this XDR stream.
      */
     public void xdrEncodeLong(long value) {
-        ensureCapacity(SIZE_OF_LONG);
+        ensureCapacity(Long.BYTES);
        _buffer.putLong(value);
     }
 
