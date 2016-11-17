@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2012 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2016 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -20,6 +20,7 @@
 package org.dcache.xdr;
 
 import java.io.IOException;
+import java.util.Objects;
 
 public class XdrString implements XdrAble {
 
@@ -45,5 +46,30 @@ public class XdrString implements XdrAble {
 
     public void xdrEncode(XdrEncodingStream xdr) throws OncRpcException, IOException {
         xdr.xdrEncodeString(_value);
+    }
+
+    @Override
+    public String toString() {
+        return _value;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(this._value);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final XdrString other = (XdrString) obj;
+        return Objects.equals(this._value, other._value);
     }
 }
