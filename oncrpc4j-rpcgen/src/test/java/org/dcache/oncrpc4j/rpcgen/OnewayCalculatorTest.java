@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class OnewayCalculatorTest extends AbstractCalculatorTest {
-    
+
     @Test
     public void testOnewayAdd() throws Exception {
         List<MethodCall> calls = serverImpl.getMethodCalls();
@@ -24,17 +24,12 @@ public class OnewayCalculatorTest extends AbstractCalculatorTest {
         Assert.assertTrue(retTime < call.getFinishTimestamp());
     }
 
-    @Test
+    @Test(expected = EOFException.class)
     public void testDisconnection() throws Exception {
         client.add_1_oneway(1, 2, null);
         Thread.sleep(100);
         server.stop();
         Thread.sleep(100);
-        try {
-            client.add_1_oneway(1, 2, null);
-            Assert.fail("should have thrown an exception");
-        } catch (EOFException e) {
-            //expected
-        }
+        client.add_1_oneway(1, 2, null);
     }
 }
