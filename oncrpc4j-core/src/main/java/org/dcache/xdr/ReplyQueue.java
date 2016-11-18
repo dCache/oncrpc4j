@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2015 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2016 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -47,12 +47,6 @@ public class ReplyQueue {
     });
     private final ConcurrentMap<Integer, HandlerTimeoutPair> _queue = new ConcurrentHashMap<>();
     private volatile boolean _isConnected = true;
-
-    public void assertConnected() throws EOFException {
-        if (!_isConnected) {
-            throw new EOFException("Disconnected");
-        }
-    }
 
     /**
      * Creates a placeholder for the specified key, and no timeout

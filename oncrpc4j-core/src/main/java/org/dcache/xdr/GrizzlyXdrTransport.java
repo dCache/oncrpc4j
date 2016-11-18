@@ -51,6 +51,11 @@ public class GrizzlyXdrTransport implements XdrTransport {
     }
 
     @Override
+    public boolean isOpen() {
+        return _connection.isOpen();
+    }
+
+    @Override
     public void send(final Xdr xdr) throws IOException {
         final Buffer buffer = xdr.asBuffer();
         buffer.allowBufferDispose(true);

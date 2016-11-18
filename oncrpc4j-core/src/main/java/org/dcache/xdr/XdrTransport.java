@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2012 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2016 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -32,33 +32,41 @@ public interface XdrTransport {
     /**
      * Send data to remote end point.
      *
-     * @param data
+     * @param xdr message to send.
      * @throws IOException
      */
-    public void send(Xdr xdr) throws IOException;
+    void send(Xdr xdr) throws IOException;
 
-    public ReplyQueue getReplyQueue();
+    ReplyQueue getReplyQueue();
+
+    /**
+     * Returns is this transport is open and ready.
+     *
+     * @return <tt>true</tt>, if connection is open and ready, or <tt>false</tt>
+     * otherwise.
+     */
+    boolean isOpen();
 
     /**
      * Get local end point.
      *
      * @return InetSocketAddress of local socket end point
      */
-    public InetSocketAddress getLocalSocketAddress();
+    InetSocketAddress getLocalSocketAddress();
 
     /**
      * Get remote end point.
      *
      * @return InetSocketAddress of remote socket end point.
      */
-    public InetSocketAddress getRemoteSocketAddress();
+    InetSocketAddress getRemoteSocketAddress();
 
     /**
      * Get {@link XdrTransport} for to sent/receive requests in opposite direction.
      * The returned transport can be used by servers to send rpc calls to clients and
      * can be used by clients to receive rpc calls from servers.
-     * 
-     * @return 
+     *
+     * @return
      */
     public XdrTransport getPeerTransport();
 }

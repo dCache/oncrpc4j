@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2015 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2016 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -21,6 +21,7 @@ package org.dcache.xdr;
 
 import com.google.common.base.Throwables;
 import com.google.common.util.concurrent.SettableFuture;
+import java.io.EOFException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -384,7 +385,9 @@ public class RpcCall {
             replyQueue.registerKey(xid, callback, timeoutValue, timeoutUnits);
         } else {
             //no handler, so we wont get any errors if connection was dropped. have to check.
-            replyQueue.assertConnected(); //EOFException if not
+            if (!_transport.isOpen()) {
+                throw new EOFException("XdrTransport is not open");
+            }
         }
         _transport.send(xdr);
         return xid;
