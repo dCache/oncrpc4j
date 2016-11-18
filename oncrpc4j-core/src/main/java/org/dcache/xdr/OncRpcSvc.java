@@ -25,6 +25,7 @@ import org.dcache.xdr.gss.GssSessionManager;
 import org.dcache.xdr.portmap.GenericPortmapClient;
 import org.dcache.xdr.portmap.OncPortmapClient;
 import org.dcache.xdr.portmap.OncRpcPortmap;
+import org.glassfish.grizzly.CloseType;
 import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.ConnectionProbe;
 import org.glassfish.grizzly.GrizzlyFuture;
@@ -64,6 +65,7 @@ import java.util.concurrent.TimeoutException;
 
 import static com.google.common.base.Throwables.getRootCause;
 import static com.google.common.base.Throwables.propagateIfPossible;
+import java.net.SocketAddress;
 import static org.dcache.xdr.GrizzlyUtils.getSelectorPoolCfg;
 import static org.dcache.xdr.GrizzlyUtils.rpcMessageReceiverFor;
 import static org.dcache.xdr.GrizzlyUtils.transportFor;
@@ -298,7 +300,9 @@ public class OncRpcSvc {
             t.getConnectionMonitoringConfig().addProbes(new ConnectionProbe.Adapter() {
                 @Override
                 public void onCloseEvent(Connection connection) {
-                    _replyQueue.handleDisconnect();
+                    if (connection.getCloseReason().getType() == CloseType.REMOTELY) {
+                        _replyQueue.handleDisconnect((SocketAddress)connection.getLocalAddress());
+                    }
                 }
             });
 
@@ -328,6 +332,7 @@ public class OncRpcSvc {
             t.shutdownNow();
         }
 
+        _replyQueue.shutdown();
         _requestExecutor.shutdown();
     }
 
