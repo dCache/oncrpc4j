@@ -23,6 +23,8 @@ import java.io.EOFException;
 import java.nio.channels.CompletionHandler;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -43,8 +45,8 @@ public class ReplyQueue {
             return t;
         }
     });
-    private final Map<Integer, HandlerTimeoutPair> _queue = new HashMap<>();
-    private boolean _isConnected = true;
+    private final ConcurrentMap<Integer, HandlerTimeoutPair> _queue = new ConcurrentHashMap<>();
+    private volatile boolean _isConnected = true;
 
     public void assertConnected() throws EOFException {
         if (!_isConnected) {
@@ -59,7 +61,7 @@ public class ReplyQueue {
      * @param callback
      * @throws EOFException if disconnected
      */
-    public synchronized void registerKey(final int key, CompletionHandler<RpcReply, XdrTransport> callback) throws EOFException {
+    public void registerKey(final int key, CompletionHandler<RpcReply, XdrTransport> callback) throws EOFException {
         registerKey(key, callback, 0, null);
     }
 
@@ -70,7 +72,7 @@ public class ReplyQueue {
      * @param callback
      * @throws EOFException if disconnected
      */
-    public synchronized void registerKey(final int key, CompletionHandler<RpcReply, XdrTransport> callback, final long timeoutValue, final TimeUnit timeoutUnits) throws EOFException {
+    public void registerKey(final int key, CompletionHandler<RpcReply, XdrTransport> callback, final long timeoutValue, final TimeUnit timeoutUnits) throws EOFException {
         if (!_isConnected) {
             throw new EOFException("Disconnected");
         }
@@ -79,11 +81,9 @@ public class ReplyQueue {
             scheduledTimeout = executorService.schedule(new Runnable() {
                 @Override
                 public void run() {
-                    synchronized (ReplyQueue.this) {
-                        CompletionHandler<RpcReply, XdrTransport> handler = get(key);
-                        if (handler != null) { //means we're 1st, no response yet
-                            handler.failed(new TimeoutException("did not get a response within " + timeoutValue + " " + timeoutUnits), null);
-                        }
+                    CompletionHandler<RpcReply, XdrTransport> handler = get(key);
+                    if (handler != null) { //means we're 1st, no response yet
+                        handler.failed(new TimeoutException("did not get a response within " + timeoutValue + " " + timeoutUnits), null);
                     }
                 }
             }, timeoutValue, timeoutUnits);
@@ -113,7 +113,7 @@ public class ReplyQueue {
      *
      * @param key key (xid)
      */
-    public synchronized CompletionHandler<RpcReply, XdrTransport> get(int key) {
+    public CompletionHandler<RpcReply, XdrTransport> get(int key) {
         HandlerTimeoutPair pair = _queue.remove(key);
         if (pair != null) { //means we're first. call off any pending timeouts
             if (pair.scheduledTimeout != null) {
