@@ -20,7 +20,6 @@
 package org.dcache.xdr;
 
 import com.google.common.base.Throwables;
-import com.google.common.util.concurrent.SettableFuture;
 import java.io.EOFException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.nio.channels.CompletionHandler;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -497,14 +497,14 @@ public class RpcCall {
     private <T extends XdrAble> Future<T> getCallFuture(int procedure, XdrAble args, final T result, long timeoutValue, TimeUnit timeoutUnits, RpcAuth auth)
             throws IOException {
 
-        final SettableFuture<T> future = SettableFuture.create();
+        final CompletableFuture<T> future = new CompletableFuture<>();
         CompletionHandler<RpcReply, XdrTransport> callback = new CompletionHandler<RpcReply, XdrTransport>() {
 
             @Override
             public void completed(RpcReply reply, XdrTransport attachment) {
                 try {
                     reply.getReplyResult(result);
-                    future.set(result);
+                    future.complete(result);
                 } catch (IOException e) {
                     failed(e, attachment);
                 }
@@ -512,7 +512,7 @@ public class RpcCall {
 
             @Override
             public void failed(Throwable exc, XdrTransport attachment) {
-                future.setException(exc);
+                future.completeExceptionally(exc);
             }
         };
 
