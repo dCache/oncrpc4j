@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2012 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2016 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -109,18 +109,6 @@ public class RpcReply {
     public void getReplyResult(XdrAble result) throws OncRpcException, IOException {
         result.xdrDecode(_xdr);
         _xdr.endDecoding();
-    }
-
-    public void reply(XdrAble reply) throws OncRpcException, IOException {
-        _xdr.beginEncoding();
-        _xdr.xdrEncodeInt(_xid);
-        _xdr.xdrEncodeInt(RpcMessageType.REPLY);
-        _xdr.xdrEncodeInt(_replyStatus);
-        _verf.xdrEncode(_xdr);
-        reply.xdrEncode(_xdr);
-        _xdr.endEncoding();
-
-        _transport.send(_xdr);
     }
 
     @Override
