@@ -19,8 +19,8 @@
  */
 package org.dcache.xdr;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.channels.CompletionHandler;
 
 /**
  *
@@ -30,12 +30,16 @@ import java.net.InetSocketAddress;
 public interface XdrTransport {
 
     /**
-     * Send data to remote end point.
+     * Send data to remote end point. The handler parameter is a completion
+     * handler that is invoked when the send operation completes (or fails). The
+     * result passed to the completion handler is the number of bytes sent.
      *
+     * @param <A> the type of the attachment.
      * @param xdr message to send.
-     * @throws IOException
+     * @param attachment the object to attach to the I/O operation; can be null
+     * @param handler the handler for consuming the result.
      */
-    void send(Xdr xdr) throws IOException;
+    <A> void send(Xdr xdr, A attachment,  CompletionHandler<Integer, ? super A> handler);
 
     ReplyQueue getReplyQueue();
 

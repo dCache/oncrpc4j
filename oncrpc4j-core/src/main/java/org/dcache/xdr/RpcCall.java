@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InterruptedIOException;
+import java.net.InetSocketAddress;
 import java.nio.channels.CompletionHandler;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -84,6 +85,23 @@ public class RpcCall {
      * Call body.
      */
     private final Xdr _xdr;
+
+    /**
+     * The {link CompletionHandler} which is used to handle result of send operation.
+     */
+    private static class MessageSentCompletionHandler implements CompletionHandler<Integer, InetSocketAddress> {
+
+        @Override
+        public void completed(Integer result, InetSocketAddress attachment) {
+            // NOP
+        }
+
+        @Override
+        public void failed(Throwable t, InetSocketAddress attachment) {
+            _log.error("Failed to send RPC to {} : {}",  attachment, t.getMessage());
+        }
+
+    }
 
     public RpcCall(int prog, int ver, RpcAuth cred, XdrTransport transport) {
         this(prog, ver, cred, new Xdr(Xdr.INITIAL_XDR_SIZE), transport);
@@ -209,7 +227,7 @@ public class RpcCall {
             reason.xdrEncode(_xdr);
             xdr.endEncoding();
 
-            _transport.send((Xdr)xdr);
+            _transport.send((Xdr)xdr, _transport.getRemoteSocketAddress(), new MessageSentCompletionHandler());
 
         } catch (OncRpcException e) {
             _log.warn("Xdr exception: ", e);
@@ -239,7 +257,7 @@ public class RpcCall {
             reply.xdrEncode(xdr);
             xdr.endEncoding();
 
-            _transport.send((Xdr)xdr);
+            _transport.send((Xdr)xdr, _transport.getRemoteSocketAddress(), new MessageSentCompletionHandler());
 
         } catch (OncRpcException e) {
             _log.warn("Xdr exception: ", e);
@@ -389,7 +407,18 @@ public class RpcCall {
                 throw new EOFException("XdrTransport is not open");
             }
         }
-        _transport.send(xdr);
+
+        _transport.send(xdr, _transport.getRemoteSocketAddress(), new MessageSentCompletionHandler() {
+
+            @Override
+            public void failed(Throwable t, InetSocketAddress attachment) {
+                super.failed(t, attachment);
+                if (callback != null) {
+                    replyQueue.get(xid);
+                    callback.failed(t, _transport);
+                }
+            }
+        });
         return xid;
     }
 

@@ -20,8 +20,8 @@
 package org.dcache.xdr;
 
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.channels.CompletionHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.glassfish.grizzly.Buffer;
@@ -29,6 +29,8 @@ import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.EmptyCompletionHandler;
 import org.glassfish.grizzly.WriteResult;
 import org.glassfish.grizzly.asyncqueue.WritableMessage;
+
+import static java.util.Objects.requireNonNull;
 
 public class GrizzlyXdrTransport implements XdrTransport {
 
@@ -56,17 +58,25 @@ public class GrizzlyXdrTransport implements XdrTransport {
     }
 
     @Override
-    public void send(final Xdr xdr) throws IOException {
+    public <A> void send(final Xdr xdr, A attachment, CompletionHandler<Integer, ? super A> handler) {
         final Buffer buffer = xdr.asBuffer();
         buffer.allowBufferDispose(true);
 
+        requireNonNull(handler, "CompletionHandler can't be null");
+
         // pass destination address to handle UDP connections as well
-        _connection.write(_remoteAddress, buffer, new EmptyCompletionHandler<WriteResult<WritableMessage, InetSocketAddress>>() {
-            @Override
-            public void failed(Throwable throwable) {
-                _log.error("Failed to send RPC message: xid=0x{} remote={} : {}",
-                        Integer.toHexString(buffer.getInt(0)), _connection.getPeerAddress(), throwable.getMessage());
-            }
+        _connection.write(_remoteAddress, buffer,
+                new EmptyCompletionHandler<WriteResult<WritableMessage, InetSocketAddress>>() {
+
+                    @Override
+                    public void failed(Throwable throwable) {
+                        handler.failed(throwable, attachment);
+                    }
+
+                    @Override
+                    public void completed(WriteResult<WritableMessage, InetSocketAddress> result) {
+                        handler.completed((int)result.getWrittenSize(), attachment);
+                    }
         });
     }
 
