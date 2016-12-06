@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.CompletionHandler;
+import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -39,10 +40,12 @@ public class RpcCall {
 
     private final static Logger _log = LoggerFactory.getLogger(RpcCall.class);
 
+    private final static Random RND = new Random();
+
     /**
      * XID number generator
      */
-    private final static AtomicInteger NEXT_XID = new AtomicInteger(0);
+    private final AtomicInteger xidGenerator = new AtomicInteger(RND.nextInt());
 
     private int _xid;
 
@@ -380,7 +383,7 @@ public class RpcCall {
                              long timeoutValue, TimeUnit timeoutUnits, RpcAuth auth)
             throws IOException {
 
-        int xid = NEXT_XID.incrementAndGet();
+        int xid = nextXid();
 
         Xdr xdr = new Xdr(Xdr.INITIAL_XDR_SIZE);
         xdr.beginEncoding();
@@ -602,5 +605,9 @@ public class RpcCall {
         private void unregisterXid() {
             _transport.getReplyQueue().get(xid); //make sure its removed from the reply queue
         }
+    }
+
+    private int nextXid() {
+        return xidGenerator.incrementAndGet();
     }
 }
