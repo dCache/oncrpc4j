@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2016 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2017 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -29,6 +29,8 @@ import java.io.InterruptedIOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.CompletionHandler;
 import java.util.Random;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -90,21 +92,69 @@ public class RpcCall {
     private final Xdr _xdr;
 
     /**
-     * The {link CompletionHandler} which is used to handle result of send operation.
+     * Object used to synchronize access to sendListeners.
      */
-    private static class MessageSentCompletionHandler implements CompletionHandler<Integer, InetSocketAddress> {
+    private final Object _listenerLock = new Object();
+
+    /**
+     * The {link CompletionHandler} which is used to notify all registered
+     * completion listeners.
+     */
+    private class NotifyListenersCompletionHandler implements CompletionHandler<Integer, InetSocketAddress> {
 
         @Override
         public void completed(Integer result, InetSocketAddress attachment) {
-            // NOP
+            synchronized (_listenerLock) {
+                if (_sendListeners != null) {
+                    _sendListeners
+                            .parallelStream()
+                            .forEach(l -> l.completed(result, attachment));
+                }
+
+                if (_sendOnceListeners != null) {
+                    _sendOnceListeners
+                            .parallelStream()
+                            .forEach(l -> l.completed(result, attachment));
+                    _sendOnceListeners = null;
+                }
+            }
         }
 
         @Override
         public void failed(Throwable t, InetSocketAddress attachment) {
-            _log.error("Failed to send RPC to {} : {}",  attachment, t.getMessage());
-        }
+            _log.error("Failed to send RPC to {} : {}", attachment, t.getMessage());
+            synchronized (_listenerLock) {
+                if (_sendListeners != null) {
+                    _sendListeners
+                            .parallelStream()
+                            .forEach(l -> l.failed(t, attachment));
+                }
 
+                if (_sendOnceListeners != null) {
+                    _sendOnceListeners
+                            .parallelStream()
+                            .forEach(l -> l.failed(t, attachment));
+                    _sendOnceListeners = null;
+                }
+            }
+        }
     }
+
+    /**
+     * A {@link List} of registered {@link CompletionHandler} to be notified when
+     * send request complete.
+     */
+    private List<CompletionHandler<Integer, InetSocketAddress>> _sendListeners;
+
+    /**
+     * A {@link List} of registered {@link CompletionHandler} to be notified
+     * when send request complete. The listeners will be removed from the list
+     * after notification.
+     */
+    private List<CompletionHandler<Integer, InetSocketAddress>> _sendOnceListeners;
+
+    private final CompletionHandler<Integer, InetSocketAddress> _sendNotificationHandler
+            = new NotifyListenersCompletionHandler();
 
     public RpcCall(int prog, int ver, RpcAuth cred, XdrTransport transport) {
         this(prog, ver, cred, new Xdr(Xdr.INITIAL_XDR_SIZE), transport);
@@ -230,7 +280,7 @@ public class RpcCall {
             reason.xdrEncode(_xdr);
             xdr.endEncoding();
 
-            _transport.send((Xdr)xdr, _transport.getRemoteSocketAddress(), new MessageSentCompletionHandler());
+            _transport.send((Xdr)xdr, _transport.getRemoteSocketAddress(), _sendNotificationHandler);
 
         } catch (OncRpcException e) {
             _log.warn("Xdr exception: ", e);
@@ -260,7 +310,7 @@ public class RpcCall {
             reply.xdrEncode(xdr);
             xdr.endEncoding();
 
-            _transport.send((Xdr)xdr, _transport.getRemoteSocketAddress(), new MessageSentCompletionHandler());
+            _transport.send((Xdr)xdr, _transport.getRemoteSocketAddress(), _sendNotificationHandler);
 
         } catch (OncRpcException e) {
             _log.warn("Xdr exception: ", e);
@@ -411,7 +461,7 @@ public class RpcCall {
             }
         }
 
-        _transport.send(xdr, _transport.getRemoteSocketAddress(), new MessageSentCompletionHandler() {
+        _transport.send(xdr, _transport.getRemoteSocketAddress(), new NotifyListenersCompletionHandler() {
 
             @Override
             public void failed(Throwable t, InetSocketAddress attachment) {
@@ -607,7 +657,39 @@ public class RpcCall {
         }
     }
 
+
     private int nextXid() {
         return xidGenerator.incrementAndGet();
+    }
+
+    /**
+     * Register {@link CompletionHandler} to receive notification when message
+     * send is complete. NOTICE: when processing rpc call on the server side
+     * the @{code registerSendListener} has the same effect as {@link #registerSendOnceListener}
+     * as a new instance of {@link RpcCall} is used to process the request.
+     * @param listener the message sent listener
+     */
+    public void registerSendListener(CompletionHandler<Integer, InetSocketAddress> listener) {
+        synchronized (_listenerLock) {
+            if (_sendListeners == null) {
+                _sendListeners = new ArrayList<>();
+            }
+            _sendListeners.add(listener);
+        }
+    }
+
+    /**
+     * Register {@link CompletionHandler} to receive notification when message
+     * send is complete. The listener will be removed after next send event.
+     *
+     * @param listener the message sent listener
+     */
+    public void registerSendOnceListener(CompletionHandler<Integer, InetSocketAddress> listener) {
+        synchronized (_listenerLock) {
+            if (_sendOnceListeners == null) {
+                _sendOnceListeners = new ArrayList<>();
+            }
+            _sendOnceListeners.add(listener);
+        }
     }
 }
