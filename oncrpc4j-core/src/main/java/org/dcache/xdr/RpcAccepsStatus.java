@@ -55,7 +55,7 @@ public final class  RpcAccepsStatus {
     public static String toString(int status) {
         switch(status) {
             case SUCCESS: return "SUCCESS";
-            case PROG_UNAVAIL: return "PROG_UNAVIAL";
+            case PROG_UNAVAIL: return "PROG_UNAVAIL";
             case PROG_MISMATCH: return "PROG_MISMATCH";
             case PROC_UNAVAIL: return "PROC_UNAVAIL";
             case GARBAGE_ARGS: return "GARBAGE_ARGS";
