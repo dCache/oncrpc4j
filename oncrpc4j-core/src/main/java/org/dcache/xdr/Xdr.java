@@ -260,7 +260,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
         checkArraySize(len);
         byte[] bytes = new byte[len];
         xdrDecodeOpaque(bytes, 0, len);
-        return new String(bytes, StandardCharsets.US_ASCII);
+        return new String(bytes, StandardCharsets.UTF_8);
     }
 
     public boolean xdrDecodeBoolean() throws BadXdrOncRpcException {
@@ -523,7 +523,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      */
     public void xdrEncodeString(String string) {
         if( string == null ) string = "";
-        xdrEncodeDynamicOpaque(string.getBytes());
+        xdrEncodeDynamicOpaque(string.getBytes(StandardCharsets.UTF_8));
     }
 
     private static final byte [] paddingZeros = { 0, 0, 0, 0 };
