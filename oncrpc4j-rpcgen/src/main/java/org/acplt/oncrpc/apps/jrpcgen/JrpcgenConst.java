@@ -79,7 +79,7 @@ public class JrpcgenConst {
             // look it up in the list of global identifiers. Then recursively
             // resolve the value.
             //
-            Object id = jrpcgen.globalIdentifiers.get(identifier);
+            Object id = jrpcgen.globalIdentifiers.get(value);
             if ( (id != null)
                  && (id instanceof JrpcgenConst) ) {
                 return ((JrpcgenConst) id).resolveValue();
