@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2012 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2016 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -25,4 +25,7 @@ public interface GssProc {
     public static final int RPCSEC_GSS_INIT = 1;
     public static final int RPCSEC_GSS_CONTINUE_INIT = 2;
     public static final int RPCSEC_GSS_DESTROY = 3;
+    public static final int RPCSEC_GSS_BIND_CHANNEL = 4;
+    public static final int RPCSEC_GSS_CREATE = 5;
+    public static final int RPCSEC_GSS_LIST = 6;
 }

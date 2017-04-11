@@ -25,6 +25,9 @@ import org.slf4j.LoggerFactory;
 import javax.security.auth.Subject;
 import org.dcache.xdr.OncRpcException;
 import org.dcache.xdr.RpcAuth;
+import org.dcache.xdr.RpcAuthError;
+import org.dcache.xdr.RpcAuthException;
+import org.dcache.xdr.RpcAuthStat;
 import org.dcache.xdr.RpcAuthType;
 import org.dcache.xdr.RpcAuthVerifier;
 import org.dcache.xdr.Xdr;
@@ -126,6 +129,10 @@ public class RpcAuthGss implements RpcAuth, XdrAble {
         _header.position( _header.position() - 8*4);
 
         _version = xdr.xdrDecodeInt();
+        if (_version < RpcGssVersion.RPCSEC_GSS_VERS_1 || _version > RpcGssVersion.RPCSEC_GSS_VERS_3) {
+            throw new RpcAuthException("Unsupported RPCSEC_GSS version: " + _version,
+                    new RpcAuthError(RpcAuthStat.AUTH_REJECTEDCRED));
+        }
         _proc = xdr.xdrDecodeInt();
         _sequence = xdr.xdrDecodeInt();
         _service = xdr.xdrDecodeInt();

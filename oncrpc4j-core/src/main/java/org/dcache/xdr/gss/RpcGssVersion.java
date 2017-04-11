@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2016 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2016 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -19,10 +19,13 @@
  */
 package org.dcache.xdr.gss;
 
-public interface RpcGssService {
+/**
+ * Constants representing RPCSEC_GSS version numbers
+ */
+public interface RpcGssVersion {
 
-    public static final int RPC_GSS_SVC_NONE = 1;
-    public static final int RPC_GSS_SVC_INTEGRITY = 2;
-    public static final int RPC_GSS_SVC_PRIVACY = 3;
-    public static final int RPC_GSS_SVC_CHANNEL_PROT = 4;
+    static final int RPCSEC_GSS_VERS_1 = 1; // RFC2203
+    static final int RPCSEC_GSS_VERS_2 = 2; // RFC5403
+    static final int RPCSEC_GSS_VERS_3 = 3; // Internet-Draft
+
 }
