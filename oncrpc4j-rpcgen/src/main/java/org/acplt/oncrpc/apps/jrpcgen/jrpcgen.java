@@ -1942,6 +1942,8 @@ public class jrpcgen {
         out.println("public class " + clientClass + " implements Closeable {");
         out.println();
 
+        // constants
+        out.println("    private static final String DEFAULT_SERVICE_NAME = null;");
         // generated class fields
         out.println("    private final OncRpcClient rpcClient;");
         out.println("    private final RpcCall client;");
@@ -1951,50 +1953,58 @@ public class jrpcgen {
         // Generate constructors...
         //
         out.println("    /**");
-        out.println("     * see {@link #" + clientClass + "(InetAddress, int, RpcAuth, int, int, int , int, IoStrategy)}");
+        out.println("     * see {@link #" + clientClass + "(InetAddress, int, RpcAuth, int, int, int , int, IoStrategy, String)}");
         out.println("     */");
         out.println("    public " + clientClass + "(InetAddress host, int port)");
         out.println("           throws OncRpcException, IOException {");
-        out.println("        this(host, port, new RpcAuthTypeNone(), " + baseClassname + "." + programInfo.programId + ", " + baseClassname + "." + maxVersionInfo.versionId + ", IpProtocolType.TCP, 0, IoStrategy.SAME_THREAD);");
+        out.println("        this(host, port, new RpcAuthTypeNone(), " + baseClassname + "." + programInfo.programId + ", " + baseClassname + "." + maxVersionInfo.versionId + ", IpProtocolType.TCP, 0, IoStrategy.SAME_THREAD, DEFAULT_SERVICE_NAME);");
         out.println("    }");
         out.println();
 
         out.println("    /**");
-        out.println("     * see {@link #" + clientClass + "(InetAddress, int, RpcAuth, int, int, int , int, IoStrategy)}");
+        out.println("     * see {@link #" + clientClass + "(InetAddress, int, RpcAuth, int, int, int , int, IoStrategy, String)}");
         out.println("     */");
         out.println("    public " + clientClass + "(InetAddress host, int port, int version)");
         out.println("           throws OncRpcException, IOException {");
-        out.println("        this(host, port, new RpcAuthTypeNone(), " + baseClassname + "." + programInfo.programId + ", version, IpProtocolType.TCP, 0, IoStrategy.SAME_THREAD);");
+        out.println("        this(host, port, new RpcAuthTypeNone(), " + baseClassname + "." + programInfo.programId + ", version, IpProtocolType.TCP, 0, IoStrategy.SAME_THREAD, DEFAULT_SERVICE_NAME);");
         out.println("    }");
         out.println();
 
         out.println("    /**");
-        out.println("     * see {@link #" + clientClass + "(InetAddress, int, RpcAuth, int, int, int , int, IoStrategy)}");
+        out.println("     * see {@link #" + clientClass + "(InetAddress, int, RpcAuth, int, int, int , int, IoStrategy, String)}");
         out.println("     */");
         out.println("    public " + clientClass + "(InetAddress host, int port, int program, int version, int protocol)");
         out.println("           throws OncRpcException, IOException {");
-        out.println("        this(host, port, new RpcAuthTypeNone(), program, version, protocol, 0, IoStrategy.SAME_THREAD);");
+        out.println("        this(host, port, new RpcAuthTypeNone(), program, version, protocol, 0, IoStrategy.SAME_THREAD, DEFAULT_SERVICE_NAME);");
         out.println("    }");
         out.println();
 
         out.println("    /**");
-        out.println("     * see {@link #" + clientClass + "(InetAddress, int, RpcAuth, int, int, int , int, IoStrategy)}");
+        out.println("     * see {@link #" + clientClass + "(InetAddress, int, RpcAuth, int, int, int , int, IoStrategy, String)}");
         out.println("     */");
         out.println("    public " + clientClass + "(InetAddress host, int port, RpcAuth auth, int program, int version, int protocol)");
         out.println("           throws OncRpcException, IOException {");
-        out.println("        this(host, port, auth, program, version, protocol, 0, IoStrategy.SAME_THREAD);");
+        out.println("        this(host, port, auth, program, version, protocol, 0, IoStrategy.SAME_THREAD, DEFAULT_SERVICE_NAME);");
         out.println("    }");
         out.println();
 
         out.println("    /**");
-        out.println("     * see {@link #" + clientClass + "(InetAddress, int, RpcAuth, int, int, int , int, IoStrategy)}");
+        out.println("     * see {@link #" + clientClass + "(InetAddress, int, RpcAuth, int, int, int , int, IoStrategy, String)}");
         out.println("     */");
         out.println("    public " + clientClass + "(InetAddress host, int port, RpcAuth auth, int program, int version, int protocol, int localPort)");
         out.println("           throws OncRpcException, IOException {");
-        out.println("        this(host, port, auth, program, version, protocol, localPort, IoStrategy.SAME_THREAD);");
+        out.println("        this(host, port, auth, program, version, protocol, localPort, IoStrategy.SAME_THREAD, DEFAULT_SERVICE_NAME);");
         out.println("    }");
         out.println();
 
+        out.println("    /**");
+        out.println("     * see {@link #" + clientClass + "(InetAddress, int, RpcAuth, int, int, int , int, IoStrategy, String)}");
+        out.println("     */");
+        out.println("    public " + clientClass + "(InetAddress host, int port, RpcAuth auth, int program, int version, int protocol, int localPort, IoStrategy ioStrategy)");
+        out.println("           throws OncRpcException, IOException {");
+        out.println("        this(host, port, auth, program, version, protocol, localPort, ioStrategy, DEFAULT_SERVICE_NAME);");
+        out.println("    }");
+        out.println();
         out.println("    /**");
         out.println("     * Constructs a <code>" + clientClass + "</code> client stub proxy object");
         out.println("     * from which the " + programInfo.programId + " remote program can be accessed.");
@@ -2007,12 +2017,13 @@ public class jrpcgen {
         out.println("     *   used for ONC/RPC calls.");
         out.println("     * @param localPort local port to bind to. <=0 for any (ephemeral)");
         out.println("     * @param ioStrategy io handling strategy. null for default");
+        out.println("     * @param serviceName to identify threads created for the service. null for default");
         out.println("     * @throws OncRpcException if an ONC/RPC error occurs.");
         out.println("     * @throws IOException if an I/O error occurs.");
         out.println("     */");
-        out.println("    public " + clientClass + "(InetAddress host, int port, RpcAuth auth, int program, int version, int protocol, int localPort, IoStrategy ioStrategy)");
+        out.println("    public " + clientClass + "(InetAddress host, int port, RpcAuth auth, int program, int version, int protocol, int localPort, IoStrategy ioStrategy, String serviceName)");
         out.println("           throws OncRpcException, IOException {");
-        out.println("        rpcClient = new OncRpcClient(host, protocol, port, localPort, ioStrategy);");
+        out.println("        rpcClient = new OncRpcClient(host, protocol, port, localPort, ioStrategy, serviceName);");
         out.println("        try {");
         out.println("            client = new RpcCall(program, version, auth, rpcClient.connect());");
         out.println("        } catch (IOException e) {");
