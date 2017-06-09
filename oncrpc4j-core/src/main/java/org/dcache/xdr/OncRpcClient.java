@@ -26,33 +26,39 @@ import java.util.concurrent.TimeUnit;
 
 public class OncRpcClient implements AutoCloseable {
 
+    private static final String DEFAULT_SERVICE_NAME = null;
+
     private final InetSocketAddress _socketAddress;
     private final OncRpcSvc _rpcsvc;
 
     public OncRpcClient(InetAddress address, int protocol, int port) {
-        this(new InetSocketAddress(address, port), protocol, 0, IoStrategy.SAME_THREAD);
+        this(new InetSocketAddress(address, port), protocol, 0, IoStrategy.SAME_THREAD, DEFAULT_SERVICE_NAME);
     }
 
     public OncRpcClient(InetAddress address, int protocol, int port, int localPort) {
-        this(new InetSocketAddress(address, port), protocol, localPort, IoStrategy.SAME_THREAD);
+        this(new InetSocketAddress(address, port), protocol, localPort, IoStrategy.SAME_THREAD, DEFAULT_SERVICE_NAME);
     }
 
     public OncRpcClient(InetAddress address, int protocol, int port, int localPort, IoStrategy ioStrategy) {
-        this(new InetSocketAddress(address, port), protocol, localPort, ioStrategy);
+        this(new InetSocketAddress(address, port), protocol, localPort, ioStrategy, DEFAULT_SERVICE_NAME);
+    }
+
+    public OncRpcClient(InetAddress address, int protocol, int port, int localPort, IoStrategy ioStrategy, String serviceName) {
+        this(new InetSocketAddress(address, port), protocol, localPort, ioStrategy, serviceName);
     }
 
     public OncRpcClient(InetSocketAddress socketAddress, int protocol) {
-        this(socketAddress, protocol, 0, IoStrategy.SAME_THREAD);
+        this(socketAddress, protocol, 0, IoStrategy.SAME_THREAD, DEFAULT_SERVICE_NAME);
     }
 
-    public OncRpcClient(InetSocketAddress socketAddress, int protocol, int localPort, IoStrategy ioStrategy) {
-
+    public OncRpcClient(InetSocketAddress socketAddress, int protocol, int localPort, IoStrategy ioStrategy, String serviceName) {
         _socketAddress = socketAddress;
         _rpcsvc = new OncRpcSvcBuilder()
                 .withClientMode()
                 .withPort(localPort)
                 .withIpProtocolType(protocol)
                 .withIoStrategy(ioStrategy)
+                .withServiceName(serviceName)
                 .build();
     }
 
