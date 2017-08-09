@@ -183,6 +183,7 @@ public class OncRpcSvc {
      * @param services
      * @deprecated use {@link OncRpcSvcBuilder#withRpcService} instead.
      */
+    @Deprecated
     public void setPrograms(Map<OncRpcProgram, RpcDispatchable> services) {
         _programs.putAll(services);
     }

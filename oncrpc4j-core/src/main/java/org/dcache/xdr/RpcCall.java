@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InterruptedIOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.InetSocketAddress;
 import java.nio.channels.CompletionHandler;
 import java.util.Random;
@@ -497,9 +498,9 @@ public class RpcCall {
     public <T extends XdrAble> Future<T> call(int procedure, XdrAble args, final Class<T> type, final RpcAuth auth)
             throws IOException {
         try {
-            T result = type.newInstance();
+            T result = type.getDeclaredConstructor().newInstance();
             return getCallFuture(procedure, args, result, 0, null, auth);
-        } catch (InstantiationException | IllegalAccessException e) {
+        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
             // this exceptions point to bugs
             throw new RuntimeException("Failed to create in instance of " + type, e);
         }
