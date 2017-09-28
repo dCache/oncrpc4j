@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2016 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2017 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -401,10 +401,10 @@ public class OncRpcSvc {
      */
     public InetSocketAddress getInetSocketAddress(int protocol) {
         Class< ? extends Transport> transportClass = transportFor(protocol);
-        for (Connection<InetSocketAddress> connection: _boundConnections) {
-            if(connection.getTransport().getClass() == transportClass)
-                return connection.getLocalAddress();
-        }
-        return null;
+	return _boundConnections.stream()
+		.filter(c -> c.getTransport().getClass() == transportClass)
+		.map(Connection::getLocalAddress)
+		.findAny()
+		.orElse(null);
     }
 }
