@@ -66,6 +66,7 @@ import java.util.concurrent.TimeoutException;
 import static com.google.common.base.Throwables.getRootCause;
 import static com.google.common.base.Throwables.propagateIfPossible;
 import java.net.SocketAddress;
+import java.util.stream.Collectors;
 import static org.dcache.xdr.GrizzlyUtils.getSelectorPoolCfg;
 import static org.dcache.xdr.GrizzlyUtils.rpcMessageReceiverFor;
 import static org.dcache.xdr.GrizzlyUtils.transportFor;
@@ -98,6 +99,11 @@ public class OncRpcSvc {
      */
     private final Map<OncRpcProgram, RpcDispatchable> _programs =
             new ConcurrentHashMap<>();
+
+    /**
+     * Name of this service
+     */
+    private final String _svcName;
 
     /**
      * Create new RPC service with defined configuration.
@@ -155,6 +161,7 @@ public class OncRpcSvc {
         _gssSessionManager = builder.getGssSessionManager();
         _programs.putAll(builder.getRpcServices());
         _withSubjectPropagation = builder.getSubjectPropagation();
+	_svcName = builder.getServiceName();
     }
 
     /**
@@ -406,5 +413,21 @@ public class OncRpcSvc {
 		.map(Connection::getLocalAddress)
 		.findAny()
 		.orElse(null);
+    }
+
+    /**
+     * Get name of this service.
+     * @return name of this service.
+     */
+    public String getName() {
+	return _svcName;
+    }
+
+    @Override
+    public String toString() {
+	return _boundConnections.stream()
+		.map(Connection::getLocalAddress)
+		.map(Object::toString)
+		.collect(Collectors.joining(",", getName() +"-[", "]"));
     }
 }
