@@ -153,9 +153,9 @@ public class OncRpcSvc {
 
         if (builder.isWithJMX()) {
             final GrizzlyJmxManager jmxManager = GrizzlyJmxManager.instance();
-            for (Transport t : _transports) {
-                jmxManager.registerAtRoot(t.getMonitoringConfig().createManagementObject(), t.getName() + "-" + _portRange);
-            }
+	    _transports.forEach((t) -> {
+		jmxManager.registerAtRoot(t.getMonitoringConfig().createManagementObject(), t.getName() + "-" + _portRange);
+	    });
         }
         _requestExecutor = builder.getWorkerThreadExecutorService();
         _gssSessionManager = builder.getGssSessionManager();

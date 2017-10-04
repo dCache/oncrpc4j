@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2015 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2017 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -19,7 +19,6 @@
  */
 package org.dcache.xdr;
 
-import java.io.IOException;
 import org.dcache.xdr.portmap.OncRpcEmbeddedPortmap;
 
 public class SimpleRpcServer {
@@ -42,21 +41,14 @@ public class SimpleRpcServer {
 
         new OncRpcEmbeddedPortmap();
 
-        RpcDispatchable dummy = new RpcDispatchable() {
-
-            @Override
-            public void dispatchOncRpcCall(RpcCall call) throws OncRpcException, IOException {
-                call.reply(XdrVoid.XDR_VOID);
-            }
-        };
-
         OncRpcSvc svc = new OncRpcSvcBuilder()
                 .withTCP()
                 .withAutoPublish()
                 .withPort(port)
                 .withSameThreadIoStrategy()
                 .withJMX()
-                .withRpcService(new OncRpcProgram(PROG_NUMBER, PROG_VERS), dummy)
+                .withRpcService(new OncRpcProgram(PROG_NUMBER, PROG_VERS),
+			call -> call.reply(XdrVoid.XDR_VOID))
                 .build();
 
         svc.start();

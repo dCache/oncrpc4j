@@ -26,22 +26,16 @@ public class OncRpcEmbeddedPortmapTest {
 		portmap = new OncRpcEmbeddedPortmap();
 		assumeTrue(portmap.isEmbeddedPortmapper()); // skip test if not embedded portmapper
 
-		RpcDispatchable dummy = new RpcDispatchable() {
-			@Override
-			public void dispatchOncRpcCall(RpcCall call) throws OncRpcException, IOException {
-				call.reply(XdrVoid.XDR_VOID);
-			}
-		};
 		OncRpcSvc svc = new OncRpcSvcBuilder()
 			.withTCP()
 			.withAutoPublish()
 			.withSameThreadIoStrategy()
-			.withRpcService(new OncRpcProgram(100017, 1), dummy)
+			.withRpcService(new OncRpcProgram(100017, 1), call -> call.reply(XdrVoid.XDR_VOID))
 			.build();
 		svc.start();
 		// Open portmap and check nedtid content with dump
 		try ( OncRpcClient rpcClient = new OncRpcClient(InetAddress.getLocalHost(), IpProtocolType.UDP,111) ) {
-			OncPortmapClient portmapClient = new GenericPortmapClient(rpcClient.connect()); // init portmapper (only v2 atm)		
+			OncPortmapClient portmapClient = new GenericPortmapClient(rpcClient.connect()); // init portmapper (only v2 atm)
 			portmapClient.ping();
 			for ( rpcb current : portmapClient.dump() ) {
 				assertTrue("NedId value incorrect: "+current.getNetid(), Arrays.asList(NETID_NAMES).contains(current.getNetid()) );

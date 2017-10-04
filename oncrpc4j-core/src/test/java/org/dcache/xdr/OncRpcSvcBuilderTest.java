@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2015 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2017 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -39,13 +39,9 @@ public class OncRpcSvcBuilderTest {
         ExecutorService executorService = builder.getWorkerThreadExecutorService();
         final Object[] holder = new Object[1];
         final Thread thisThread = Thread.currentThread();
-        executorService.execute( new Runnable() {
-
-            @Override
-            public void run() {
-                holder[0] = Thread.currentThread();
-            }
-        });
+        executorService.execute(() -> {
+	    holder[0] = Thread.currentThread();
+	});
 
         assertTrue("Executoed in a different thread", thisThread == holder[0]);
     }
@@ -59,13 +55,9 @@ public class OncRpcSvcBuilderTest {
         ExecutorService executorService = builder.getWorkerThreadExecutorService();
         final Object[] holder = new Object[1];
         final Thread thisThread = Thread.currentThread();
-        executorService.execute(new Runnable() {
-
-            @Override
-            public void run() {
-                holder[0] = Thread.currentThread();
-            }
-        });
+        executorService.execute(() -> {
+	    holder[0] = Thread.currentThread();
+	});
 
         assertTrue("Executoed in the same thread", thisThread != holder[0]);
     }
