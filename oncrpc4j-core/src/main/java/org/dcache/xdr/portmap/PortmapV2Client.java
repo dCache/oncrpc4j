@@ -51,13 +51,13 @@ public class PortmapV2Client implements OncPortmapClient {
         _call.call(OncRpcPortmap.PMAPPROC_DUMP, XdrVoid.XDR_VOID, list_reply);
 		List<rpcb> out = new LinkedList<>();
 		// walk entries and add to list
-		out.add( new rpcb(list_reply.getEntry() ) );
-		while( (list_reply = list_reply.getNext()) != null ) {
+		do {
 			mapping c = list_reply.getEntry();
 			if ( c != null ) {
 				out.add( new rpcb(c) );
 			}
 		}
+		while( (list_reply = list_reply.getNext()) != null ); 
 		return out;
     }
 
