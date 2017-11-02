@@ -82,7 +82,7 @@ public class PortmapV2Client implements OncPortmapClient {
             return false;
         }
         InetSocketAddress address = org.dcache.xdr.netid.toInetSocketAddress(addr);
-        mapping m1 = new mapping(program, version, protocol, address.getPort());
+        mapping m1 = new mapping(program, version, protocol, address.getPort(),owner);
 
         XdrBoolean isSet = new XdrBoolean();
         _call.call(OncRpcPortmap.PMAPPROC_SET, m1, isSet);
@@ -96,7 +96,7 @@ public class PortmapV2Client implements OncPortmapClient {
         _log.debug("portmap unset port: prog: {} vers: {}, owner: {}",
                 new Object[]{program, version, owner});
 
-        mapping m = new mapping(program, version, 0, -1);
+        mapping m = new mapping(program, version, 0, -1,owner);
 
         XdrBoolean isSet = new XdrBoolean();
         _call.call(OncRpcPortmap.PMAPPROC_UNSET, m, isSet);
