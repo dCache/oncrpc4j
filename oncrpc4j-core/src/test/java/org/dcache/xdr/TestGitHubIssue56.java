@@ -1,4 +1,4 @@
-package org.dcache.jarpcbind;
+package org.dcache.xdr;
 
 import static org.junit.Assert.*;
 
