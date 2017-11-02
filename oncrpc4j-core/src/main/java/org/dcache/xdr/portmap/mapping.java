@@ -32,6 +32,7 @@ public class mapping implements XdrAble {
     private int _vers;
     private int _prot;
     private int _port;
+    private String _owner;
 
     public int getPort() {
         return _port;
@@ -49,21 +50,32 @@ public class mapping implements XdrAble {
         return _vers;
     }
 
+    public String getOwner() {
+        return _owner;
+    }
+
     public mapping() {}
 
+	@Deprecated
     public mapping(int prog, int vers, int prot, int port) {
+    	this(prog,vers,prot,port,"unspecified");
+    }
+
+    public mapping(int prog, int vers, int prot, int port, String owner) {
         _prog = prog;
         _vers = vers;
         _prot = prot;
         _port = port;
-    }
+        _owner = owner;
+	}
 
-    @Override
+	@Override
     public void xdrDecode(XdrDecodingStream xdr) throws OncRpcException, IOException {
         _prog = xdr.xdrDecodeInt();
         _vers = xdr.xdrDecodeInt();
         _prot = xdr.xdrDecodeInt();
         _port = xdr.xdrDecodeInt();
+        _owner = xdr.xdrDecodeString();
     }
 
     @Override
@@ -72,11 +84,12 @@ public class mapping implements XdrAble {
         xdr.xdrEncodeInt(_vers);
         xdr.xdrEncodeInt(_prot);
         xdr.xdrEncodeInt(_port);
+        xdr.xdrEncodeString(_owner);
     }
 
     @Override
     public String toString() {
-        return String.format("prog: %d, vers: %d, prot: %s, port: %d",
-                _prog, _vers, IpProtocolType.toString(_prot), _port);
+        return String.format("prog: %d, vers: %d, prot: %s, port: %d, owner %s",
+                _prog, _vers, IpProtocolType.toString(_prot), _port,_owner);
     }
 }

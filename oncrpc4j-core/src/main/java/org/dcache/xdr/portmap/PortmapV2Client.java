@@ -51,13 +51,13 @@ public class PortmapV2Client implements OncPortmapClient {
         _call.call(OncRpcPortmap.PMAPPROC_DUMP, XdrVoid.XDR_VOID, list_reply);
 		List<rpcb> out = new LinkedList<>();
 		// walk entries and add to list
-		out.add( new rpcb(list_reply.getEntry() ) );
-		while( (list_reply = list_reply.getNext()) != null ) {
+		do {
 			mapping c = list_reply.getEntry();
 			if ( c != null ) {
 				out.add( new rpcb(c) );
 			}
 		}
+		while( (list_reply = list_reply.getNext()) != null ); 
 		return out;
     }
 
@@ -82,7 +82,7 @@ public class PortmapV2Client implements OncPortmapClient {
             return false;
         }
         InetSocketAddress address = org.dcache.xdr.netid.toInetSocketAddress(addr);
-        mapping m1 = new mapping(program, version, protocol, address.getPort());
+        mapping m1 = new mapping(program, version, protocol, address.getPort(),owner);
 
         XdrBoolean isSet = new XdrBoolean();
         _call.call(OncRpcPortmap.PMAPPROC_SET, m1, isSet);
@@ -96,7 +96,7 @@ public class PortmapV2Client implements OncPortmapClient {
         _log.debug("portmap unset port: prog: {} vers: {}, owner: {}",
                 new Object[]{program, version, owner});
 
-        mapping m = new mapping(program, version, 0, -1);
+        mapping m = new mapping(program, version, 0, -1,owner);
 
         XdrBoolean isSet = new XdrBoolean();
         _call.call(OncRpcPortmap.PMAPPROC_UNSET, m, isSet);
