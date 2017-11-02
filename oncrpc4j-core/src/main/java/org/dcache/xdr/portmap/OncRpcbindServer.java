@@ -100,6 +100,8 @@ public class OncRpcbindServer implements RpcDispatchable {
                 // we sore everything in v4 format
                 rpcb rpcbUnsetMapping = new rpcb(unsetMapping);
 				Boolean removed = false;
+
+                System.out.println("Try to remove:" +  unsetMapping);
                 synchronized(_services) {
 					Set<rpcb> target = new HashSet<>();
 					// lookup entries
@@ -125,6 +127,7 @@ public class OncRpcbindServer implements RpcDispatchable {
 							continue;
 						}
                         next.setEntry(mapping.toMapping());
+                        System.out.println("Added to result list:" + next.getEntry() );
                         pmaplist n = new pmaplist();
                         next.setNext(n);
                         next = n;

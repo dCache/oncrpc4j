@@ -61,7 +61,7 @@ public class rpcb implements XdrAble {
         _vers = old.getVers();
         _netid = IpProtocolType.toString(old.getProt());
         _addr = netid.toString(old.getPort());
-        _owner = "unspecified";
+        _owner = old.getOwner();
     }
 
     public rpcb(int prog, int vers, String netid, String addr, String owner) {
@@ -115,7 +115,7 @@ public class rpcb implements XdrAble {
 
     public mapping toMapping() {
 
-        return new mapping(_prog, _vers, netid.idOf(_netid) , netid.getPort(_addr) );
+        return new mapping(_prog, _vers, netid.idOf(_netid) , netid.getPort(_addr),_owner );
     }
 
     boolean match(rpcb query) {

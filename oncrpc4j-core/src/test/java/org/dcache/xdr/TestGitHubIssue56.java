@@ -35,9 +35,26 @@ public class TestGitHubIssue56 {
 		XdrTransport transport = rpcClient.connect();
 		GenericPortmapClient portmapClient = new GenericPortmapClient(transport);
 		for (rpcb r : portmapClient.dump()){
-			assertEquals("administrator",r.getOwner());
+			assertEquals("superuser",r.getOwner());
 		}
 		
 	}
+	@Test
+	public void UnsetTest() throws IOException, TimeoutException {
 
+		OncRpcSvc rpcbindServer = new OncRpcSvcBuilder()
+                .withTCP()
+                .withUDP()
+                .withoutAutoPublish()
+                .withRpcService(new OncRpcProgram(OncRpcPortmap.PORTMAP_PROGRAMM, OncRpcPortmap.PORTMAP_V2), new OncRpcbindServer())
+                .build();
+		rpcbindServer.start();
+		int protoType = IpProtocolType.TCP;
+		OncRpcClient rpcClient = new OncRpcClient(rpcbindServer.getInetSocketAddress(protoType),protoType );
+		XdrTransport transport = rpcClient.connect();
+		GenericPortmapClient portmapClient = new GenericPortmapClient(transport);
+		boolean isUnset=portmapClient.unsetPort(OncRpcPortmap.PORTMAP_PROGRAMM, OncRpcPortmap.PORTMAP_V2, "superuser");
+		assertTrue(isUnset);
+	}
+	
 }
