@@ -55,6 +55,11 @@ public class TestGitHubIssue56 {
 		GenericPortmapClient portmapClient = new GenericPortmapClient(transport);
 		boolean isUnset=portmapClient.unsetPort(OncRpcPortmap.PORTMAP_PROGRAMM, OncRpcPortmap.PORTMAP_V2, "superuser");
 		assertTrue(isUnset);
+		//NPE when dumping an empry portmapper registrar
+		assertEquals(0,portmapClient.dump().size());
+		boolean isSet=portmapClient.setPort(OncRpcPortmap.PORTMAP_PROGRAMM, OncRpcPortmap.PORTMAP_V2,"tcp","127.0.0.1.0.234", "superuser");
+		assertTrue(isSet);
+		assertEquals(1,portmapClient.dump().size());
 	}
 	
 }
