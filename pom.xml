@@ -57,6 +57,7 @@
     <!--  version of other plugins-->
     <animal-sniffer-maven-plugin>1.15</animal-sniffer-maven-plugin>
     <maven-compiler-plugin.version>3.7.0</maven-compiler-plugin.version>
+    <maven-jar-plugin.version>2.4</maven-jar-plugin.version>
     <maven-release-plugin>2.4.2</maven-release-plugin>
     
     <!--  version of dependencies-->
@@ -93,6 +94,11 @@
           <artifactId>build-helper-maven-plugin</artifactId>
           <version>${build-helper-maven-plugin.version}</version>
         </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-jar-plugin</artifactId>
+          <version>${maven-jar-plugin.version}</version>
+	</plugin>
       </plugins>
     </pluginManagement>
 
