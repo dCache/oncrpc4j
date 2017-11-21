@@ -12,13 +12,17 @@
 
   <name>Spring integarion for ONCRPC4J</name>
   <url>http://www.dCache.ORG</url>
-
+  
+  <properties>
+    <maven-assembly-plugin.version>2.3</maven-assembly-plugin.version>
+  </properties>
+  
   <build>
       <plugins>
           <plugin>
               <groupId>org.apache.maven.plugins</groupId>
               <artifactId>maven-assembly-plugin</artifactId>
-              <version>2.3</version>
+              <version>${maven-assembly-plugin.version}</version>
               <executions>
                   <execution>
                       <goals>
@@ -49,7 +53,6 @@
           <plugin>
               <groupId>org.apache.maven.plugins</groupId>
               <artifactId>maven-jar-plugin</artifactId>
-              <version>2.4</version>
               <configuration>
                   <archive>
                       <manifest>
