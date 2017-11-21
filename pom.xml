@@ -42,6 +42,37 @@
       <module>oncrpc4j-rpcgen</module>
       <module>oncrpc4j-portmapdaemon</module>
   </modules>
+  
+  <properties>
+    <!--  PROPERTIES FOR DEPENDENCIES
+	 Each property is constructed from the artifact name
+	 They are in alphabetical order for each subsection
+    -->
+  
+    <!--  version of plugins in pluginManagement -->
+    <build-helper-maven-plugin.version>1.9.1</build-helper-maven-plugin.version>
+    <exec-maven-plugin.version>1.4.0</exec-maven-plugin.version>
+    <maven-pmd-plugin.version>3.0.1</maven-pmd-plugin.version>
+    
+    <!--  version of other plugins-->
+    <animal-sniffer-maven-plugin>1.15</animal-sniffer-maven-plugin>
+    <maven-compiler-plugin.version>3.7.0</maven-compiler-plugin.version>
+    <maven-release-plugin>2.4.2</maven-release-plugin>
+    
+    <!--  version of dependencies-->
+    <dcache-auth.version>0.0.11</dcache-auth.version>
+    <gmbal-api-only.version>3.2.0-b003</gmbal-api-only.version>
+    <grizzly-framework.version>2.3.24</grizzly-framework.version>
+    <guava.version>20.0</guava.version>
+    <slf4j-api.version>1.7.25</slf4j-api.version>
+    <spring-context.version>4.0.3.RELEASE</spring-context.version>
+    
+    <!--  version of test dependencies  -->
+    <junit.version>4.12</junit.version>
+    <mockito-core.version>2.10.0</mockito-core.version>
+    <logback-classic.version>1.2.3</logback-classic.version>
+  </properties>
+	
 
   <build>
 
@@ -50,17 +81,17 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-pmd-plugin</artifactId>
-          <version>3.0.1</version>
+          <version>${maven-pmd-plugin}</version>
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>exec-maven-plugin</artifactId>
-          <version>1.4.0</version>
+          <version>${exec-maven-plugin.version}</version>
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>build-helper-maven-plugin</artifactId>
-          <version>1.9.1</version>
+          <version>${build-helper-maven-plugin.version}</version>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -69,7 +100,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.7.0</version>
+        <version>${maven-compiler-plugin.version}</version>
         <configuration>
           <source>1.8</source>
           <target>1.8</target>
@@ -81,7 +112,7 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>animal-sniffer-maven-plugin</artifactId>
-        <version>1.15</version>
+        <version>${animal-sniffer-maven-plugin}</version>
         <configuration>
           <signature>
             <groupId>org.codehaus.mojo.signature</groupId>
@@ -102,7 +133,7 @@
       <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-release-plugin</artifactId>
-          <version>2.4.2</version>
+          <version>${maven-release-plugin}</version>
           <dependencies>
               <dependency>
                   <groupId>org.apache.maven.scm</groupId>
@@ -122,59 +153,59 @@
           <dependency>
               <groupId>org.glassfish.grizzly</groupId>
               <artifactId>grizzly-framework</artifactId>
-              <version>2.3.24</version>
+              <version>${grizzly-framework.version}</version>
           </dependency>
           <dependency>
               <groupId>org.glassfish.grizzly</groupId>
               <artifactId>grizzly-framework-monitoring</artifactId>
-              <version>2.3.24</version>
+              <version>${grizzly-framework.version}</version>
           </dependency>
           <dependency>
               <groupId>org.springframework</groupId>
               <artifactId>spring-context</artifactId>
-              <version>4.0.3.RELEASE</version>
+              <version>${spring-context.version}</version>
           </dependency>
           <dependency>
               <groupId>junit</groupId>
               <artifactId>junit</artifactId>
-              <version>4.12</version>
+              <version>${junit.version}</version>
               <scope>test</scope>
           </dependency>
           <dependency>
               <groupId>org.mockito</groupId>
               <artifactId>mockito-core</artifactId>
-              <version>2.10.0</version>
+              <version>${mockito-core.version}</version>
               <scope>test</scope>
           </dependency>
           <dependency>
               <groupId>com.google.guava</groupId>
               <artifactId>guava</artifactId>
-              <version>20.0</version>
+              <version>${guava.version}</version>
           </dependency>
           <dependency>
               <groupId>org.dcache.common</groupId>
               <artifactId>dcache-auth</artifactId>
-              <version>0.0.11</version>
+              <version>${dcache-auth.version}</version>
           </dependency>
           <dependency>
               <groupId>org.glassfish.gmbal</groupId>
               <artifactId>gmbal-api-only</artifactId>
-              <version>3.2.0-b003</version>
+              <version>${gmbal-api-only.version}</version>
           </dependency>
           <dependency>
               <groupId>org.slf4j</groupId>
               <artifactId>slf4j-api</artifactId>
-              <version>1.7.25</version>
+              <version>${slf4j-api.version}</version>
           </dependency>
           <dependency>
               <groupId>ch.qos.logback</groupId>
               <artifactId>logback-classic</artifactId>
-              <version>1.2.3</version>
+              <version>${logback-classic.version}</version>
           </dependency>
           <dependency>
               <groupId>org.slf4j</groupId>
               <artifactId>slf4j-simple</artifactId>
-              <version>1.7.25</version>
+              <version>${slf4j-api.version}</version>
           </dependency>
       </dependencies>
   </dependencyManagement>
