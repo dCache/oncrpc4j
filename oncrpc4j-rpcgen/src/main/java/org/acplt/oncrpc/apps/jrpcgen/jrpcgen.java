@@ -1111,7 +1111,7 @@ public class jrpcgen {
             //
             for (int size = s.elements.size(); size > 1; --size) {
                 decl = (JrpcgenDeclaration) decls.nextElement();
-                out.print("    if( $this." + decl.identifier + " != null)  " + codingMethod(decl, true, "$this"));
+                out.print("    " + codingMethod(decl, true, "$this"));
             }
             decl = (JrpcgenDeclaration) decls.nextElement();
             out.println("            $this = $this." + decl.identifier + ";");
