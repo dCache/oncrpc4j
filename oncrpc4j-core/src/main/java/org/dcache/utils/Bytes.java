@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2014 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2018 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -105,65 +105,4 @@ public final class Bytes {
                 | (bytes[offset + 2] & 0xFF) << 8
                 | (bytes[offset + 3] & 0xFF);
     }
-
-    private final static char[] HEX =  new char[] {
-            '0','1','2','3','4','5','6','7',
-            '8','9','a','b','c','d','e','f'
-        };
-
-    /**
-     * Returns a hexadecimal representation of given byte array.
-     *
-     * @param bytes whose string representation to return
-     * @return a string representation of <tt>bytes</tt>
-     */
-    public static String toHexString(byte[] bytes) {
-
-        char[] chars = new char[bytes.length*2];
-        int p = 0;
-        for(byte b : bytes) {
-            int i = b & 0xff;
-            chars[p++] = HEX[i / 16];
-            chars[p++] = HEX[i%16];
-        }
-        return new String(chars);
-    }
-
-    /**
-     * Create a byte array from the given hexadecimal string.
-     *
-     * @param s string to convert
-     * @return byte array
-     */
-    public static byte[] fromHexString(String s) {
-
-        if (s.length() % 2 != 0) {
-            throw new IllegalArgumentException("The string needs to be even-length: " + s);
-        }
-
-        int len = s.length() / 2;
-        byte[] bytes = new byte[len];
-
-        for (int i = 0; i < len; i++) {
-            final int charIndex = i * 2;
-            final int d0 = toDigit(s.charAt(charIndex));
-            final int d1 = toDigit(s.charAt(charIndex + 1));
-            bytes[i] = (byte) ((d0 << 4) + d1);
-        }
-        return bytes;
-    }
-
-    private static int toDigit(char ch) throws NumberFormatException {
-        if (ch >= '0' && ch <= '9') {
-            return ch - '0';
-        }
-        if (ch >= 'A' && ch <= 'F') {
-            return ch - 'A' + 10;
-        }
-        if (ch >= 'a' && ch <= 'f') {
-            return ch - 'a' + 10;
-        }
-        throw new NumberFormatException("illegal character '" + ch + "'");
-    }
-
 }
