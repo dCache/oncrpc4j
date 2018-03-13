@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2014 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2018 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -30,7 +30,7 @@ import javax.security.auth.Subject;
 import javax.security.auth.kerberos.KerberosPrincipal;
 
 import org.dcache.xdr.RpcLoginService;
-import org.dcache.utils.Opaque;
+import org.dcache.xdr.XdrOpaque;
 
 import org.ietf.jgss.GSSContext;
 import org.ietf.jgss.GSSCredential;
@@ -72,16 +72,16 @@ public class GssSessionManager {
                 krb5Mechanism, GSSCredential.ACCEPT_ONLY);
         _loginService = loginService;
     }
-    private final Map<Opaque, GSSContext> sessions = new ConcurrentHashMap<>();
+    private final Map<XdrOpaque, GSSContext> sessions = new ConcurrentHashMap<>();
 
     public GSSContext createContext(byte[] handle) throws GSSException {
         GSSContext context = gManager.createContext(_serviceCredential);
-        sessions.put(new Opaque(handle), context);
+        sessions.put(new XdrOpaque(handle), context);
         return context;
     }
 
     public GSSContext getContext(byte[] handle) throws GSSException {
-        GSSContext context = sessions.get(new Opaque(handle));
+        GSSContext context = sessions.get(new XdrOpaque(handle));
         if(context == null) {
             throw new GSSException(GSSException.NO_CONTEXT);
         }
@@ -96,7 +96,7 @@ public class GssSessionManager {
     }
 
     public GSSContext destroyContext(byte[] handle) throws GSSException {
-        GSSContext context = sessions.remove(new Opaque(handle));
+        GSSContext context = sessions.remove(new XdrOpaque(handle));
         if(context == null || !context.isEstablished()) {
             throw new GSSException(GSSException.NO_CONTEXT);
         }

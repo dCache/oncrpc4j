@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2012 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2018 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -17,20 +17,27 @@
  * details); if not, write to the Free Software Foundation, Inc.,
  * 675 Mass Ave, Cambridge, MA 02139, USA.
  */
-package org.dcache.utils;
+package org.dcache.xdr;
 
+import com.google.common.io.BaseEncoding;
+import java.io.IOException;
 import java.util.Arrays;
 
 /**
- * A helper class for opaque data manipulations.
- * Enabled opaque date to be used as a key in {@link java.util.Collection}
+ * A wrapper class that makes dynamic opaque data suitable for xdr encoding.
+ * The wrapper provides equals and hashCode methods to make use in collections
+ * more effective.
  */
-public class Opaque {
+public class XdrOpaque implements XdrAble {
 
-    private final byte[] _opaque;
+    private byte[] _opaque;
 
-    public Opaque(byte[] opaque) {
+    public XdrOpaque(byte[] opaque) {
         _opaque = opaque;
+    }
+
+    public XdrOpaque(XdrDecodingStream xdr) throws IOException {
+        xdrDecode(xdr);
     }
 
     public byte[] getOpaque() {
@@ -47,21 +54,29 @@ public class Opaque {
         if (o == this) {
             return true;
         }
-        if (!(o instanceof Opaque)) {
+        if (!(o instanceof XdrOpaque)) {
             return false;
         }
 
-        return Arrays.equals(_opaque, ((Opaque) o)._opaque);
+        return Arrays.equals(_opaque, ((XdrOpaque) o)._opaque);
     }
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append('[');
-        for (byte b : _opaque) {
-            sb.append(Integer.toHexString(0xFF & b).toUpperCase());
-        }
-        sb.append(']');
-        return sb.toString();
+        return  new StringBuilder()
+            .append('[')
+            .append(BaseEncoding.base16().upperCase().encode(_opaque))
+            .append(']')
+            .toString();
+    }
+
+    @Override
+    public void xdrDecode(XdrDecodingStream xdr) throws OncRpcException, IOException {
+        _opaque = xdr.xdrDecodeDynamicOpaque();
+    }
+
+    @Override
+    public void xdrEncode(XdrEncodingStream xdr) throws OncRpcException, IOException {
+        xdr.xdrEncodeDynamicOpaque(_opaque);
     }
 }
