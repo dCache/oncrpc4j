@@ -20,10 +20,10 @@ Embedding service into an application
 ```java
 package me.mypackage;
 
-import org.dcache.xdr.RpcDispatchable;
-import org.dcache.xdr.RpcCall;
-import org.dcache.xdr.XdrVoid;
-import org.dcache.xdr.OncRpcException;
+import org.dcache.oncrpc4j.rpc.OncRpcException;
+import org.dcache.oncrpc4j.rpc.RpcDispatchable;
+import org.dcache.oncrpc4j.rpc.RpcCall;
+import org.dcache.oncrpc4j.xdr.XdrVoid;
 
 public class Svcd {
 
@@ -61,10 +61,10 @@ public class Svcd {
 ```java
 package me.mypackage;
 
-import org.dcache.xdr.RpcDispatchable;
-import org.dcache.xdr.RpcCall;
-import org.dcache.xdr.XdrVoid;
-import org.dcache.xdr.OncRpcException;
+import org.dcache.oncrpc4j.rpc.OncRpcException;
+import org.dcache.oncrpc4j.rpc.RpcDispatchable;
+import org.dcache.oncrpc4j.rpc.RpcCall;
+import org.dcache.oncrpc4j.xdr.XdrVoid;
 import java.io.IOException;
 
 public class Svcd implements RpcDispatchable {
@@ -88,13 +88,13 @@ public class Svcd implements RpcDispatchable {
         <description>My RPC service</description>
     </bean>
 
-     <bean id="my-rpc" class="org.dcache.xdr.OncRpcProgram">
+     <bean id="my-rpc" class="org.dcache.oncrpc4j.rpc.OncRpcProgram">
         <description>My RPC program number</description>
         <constructor-arg index="0" value="1110001" />
         <constructor-arg index="1" value="1" />
     </bean>
 
-    <bean id="rpcsvc-builder" class="org.dcache.xdr.OncRpcSvcFactoryBean">
+    <bean id="rpcsvc-builder" class="org.dcache.oncrpc4j.rpc.OncRpcSvcFactoryBean">
         <description>Onc RPC service builder</description>
         <property name="port" value="1717"/>
         <property name="useTCP" value="true"/>
@@ -106,7 +106,7 @@ public class Svcd implements RpcDispatchable {
 
     </bean>
 
-    <bean id="oncrpcsvc" class="org.dcache.xdr.OncRpcSvc" init-method="start" destroy-method="stop">
+    <bean id="oncrpcsvc" class="org.dcache.oncrpc4j.rpc.OncRpcSvc" init-method="start" destroy-method="stop">
         <description>My RPC service</description>
         <constructor-arg ref="rpcsvc-builder"/>
     </bean>
@@ -117,8 +117,30 @@ Notice, that included *SpringRunner* will try to instantiate and run bean with i
 
 
 ```sh
-$ java -cp $CLASSPATH org.dcache.xdr.SpringRunner svc.xml
+$ java -cp $CLASSPATH org.dcache.oncrpc4j.spring.SpringRunner svc.xml
 ```
+
+Migration from ONCRPC4J-2.x
+---------------------------
+
+With version 3.0.0 a new package schema is introduced. As the change is not backward compatible with older
+version some minimal code changes are required.
+
+### Removed methods
+
+org.dcache.utils.Bytes#{fromHexString|toHexString} methods are removed in favour of com.google.common.io.BaseEncoding.
+
+### Renamed packages
+
+org.dcache.utils => org.dcache.oncrpc4j.util
+org.dcache.utils.net => org.dcache.oncrpc4j.rpc.net
+org.dcache.xdr split into org.dcache.oncrpc4j.rpc, org.dcache.oncrpc4j.xdr and org.dcache.oncrpc4j.grizzly
+
+### Renamed classes
+
+org.dcache.utils.Opaque => into org.dcache.oncrpc4j.XdrOpaque
+org.dcache.xdr.XdrTransport => into org.dcache.oncrpc4j.rpc.RpcTransport
+
 
 Using RPCGEN to generate client and server stubs
 ------------------------------------------------
@@ -136,13 +158,14 @@ program STRLEN {
 Here we define *STRLEN* program number to be *117* and version number *1*. Now we can generate stub files for client and server:
 
 ```sh
-$ java -jar oncrpc4j-rpcgen.jar -c StrlenClient strlen.x 
+$ java -jar oncrpc4j-rpcgen.jar -c StrlenClient strlen.x
 ```
 Simply extend this class and implement abstract methods:
 
 ```java
 //StrlenSvcImpl.java
-import org.dcache.xdr.*;
+import org.dcache.oncrpc4j.rpc.*;
+import org.dcache.oncrpc4j.xdr.*;
 
 public class StrlenSvcImpl extends strlenServerStub {
 
@@ -157,7 +180,8 @@ Now it's ready to be complied and deployed as standalone or Spring application:
 ```java
 // StrlenServerApp.java
 // standalone application example
-import org.dcache.xdr.*;
+import org.dcache.oncrpc4j.rpc.*;
+import org.dcache.oncrpc4j.xdr.*;
 
 public class StrlenServerApp {
 
@@ -183,12 +207,13 @@ In addition, a client will be generated as well which can be used as:
 ```java
 // StrlenClientApp.java
 import java.net.InetAddress;
-import org.dcache.xdr.*;
+import org.dcache.oncrpc4j.rpc.*;
+import org.dcache.oncrpc4j.xdr.*;
 
 public class StrlenClientApp {
-  
+
     static final int DEFAULT_PORT = 1717;
-    
+
     public static void main(String[] args) throws Exception {
         InetAddress address = InetAddress.getByName(args[0]);
 
@@ -315,4 +340,3 @@ then you just add a line saying ( git commit -s )
 	Signed-off-by: Random J Developer <random@developer.example.org>
 
 using your real name (sorry, no pseudonyms or anonymous contributions.)
-
