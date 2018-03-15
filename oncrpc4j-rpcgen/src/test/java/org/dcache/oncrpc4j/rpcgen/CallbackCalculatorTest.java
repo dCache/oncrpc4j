@@ -1,8 +1,7 @@
 package org.dcache.oncrpc4j.rpcgen;
 
-import org.dcache.xdr.RpcReply;
-import org.dcache.xdr.XdrLong;
-import org.dcache.xdr.XdrTransport;
+import org.dcache.oncrpc4j.rpc.RpcReply;
+import org.dcache.oncrpc4j.xdr.XdrLong;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -12,6 +11,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import org.dcache.oncrpc4j.rpc.RpcTransport;
 
 public class CallbackCalculatorTest extends AbstractCalculatorTest {
 
@@ -21,9 +21,9 @@ public class CallbackCalculatorTest extends AbstractCalculatorTest {
         final AtomicReference<CalculationResult> resultRef = new AtomicReference<>();
         final CountDownLatch latch = new CountDownLatch(1);
         long callTime = System.currentTimeMillis();
-        client.add_1_callback(1, 2, new CompletionHandler<RpcReply, XdrTransport>() {
+        client.add_1_callback(1, 2, new CompletionHandler<RpcReply, RpcTransport>() {
             @Override
-            public void completed(RpcReply result, XdrTransport attachment) {
+            public void completed(RpcReply result, RpcTransport attachment) {
                 callbackTimeRef.set(System.currentTimeMillis());
                 CalculationResult calculationResult = new CalculationResult();
                 try {
@@ -36,7 +36,7 @@ public class CallbackCalculatorTest extends AbstractCalculatorTest {
             }
 
             @Override
-            public void failed(Throwable exc, XdrTransport attachment) {
+            public void failed(Throwable exc, RpcTransport attachment) {
                 throw new IllegalStateException(exc);
             }
         }, 0, null, null);
@@ -63,9 +63,9 @@ public class CallbackCalculatorTest extends AbstractCalculatorTest {
         final AtomicReference<XdrLong> resultRef = new AtomicReference<>();
         final CountDownLatch latch = new CountDownLatch(1);
         long callTime = System.currentTimeMillis();
-        client.addSimple_1_callback(1, 2, new CompletionHandler<RpcReply, XdrTransport>() {
+        client.addSimple_1_callback(1, 2, new CompletionHandler<RpcReply, RpcTransport>() {
             @Override
-            public void completed(RpcReply result, XdrTransport attachment) {
+            public void completed(RpcReply result, RpcTransport attachment) {
                 callbackTimeRef.set(System.currentTimeMillis());
                 XdrLong calculationResult = new XdrLong();
                 try {
@@ -78,7 +78,7 @@ public class CallbackCalculatorTest extends AbstractCalculatorTest {
             }
 
             @Override
-            public void failed(Throwable exc, XdrTransport attachment) {
+            public void failed(Throwable exc, RpcTransport attachment) {
                 throw new IllegalStateException(exc);
             }
         }, 0, null, null);
@@ -102,15 +102,15 @@ public class CallbackCalculatorTest extends AbstractCalculatorTest {
     public void testCallbackAddTimeout() throws Exception {
         final AtomicReference<String> failureMsgRef = new AtomicReference<>();
         final CountDownLatch latch = new CountDownLatch(1);
-        client.addSimple_1_callback(1, 2, new CompletionHandler<RpcReply, XdrTransport>() {
+        client.addSimple_1_callback(1, 2, new CompletionHandler<RpcReply, RpcTransport>() {
             @Override
-            public void completed(RpcReply result, XdrTransport attachment) {
+            public void completed(RpcReply result, RpcTransport attachment) {
                 failureMsgRef.set("call should have timed out");
                 latch.countDown();
             }
 
             @Override
-            public void failed(Throwable exc, XdrTransport attachment) {
+            public void failed(Throwable exc, RpcTransport attachment) {
                 if (!(exc instanceof TimeoutException)) {
                     exc.printStackTrace();
                     failureMsgRef.set("expected TimeoutException. got "+exc);

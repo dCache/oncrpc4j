@@ -1,7 +1,7 @@
 package org.dcache.oncrpc4j.rpcgen;
 
 import com.google.common.io.BaseEncoding;
-import org.dcache.xdr.RpcCall;
+import org.dcache.oncrpc4j.rpc.RpcCall;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;

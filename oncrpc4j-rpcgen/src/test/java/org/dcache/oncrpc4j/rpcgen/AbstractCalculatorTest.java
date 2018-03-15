@@ -1,9 +1,9 @@
 package org.dcache.oncrpc4j.rpcgen;
 
-import org.dcache.xdr.IpProtocolType;
-import org.dcache.xdr.OncRpcProgram;
-import org.dcache.xdr.OncRpcSvc;
-import org.dcache.xdr.OncRpcSvcBuilder;
+import org.dcache.oncrpc4j.rpc.net.IpProtocolType;
+import org.dcache.oncrpc4j.rpc.OncRpcProgram;
+import org.dcache.oncrpc4j.rpc.OncRpcSvc;
+import org.dcache.oncrpc4j.rpc.OncRpcSvcBuilder;
 import org.junit.After;
 import org.junit.Before;
 

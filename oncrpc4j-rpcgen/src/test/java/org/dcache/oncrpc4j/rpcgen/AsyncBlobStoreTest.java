@@ -1,6 +1,6 @@
 package org.dcache.oncrpc4j.rpcgen;
 
-import org.dcache.xdr.RpcAuthTypeNone;
+import org.dcache.oncrpc4j.rpc.RpcAuthTypeNone;
 import org.junit.Assert;
 import org.junit.Test;
 

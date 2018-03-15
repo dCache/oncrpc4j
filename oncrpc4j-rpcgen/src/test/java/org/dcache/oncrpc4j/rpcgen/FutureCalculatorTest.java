@@ -1,6 +1,6 @@
 package org.dcache.oncrpc4j.rpcgen;
 
-import org.dcache.xdr.XdrLong;
+import org.dcache.oncrpc4j.xdr.XdrLong;
 import org.junit.Assert;
 import org.junit.Test;
 

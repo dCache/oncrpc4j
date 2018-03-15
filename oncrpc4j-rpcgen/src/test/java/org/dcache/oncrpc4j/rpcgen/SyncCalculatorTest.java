@@ -1,9 +1,9 @@
 package org.dcache.oncrpc4j.rpcgen;
 
-import org.dcache.xdr.IoStrategy;
-import org.dcache.xdr.IpProtocolType;
-import org.dcache.xdr.RpcAuthTypeNone;
-import org.dcache.xdr.RpcAuthTypeUnix;
+import org.dcache.oncrpc4j.rpc.IoStrategy;
+import org.dcache.oncrpc4j.rpc.net.IpProtocolType;
+import org.dcache.oncrpc4j.rpc.RpcAuthTypeNone;
+import org.dcache.oncrpc4j.rpc.RpcAuthTypeUnix;
 import org.junit.Assert;
 import org.junit.Test;
 

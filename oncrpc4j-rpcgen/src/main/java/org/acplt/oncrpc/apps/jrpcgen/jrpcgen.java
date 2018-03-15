@@ -352,7 +352,9 @@ public class jrpcgen {
         }
 
         if (emitImports) {
-            out.println("import org.dcache.xdr.*;");
+            out.println("import org.dcache.oncrpc4j.rpc.*;");
+            out.println("import org.dcache.oncrpc4j.rpc.net.*;");
+            out.println("import org.dcache.oncrpc4j.xdr.*;");
             out.println("import java.io.IOException;");
             out.println();
         }
@@ -1694,7 +1696,7 @@ public class jrpcgen {
             if (anyParamsPrinted) {
                 out.print(", ");
             }
-            out.print("CompletionHandler<RpcReply, XdrTransport> completionHandler");
+            out.print("CompletionHandler<RpcReply, RpcTransport> completionHandler");
             anyParamsPrinted = true;
         }
 
@@ -2013,7 +2015,7 @@ public class jrpcgen {
         out.println("     * @param auth {@link RpcAuth} to be used for RPC client authentication.");
         out.println("     * @param program Remote program number.");
         out.println("     * @param version Remote program version number.");
-        out.println("     * @param protocol {@link org.dcache.xdr.IpProtocolType} to be");
+        out.println("     * @param protocol {@link org.dcache.oncrpc4j.rpc.net.IpProtocolType} to be");
         out.println("     *   used for ONC/RPC calls.");
         out.println("     * @param localPort local port to bind to. <=0 for any (ephemeral)");
         out.println("     * @param ioStrategy io handling strategy. null for default");
@@ -2330,7 +2332,7 @@ public class jrpcgen {
         }
         PrintWriter out = createJavaSourceFile(serverClass);
 
-        out.println("import org.dcache.xdr.*;");
+        out.println("import org.dcache.oncrpc4j.xdr.*;");
         out.println();
 
         out.println("/**");

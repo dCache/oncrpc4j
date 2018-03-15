@@ -19,12 +19,12 @@
  */
 package org.dcache.jarpcbind;
 
-import org.dcache.xdr.OncRpcProgram;
-import org.dcache.xdr.OncRpcSvc;
-import org.dcache.xdr.OncRpcSvcBuilder;
-import org.dcache.xdr.RpcDispatchable;
-import org.dcache.xdr.portmap.OncRpcPortmap;
-import org.dcache.xdr.portmap.OncRpcbindServer;
+import org.dcache.oncrpc4j.rpc.OncRpcProgram;
+import org.dcache.oncrpc4j.rpc.OncRpcSvc;
+import org.dcache.oncrpc4j.rpc.OncRpcSvcBuilder;
+import org.dcache.oncrpc4j.rpc.RpcDispatchable;
+import org.dcache.oncrpc4j.portmap.OncRpcPortmap;
+import org.dcache.oncrpc4j.portmap.OncRpcbindServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
