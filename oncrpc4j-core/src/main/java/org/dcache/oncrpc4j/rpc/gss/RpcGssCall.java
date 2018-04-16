@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2012 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2018 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -28,7 +28,6 @@ import org.dcache.oncrpc4j.rpc.OncRpcException;
 import org.dcache.oncrpc4j.xdr.XdrDecodingStream;
 import org.dcache.oncrpc4j.xdr.Xdr;
 import org.dcache.oncrpc4j.xdr.XdrEncodingStream;
-import org.dcache.oncrpc4j.xdr.XdrBuffer;
 import org.dcache.oncrpc4j.xdr.XdrAble;
 import java.io.IOException;
 import org.ietf.jgss.GSSException;
@@ -75,7 +74,7 @@ public class RpcGssCall extends RpcCall {
                     _gssContext.verifyMIC(checksum, 0, checksum.length,
                             integBytes, 0, integBytes.length, _mop);
 
-                    xdr = new XdrBuffer(integBytes);
+                    xdr = new Xdr(integBytes);
                     xdr.beginDecoding();
                     xdr.xdrDecodeInt(); // first 4 bytes of data is the sequence number. Skip it.
                     args.xdrDecode(xdr);
@@ -87,7 +86,7 @@ public class RpcGssCall extends RpcCall {
                     byte[] privacyBytes = privacyData.getData();
                     byte[] rawData = _gssContext.unwrap(privacyBytes, 0, privacyBytes.length, _mop);
 
-                    xdr = new XdrBuffer(rawData);
+                    xdr = new Xdr(rawData);
                     xdr.beginDecoding();
                     xdr.xdrDecodeInt(); // first 4 bytes of data is the sequence number. Skip it.
                     args.xdrDecode(xdr);
@@ -111,7 +110,7 @@ public class RpcGssCall extends RpcCall {
                     super.acceptedReply(state, reply);
                     break;
                 case RpcGssService.RPC_GSS_SVC_INTEGRITY:
-                    xdr = new XdrBuffer(256 * 1024);
+                    xdr = new Xdr(256 * 1024);
                     xdr.beginEncoding();
                     xdr.xdrEncodeInt(authGss.getSequence());
                     reply.xdrEncode(xdr);
@@ -125,7 +124,7 @@ public class RpcGssCall extends RpcCall {
                     super.acceptedReply(state, integData);
                     break;
                 case RpcGssService.RPC_GSS_SVC_PRIVACY:
-                    xdr = new XdrBuffer(256 * 1024);
+                    xdr = new Xdr(256 * 1024);
                     xdr.beginEncoding();
                     xdr.xdrEncodeInt(authGss.getSequence());
                     reply.xdrEncode(xdr);

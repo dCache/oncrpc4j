@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2012 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2018 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -19,17 +19,12 @@
  */
 package org.dcache.oncrpc4j.rpc;
 
-import org.dcache.oncrpc4j.rpc.RpcCall;
-import org.dcache.oncrpc4j.rpc.RpcAuthException;
-import org.dcache.oncrpc4j.rpc.RpcMismatchReply;
-import org.dcache.oncrpc4j.xdr.XdrBuffer;
 import org.dcache.oncrpc4j.xdr.Xdr;
 import org.junit.Test;
-import static org.junit.Assert.*;
 
 public class RpcCallTest {
 
-    private Xdr _xdr = new XdrBuffer(1024);
+    private Xdr _xdr = new Xdr(1024);
     private RpcCall _call = new RpcCall(0, _xdr, null);
 
     @Test(expected=RpcMismatchReply.class)

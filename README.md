@@ -141,6 +141,10 @@ org.dcache.xdr split into org.dcache.oncrpc4j.rpc, org.dcache.oncrpc4j.xdr and o
 org.dcache.utils.Opaque => into org.dcache.oncrpc4j.XdrOpaque
 org.dcache.xdr.XdrTransport => into org.dcache.oncrpc4j.rpc.RpcTransport
 
+### Removed classes
+
+org.dcache.xdr.XdrBuffer is removed. Use org.dcache.oncrpc4j.xdr.Xdr.
+
 
 Using RPCGEN to generate client and server stubs
 ------------------------------------------------

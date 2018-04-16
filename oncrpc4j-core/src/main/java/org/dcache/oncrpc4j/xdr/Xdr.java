@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2016 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2018 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -51,6 +51,20 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
         this(GrizzlyMemoryManager.allocate(size));
     }
 
+
+    /**
+     * Wraps a byte array into a Xdr stream
+     *
+     * <p> The new Xdr will be backed by the given byte array;
+     *  that is, modifications to the Xdr will cause the array to be modified
+     * and vice versa.
+     *
+     * @param  bytes The array that will back this Xdr.
+     */
+    public Xdr(byte[] bytes) {
+        this(GrizzlyMemoryManager.wrap(bytes));
+    }
+
     /**
      * Create a new XDR back ended with given {@link ByteBuffer}.
      * @param body buffer to use
@@ -63,7 +77,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
     @Override
     public void beginDecoding() {
         /*
-         * Set potision to the beginning of this XDR in back end buffer.
+         * Set position to the beginning of this XDR in back end buffer.
          */
         _buffer.rewind();
     }
