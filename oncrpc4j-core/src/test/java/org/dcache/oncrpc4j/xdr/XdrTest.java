@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2012 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2018 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -19,6 +19,7 @@
  */
 package org.dcache.oncrpc4j.xdr;
 
+import org.dcache.oncrpc4j.util.Bytes;
 import org.dcache.oncrpc4j.xdr.BadXdrOncRpcException;
 import org.dcache.oncrpc4j.xdr.XdrEncodingStream;
 import org.dcache.oncrpc4j.xdr.XdrDecodingStream;
@@ -340,6 +341,34 @@ public class XdrTest {
         xdr.xdrDecodeInt();
         xdr.xdrDecodeInt();
         assertFalse("empty stream not detected", xdr.hasMoreData());
+    }
+
+    @Test
+    public void testGetBytes() {
+        Xdr xdr = new Xdr(128);
+
+        xdr.beginEncoding();
+
+        xdr.xdrEncodeBoolean(true);
+        xdr.xdrEncodeLong(17);
+        xdr.endEncoding();
+
+        byte[] bytes = xdr.getBytes();
+
+
+        assertEquals("Invalid array size", 4 + 8, bytes.length);
+        assertEquals("invalid value", 1, Bytes.getInt(bytes, 0));
+        assertEquals("invalid value", 17, Bytes.getLong(bytes, 4));
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testGetBytesInUse() {
+        Xdr xdr = new Xdr(128);
+
+        xdr.beginEncoding();
+        xdr.xdrEncodeBoolean(true);
+
+        xdr.getBytes();
     }
 
     private static Buffer allocateBuffer(int size) {

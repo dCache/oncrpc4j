@@ -25,6 +25,8 @@ import java.nio.charset.StandardCharsets;
 import org.dcache.oncrpc4j.grizzly.GrizzlyMemoryManager;
 import org.glassfish.grizzly.Buffer;
 
+import static com.google.common.base.Preconditions.checkState;
+
 public class Xdr implements XdrDecodingStream, XdrEncodingStream {
 
     /**
@@ -41,6 +43,11 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
      * Byte buffer used by XDR record.
      */
     protected volatile Buffer _buffer;
+
+    /**
+     * Indicates that encoding/decoding is in progress.
+     */
+    private boolean _inUse;
 
     /**
      * Create a new Xdr object with a buffer of given size.
@@ -80,21 +87,25 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
          * Set position to the beginning of this XDR in back end buffer.
          */
         _buffer.rewind();
+        _inUse = true;
     }
 
     @Override
     public void endDecoding() {
         _buffer.rewind();
+        _inUse = false;
     }
 
     @Override
     public void beginEncoding() {
         _buffer.clear();
+        _inUse = true;
     }
 
     @Override
     public void endEncoding() {
         _buffer.flip();
+        _inUse = false;
     }
 
     /**
@@ -762,6 +773,26 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream {
         }
     }
 
+    /**
+     * Returns the array that contains the xdr encoded data. The changes in the Xdr will not be
+     * visible to the array and vice versa. The encoding process must be finished before {@code getBytes}
+     * method is called.
+     *
+     * @return The array that contains buffer's data.
+     * @throws IllegalStateException if {@link Xdr#endEncoding()} is not called before.
+     */
+    public byte[] getBytes() {
+        checkState(!_inUse, "getBytes called while buffer in use");
+        int size = _buffer.remaining();
+        byte[] bytes = new byte[size];
+        Buffer dup = _buffer.duplicate();
+        dup.get(bytes);
+        return bytes;
+    }
+
+    /**
+     * Closes this stream, relinquishing any underlying resources.
+     */
     public void close() {
         _buffer.tryDispose();
     }
