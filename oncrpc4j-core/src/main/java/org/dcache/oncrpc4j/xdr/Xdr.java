@@ -27,7 +27,7 @@ import org.glassfish.grizzly.Buffer;
 
 import static com.google.common.base.Preconditions.checkState;
 
-public class Xdr implements XdrDecodingStream, XdrEncodingStream {
+public class Xdr implements XdrDecodingStream, XdrEncodingStream, AutoCloseable {
 
     /**
      * Maximal size of a XDR message.
