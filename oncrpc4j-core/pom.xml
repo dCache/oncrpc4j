@@ -14,6 +14,21 @@
   <name>ONCRPC4J core component</name>
   <url>http://www.dCache.ORG</url>
 
+  <build>
+      <plugins>
+          <plugin>
+              <artifactId>maven-jar-plugin</artifactId>
+              <configuration>
+                  <archive>
+                      <manifestEntries>
+                          <Automatic-Module-Name>org.dcache.oncrpc4j</Automatic-Module-Name>
+                      </manifestEntries>
+                  </archive>
+              </configuration>
+          </plugin>
+      </plugins>
+  </build>
+
   <dependencies>
       <dependency>
           <groupId>org.slf4j</groupId>

@@ -296,6 +296,18 @@ OncRpcSvc service = new OncRpcSvcBuilder()
         .build();
 ```
 
+Usage with JDK 9 module system
+==============================
+
+With the provided stable automatic module name __org.dcache.oncrpc4j__, **oncrpc4j**
+can be used in modular java9 application:
+```
+module com.foo.bar {
+    requires org.dcache.oncrpc4j;
+}
+```
+
+
 How to contribute
 =================
 
