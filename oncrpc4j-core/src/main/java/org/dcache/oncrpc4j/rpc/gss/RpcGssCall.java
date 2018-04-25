@@ -27,14 +27,12 @@ import org.dcache.oncrpc4j.rpc.RpcRejectStatus;
 import org.dcache.oncrpc4j.rpc.OncRpcException;
 import org.dcache.oncrpc4j.xdr.XdrDecodingStream;
 import org.dcache.oncrpc4j.xdr.Xdr;
-import org.dcache.oncrpc4j.xdr.XdrEncodingStream;
 import org.dcache.oncrpc4j.xdr.XdrAble;
 import java.io.IOException;
 import org.ietf.jgss.GSSException;
 import org.ietf.jgss.MessageProp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.glassfish.grizzly.Buffer;
 import org.ietf.jgss.GSSContext;
 
 /**
@@ -104,34 +102,33 @@ public class RpcGssCall extends RpcCall {
         try {
             RpcAuthGss authGss = (RpcAuthGss) getCredential();
             _log.debug("Reply with GSS service: {}", authGss.getService());
-            XdrEncodingStream xdr;
             switch (authGss.getService()) {
                 case RpcGssService.RPC_GSS_SVC_NONE:
                     super.acceptedReply(state, reply);
                     break;
                 case RpcGssService.RPC_GSS_SVC_INTEGRITY:
-                    xdr = new Xdr(256 * 1024);
-                    xdr.beginEncoding();
-                    xdr.xdrEncodeInt(authGss.getSequence());
-                    reply.xdrEncode(xdr);
-                    xdr.endEncoding();
-                    Buffer b = ((Xdr)xdr).asBuffer();
-                    byte[] integBytes = new byte[b.remaining()];
-                    b.get(integBytes);
+                    byte[] integBytes;
+                    try (Xdr xdr = new Xdr(256 * 1024)) {
+                        xdr.beginEncoding();
+                        xdr.xdrEncodeInt(authGss.getSequence());
+                        reply.xdrEncode(xdr);
+                        xdr.endEncoding();
+                        integBytes = xdr.getBytes();
+                    }
 
                     byte[] checksum = _gssContext.getMIC(integBytes, 0, integBytes.length, _mop);
                     DataBodyIntegrity integData = new DataBodyIntegrity(integBytes, checksum);
                     super.acceptedReply(state, integData);
                     break;
                 case RpcGssService.RPC_GSS_SVC_PRIVACY:
-                    xdr = new Xdr(256 * 1024);
-                    xdr.beginEncoding();
-                    xdr.xdrEncodeInt(authGss.getSequence());
-                    reply.xdrEncode(xdr);
-                    xdr.endEncoding();
-                    Buffer bp = ((Xdr)xdr).asBuffer();
-                    byte[] rawData = new byte[bp.remaining()];
-                    bp.get(rawData);
+                    byte[] rawData;
+                    try (Xdr xdr = new Xdr(256 * 1024)) {
+                        xdr.beginEncoding();
+                        xdr.xdrEncodeInt(authGss.getSequence());
+                        reply.xdrEncode(xdr);
+                        xdr.endEncoding();
+                        rawData = xdr.getBytes();
+                    }
 
                     byte[] privacyBytes = _gssContext.wrap(rawData, 0, rawData.length, _mop);
                     DataBodyPrivacy privacyData = new DataBodyPrivacy(privacyBytes);
