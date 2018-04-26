@@ -68,7 +68,7 @@ import static com.google.common.base.Throwables.getRootCause;
 import static com.google.common.base.Throwables.propagateIfPossible;
 import java.net.SocketAddress;
 import java.util.stream.Collectors;
-import org.dcache.oncrpc4j.grizzly.GrizzlyXdrTransport;
+import org.dcache.oncrpc4j.grizzly.GrizzlyRpcTransport;
 import static org.dcache.oncrpc4j.grizzly.GrizzlyUtils.getSelectorPoolCfg;
 import static org.dcache.oncrpc4j.grizzly.GrizzlyUtils.rpcMessageReceiverFor;
 import static org.dcache.oncrpc4j.grizzly.GrizzlyUtils.transportFor;
@@ -391,7 +391,7 @@ public class OncRpcSvc {
         try {
             //noinspection unchecked
             Connection<InetSocketAddress> connection = connectFuture.get(timeout, timeUnit);
-            return new GrizzlyXdrTransport(connection, _replyQueue);
+            return new GrizzlyRpcTransport(connection, _replyQueue);
         } catch (ExecutionException e) {
             Throwable t = getRootCause(e);
             propagateIfPossible(t, IOException.class);

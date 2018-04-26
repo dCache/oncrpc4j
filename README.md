@@ -140,6 +140,7 @@ org.dcache.xdr split into org.dcache.oncrpc4j.rpc, org.dcache.oncrpc4j.xdr and o
 
 org.dcache.utils.Opaque => into org.dcache.oncrpc4j.XdrOpaque
 org.dcache.xdr.XdrTransport => into org.dcache.oncrpc4j.rpc.RpcTransport
+org.dcache.xdr.GrizzlyXdrTransport => into org.dcache.oncrpc4j.grizzly.GrizzlyRpcTransport
 
 ### Removed classes
 

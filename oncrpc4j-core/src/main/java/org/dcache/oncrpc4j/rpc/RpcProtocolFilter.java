@@ -23,7 +23,7 @@ import org.dcache.oncrpc4j.xdr.Xdr;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.CompletionHandler;
-import org.dcache.oncrpc4j.grizzly.GrizzlyXdrTransport;
+import org.dcache.oncrpc4j.grizzly.GrizzlyRpcTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.glassfish.grizzly.filterchain.BaseFilter;
@@ -56,7 +56,7 @@ public class RpcProtocolFilter extends BaseFilter {
          * We have to get peer address from the request context, which will contain SocketAddress where from
          * request was coming.
          */
-        RpcTransport transport = new GrizzlyXdrTransport(ctx.getConnection(), (InetSocketAddress)ctx.getAddress(), _replyQueue);
+        RpcTransport transport = new GrizzlyRpcTransport(ctx.getConnection(), (InetSocketAddress)ctx.getAddress(), _replyQueue);
 
         switch (message.type()) {
             case RpcMessageType.CALL:

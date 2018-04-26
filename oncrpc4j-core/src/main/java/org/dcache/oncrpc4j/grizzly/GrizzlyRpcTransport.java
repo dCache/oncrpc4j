@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2016 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2018 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -32,23 +32,24 @@ import org.glassfish.grizzly.EmptyCompletionHandler;
 import org.glassfish.grizzly.WriteResult;
 import org.glassfish.grizzly.asyncqueue.WritableMessage;
 
-import static java.util.Objects.requireNonNull;
 import org.dcache.oncrpc4j.rpc.RpcTransport;
 
-public class GrizzlyXdrTransport implements RpcTransport {
+import static java.util.Objects.requireNonNull;
+
+public class GrizzlyRpcTransport implements RpcTransport {
 
     private final Connection<InetSocketAddress> _connection;
     private final ReplyQueue _replyQueue;
     private final InetSocketAddress _localAddress;
     private final InetSocketAddress _remoteAddress;
 
-    private final static Logger _log = LoggerFactory.getLogger(GrizzlyXdrTransport.class);
+    private final static Logger _log = LoggerFactory.getLogger(GrizzlyRpcTransport.class);
 
-    public GrizzlyXdrTransport(Connection<InetSocketAddress> connection, ReplyQueue replyQueue) {
+    public GrizzlyRpcTransport(Connection<InetSocketAddress> connection, ReplyQueue replyQueue) {
         this(connection, connection.getPeerAddress(), replyQueue);
     }
 
-    public GrizzlyXdrTransport(Connection<InetSocketAddress> connection, InetSocketAddress remoteAddress, ReplyQueue replyQueue) {
+    public GrizzlyRpcTransport(Connection<InetSocketAddress> connection, InetSocketAddress remoteAddress, ReplyQueue replyQueue) {
         _connection = connection;
         _replyQueue = replyQueue;
         _localAddress = _connection.getLocalAddress();
@@ -100,7 +101,7 @@ public class GrizzlyXdrTransport implements RpcTransport {
 
     @Override
     public RpcTransport getPeerTransport() {
-        return new GrizzlyXdrTransport(_connection, getReplyQueue());
+        return new GrizzlyRpcTransport(_connection, getReplyQueue());
     }
 
     @Override
