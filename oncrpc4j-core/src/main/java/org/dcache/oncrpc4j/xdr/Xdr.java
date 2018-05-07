@@ -656,9 +656,14 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream, AutoCloseable 
        _buffer.putLong(value);
     }
 
+    /**
+     * Encodes (aka "serializes") a sequence of bytes from the given buffer
+     * to this Xdr stream.
+     *
+     * @param buf The buffer from which bytes are to be retrieved.
+     */
     @Override
     public void xdrEncodeByteBuffer(ByteBuffer buf) {
-        buf.flip();
         int len = buf.remaining();
         int padding = (4 - (len & 3)) & 3;
         xdrEncodeInt(len);
