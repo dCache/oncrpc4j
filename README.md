@@ -146,6 +146,20 @@ org.dcache.xdr.GrizzlyXdrTransport => into org.dcache.oncrpc4j.grizzly.GrizzlyRp
 
 org.dcache.xdr.XdrBuffer is removed. Use org.dcache.oncrpc4j.xdr.Xdr.
 
+### Behavoir change ###
+
+The Xdr#xdrEncodeByteBuffer changed to not flip provided byte buffer. As a result, the Xdr#xdrEncodeByteBuffer
+will encode data in the buffer from buffers current position up to the limit:
+
+```
+ButeByffer buffer = ...;
+Xdr xdr = ...;
+
+buffer.put(...);
+buffer.flip();
+xdr.xdrEncodeByteBuffer(buffer);
+```
+
 
 Using RPCGEN to generate client and server stubs
 ------------------------------------------------
