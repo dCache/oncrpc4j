@@ -33,6 +33,7 @@ public interface XdrEncodingStream {
     void endEncoding();
     void xdrEncodeInt(int value);
     void xdrEncodeIntVector(int[] ints);
+    void xdrEncodeIntFixedVector(int[] ints, int length);
     void xdrEncodeDynamicOpaque(byte [] opaque);
     void xdrEncodeOpaque(byte [] opaque, int len);
     void xdrEncodeOpaque(byte [] opaque, int offset, int len);
@@ -40,6 +41,7 @@ public interface XdrEncodingStream {
     void xdrEncodeString(String str);
     void xdrEncodeLong(long value);
     void xdrEncodeLongVector(long[] longs);
+    void xdrEncodeLongFixedVector(long[] longs, int length);
     void xdrEncodeByteBuffer(ByteBuffer buf);
     void xdrEncodeFloat(float value);
     void xdrEncodeDouble(double value);
