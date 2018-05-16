@@ -152,6 +152,23 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream, AutoCloseable 
     }
 
     /**
+     * Decodes (aka "deserializes") a vector of ints read from a XDR stream.
+     *
+     * @param length of vector to read.
+     *
+     * @return Decoded int vector.
+     * @throws BadXdrOncRpcException if xdr stream can't be decoded.
+     */
+    @Override
+    public int[] xdrDecodeIntFixedVector(int length) throws BadXdrOncRpcException {
+        int[] value = new int[length];
+        for (int i = 0; i < length; ++i) {
+            value[i] = xdrDecodeInt();
+        }
+        return value;
+    }
+
+    /**
      * Get next array of long.
      *
      * @return the array on integers
@@ -167,6 +184,23 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream, AutoCloseable 
             longs[i] = xdrDecodeLong();
         }
         return longs;
+    }
+
+    /**
+     * Decodes (aka "deserializes") a vector of longs read from a XDR stream.
+     *
+     * @param length of vector to read.
+     *
+     * @return Decoded long vector.
+     * @throws BadXdrOncRpcException if xdr stream can't be decoded.
+     */
+    @Override
+    public long[] xdrDecodeLongFixedVector(int length) throws BadXdrOncRpcException {
+        long[] value = new long[length];
+        for (int i = 0; i < length; ++i) {
+            value[i] = xdrDecodeLong();
+        }
+        return value;
     }
 
     /**
@@ -491,6 +525,24 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream, AutoCloseable 
     }
 
     /**
+     * Encodes (aka "serializes") a vector of ints and writes it down this XDR
+     * stream.
+     *
+     * @param value int vector to be encoded.
+     * @param length of vector to write. This parameter is used as a sanity
+     * check.
+     */
+    @Override
+    public void xdrEncodeIntFixedVector(int[] value, int length) {
+        if (value.length != length) {
+            throw (new IllegalArgumentException("array size does not match protocol specification"));
+        }
+        for (int i = 0; i < length; i++) {
+            xdrEncodeInt(value[i]);
+        }
+    }
+
+    /**
      * Encodes (aka "serializes") a vector of longs and writes it down
      * this XDR stream.
      *
@@ -506,6 +558,24 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream, AutoCloseable 
         }
     }
 
+    /**
+     * Encodes (aka "serializes") a vector of longs and writes it down this XDR
+     * stream.
+     *
+     * @param value long vector to be encoded.
+     * @param length of vector to write. This parameter is used as a sanity
+     * check.
+     */
+    @Override
+    public void xdrEncodeLongFixedVector(long[] value, int length) {
+        if (value.length != length) {
+            throw (new IllegalArgumentException("array size does not match protocol specification"));
+        }
+        for (int i = 0; i < length; i++) {
+            xdrEncodeLong(value[i]);
+        }
+    }
+    
     /**
      * Encodes (aka "serializes") a float (which is a 32 bits wide floating
      * point quantity) and write it down this XDR stream.

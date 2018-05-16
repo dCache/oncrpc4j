@@ -34,6 +34,7 @@ public interface XdrDecodingStream {
     void endDecoding();
     int xdrDecodeInt() throws BadXdrOncRpcException;
     int[] xdrDecodeIntVector() throws BadXdrOncRpcException;
+    int[] xdrDecodeIntFixedVector(int len) throws BadXdrOncRpcException;
     byte[] xdrDecodeDynamicOpaque() throws BadXdrOncRpcException;
     byte[] xdrDecodeOpaque(int size) throws BadXdrOncRpcException;
     void xdrDecodeOpaque(byte[] data, int offset, int len) throws BadXdrOncRpcException;
@@ -41,6 +42,7 @@ public interface XdrDecodingStream {
     String xdrDecodeString() throws BadXdrOncRpcException;
     long xdrDecodeLong() throws BadXdrOncRpcException;
     long[] xdrDecodeLongVector() throws BadXdrOncRpcException;
+    long[] xdrDecodeLongFixedVector(int len) throws BadXdrOncRpcException;
     ByteBuffer xdrDecodeByteBuffer() throws BadXdrOncRpcException;
     float xdrDecodeFloat() throws BadXdrOncRpcException;
     double xdrDecodeDouble() throws BadXdrOncRpcException;
