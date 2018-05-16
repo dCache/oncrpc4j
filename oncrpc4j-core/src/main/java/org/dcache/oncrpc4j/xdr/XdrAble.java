@@ -40,6 +40,21 @@ public interface XdrAble {
     public void xdrDecode(XdrDecodingStream xdr) throws OncRpcException, IOException;
 
     /**
+     * Encodes -- that is: serializes -- an object into a XDR object in
+     * compliance to RFC 1832.
+     *
+     * @return the XDR representation of this object.
+     * @throws OncRpcException if an ONC/RPC error occurs.
+     */
+    public default Xdr xdrEncode() throws OncRpcException, IOException {
+        Xdr xdr = new Xdr(Xdr.INITIAL_XDR_SIZE);
+        xdr.beginEncoding();
+        xdrEncode(xdr);
+        xdr.endEncoding();
+        return xdr;
+    }
+
+    /**
      * Encodes -- that is: serializes -- an object into a XDR stream in
      * compliance to RFC 1832.
      *
