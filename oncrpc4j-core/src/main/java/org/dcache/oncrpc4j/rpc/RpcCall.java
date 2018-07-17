@@ -403,7 +403,7 @@ public class RpcCall {
      */
     public void call(int procedure, XdrAble args, CompletionHandler<RpcReply, RpcTransport> callback, long timeoutValue, TimeUnit timeoutUnits)
             throws IOException {
-        callInternal(procedure, args, callback, timeoutValue, timeoutUnits, null);
+        call(procedure, args, callback, timeoutValue, timeoutUnits, null);
     }
 
     /**
@@ -411,7 +411,7 @@ public class RpcCall {
      */
     public void call(int procedure, XdrAble args, CompletionHandler<RpcReply, RpcTransport> callback, RpcAuth auth)
             throws IOException {
-        callInternal(procedure, args, callback, 0, null, auth);
+        call(procedure, args, callback, 0, null, auth);
     }
 
     /**
@@ -419,7 +419,7 @@ public class RpcCall {
      */
     public void call(int procedure, XdrAble args, CompletionHandler<RpcReply, RpcTransport> callback)
             throws IOException {
-        callInternal(procedure, args, callback, 0, null, null);
+        call(procedure, args, callback, 0, null, null);
     }
 
     /**
