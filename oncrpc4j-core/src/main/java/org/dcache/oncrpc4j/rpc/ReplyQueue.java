@@ -22,6 +22,8 @@ package org.dcache.oncrpc4j.rpc;
 import java.io.EOFException;
 import java.net.SocketAddress;
 import java.nio.channels.CompletionHandler;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ScheduledExecutorService;
@@ -113,7 +115,15 @@ public class ReplyQueue {
         }
     }
 
-    private static class PendingRequest {
+    /**
+     * Get unmodifiable {@link Collection} of pending requests.
+     * @return collection of pending requests.
+     */
+    public Collection<PendingRequest> getPendingRequests() {
+        return Collections.unmodifiableCollection(_queue.values());
+    }
+
+    public static class PendingRequest {
         private final CompletionHandler<RpcReply, RpcTransport> handler;
         private final ScheduledFuture<?> scheduledTimeout;
         private final SocketAddress addr;

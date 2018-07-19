@@ -12,6 +12,9 @@ import org.dcache.oncrpc4j.xdr.XdrString;
 import java.io.EOFException;
 import java.io.IOException;
 import java.nio.channels.CompletionHandler;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,6 +32,7 @@ public class ClientServerTest {
     private static final int ECHO = 1;
     private static final int UPPER = 2;
     private static final int SHUTDOWN = 3;
+    private static final int LOST = 4;
 
     private OncRpcSvc svc;
     private OncRpcSvc clnt;
@@ -56,6 +60,11 @@ public class ClientServerTest {
                 }
                 case SHUTDOWN: {
                     svc.stop();
+                    break;
+                }
+                case LOST: {
+                    // no reply
+                    break;
                 }
             }
         };
@@ -156,6 +165,20 @@ public class ClientServerTest {
         clntCall.call(UPPER, s, reply);
 
         assertEquals("reply mismatch", s.stringValue().toUpperCase(), reply.stringValue());
+    }
+
+    @Test
+    public void shouldRemoveRequestFromPendingQueueOnReply() throws IOException, InterruptedException, ExecutionException {
+
+        XdrString s = new XdrString("hello");
+        try {
+            clntCall.call(LOST, s, XdrString.class).get(100, TimeUnit.MILLISECONDS);
+            fail("clntCall.call unexpectedly succeeded");
+        } catch (TimeoutException expected) {
+        }
+
+        assertTrue("pending queue is not empty",
+                clntCall.getTransport().getReplyQueue().getPendingRequests().isEmpty());
     }
 
 }
