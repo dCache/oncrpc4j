@@ -494,12 +494,12 @@ public class RpcCall {
      * @param args The argument of the procedure.
      * @param type The expected type of the reply
      * @param auth auth to use for the call
-     * @return A Future representing the result of the operation.
+     * @return A CompletableFuture representing the result of the operation.
      * @throws OncRpcException
      * @throws IOException
      * @since 2.4.0
      */
-    public <T extends XdrAble> Future<T> call(int procedure, XdrAble args, final Class<T> type, final RpcAuth auth)
+    public <T extends XdrAble> CompletableFuture<T> call(int procedure, XdrAble args, final Class<T> type, final RpcAuth auth)
             throws IOException {
         try {
             T result = type.getDeclaredConstructor().newInstance();
@@ -511,9 +511,29 @@ public class RpcCall {
     }
 
     /**
-     * convenience version of {@link #call(int, XdrAble, Class, RpcAuth)} with no auth
      */
-    public <T extends XdrAble> Future<T> call(int procedure, XdrAble args, final Class<T> type)
+
+    /**
+     * Send asynchronous RPC request to a remove server.
+     *
+     * This method initiates an asynchronous RPC request. The method behaves in
+     * exactly the same manner as the {@link #call(int, XdrAble, CompletionHandler, long, TimeUnit)}
+     * method except that instead of specifying a completion handler, this method
+     * returns a CompletableFuture representing the pending result. The Future's get method
+     * returns the RPC reply responded by server.
+     *
+     * Convenience version of {@link #call(int, XdrAble, Class, RpcAuth)} with no auth
+     *
+     * @param <T> The result type of RPC call.
+     * @param procedure The number of the procedure.
+     * @param args The argument of the procedure.
+     * @param type The expected type of the reply
+     * @return A CompletableFuture representing the result of the operation.
+     * @throws OncRpcException
+     * @throws IOException
+     * @since 2.4.0
+     */
+    public <T extends XdrAble> CompletableFuture<T> call(int procedure, XdrAble args, final Class<T> type)
             throws IOException {
         return call(procedure, args, type, null);
     }
@@ -581,7 +601,7 @@ public class RpcCall {
         }
     }
 
-    private <T extends XdrAble> Future<T> getCallFuture(int procedure, XdrAble args, final T result, long timeoutValue, TimeUnit timeoutUnits, RpcAuth auth)
+    private <T extends XdrAble> CompletableFuture<T> getCallFuture(int procedure, XdrAble args, final T result, long timeoutValue, TimeUnit timeoutUnits, RpcAuth auth)
             throws IOException {
 
         final CompletableFuture<T> future = new CompletableFuture<>();
@@ -609,7 +629,7 @@ public class RpcCall {
         return timeoutValue > 0 ? future : new TimeoutAwareFuture<>(future, xid);
     }
 
-    private class TimeoutAwareFuture<T> implements Future<T> {
+    private class TimeoutAwareFuture<T> extends CompletableFuture<T> {
         private final Future<T> delegate;
         private final int xid;
 
