@@ -21,7 +21,6 @@ package org.dcache.oncrpc4j.portmap;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
 import org.slf4j.Logger;
@@ -29,13 +28,15 @@ import org.slf4j.LoggerFactory;
 import org.dcache.oncrpc4j.rpc.net.IpProtocolType;
 import org.dcache.oncrpc4j.rpc.OncRpcClient;
 import org.dcache.oncrpc4j.rpc.OncRpcException;
-import org.dcache.oncrpc4j.rpc.OncRpcSvc;
-import org.dcache.oncrpc4j.rpc.OncRpcSvcBuilder;
 import org.dcache.oncrpc4j.rpc.RpcAuth;
 import org.dcache.oncrpc4j.rpc.RpcAuthTypeNone;
 import org.dcache.oncrpc4j.rpc.RpcCall;
 import org.dcache.oncrpc4j.rpc.RpcProgUnavailable;
 import org.dcache.oncrpc4j.rpc.RpcTransport;
+
+import static org.dcache.oncrpc4j.portmap.OncRpcPortmap.PORTMAP_PROGRAMM;
+import static org.dcache.oncrpc4j.portmap.OncRpcPortmap.PORTMAP_V4;
+import static org.dcache.oncrpc4j.portmap.OncRpcPortmap.PORTMAP_V2;
 
 public class GenericPortmapClient implements OncPortmapClient {
 
@@ -45,9 +46,9 @@ public class GenericPortmapClient implements OncPortmapClient {
 
     public GenericPortmapClient(RpcTransport transport) throws RpcProgUnavailable {
 
-       OncPortmapClient portmapClient = new RpcbindV4Client(new RpcCall(100000, 4, _auth, transport));
+       OncPortmapClient portmapClient = new RpcbindV4Client(new RpcCall(PORTMAP_PROGRAMM, PORTMAP_V4, _auth, transport));
         if( !portmapClient.ping() ) {
-            portmapClient = new PortmapV2Client( new RpcCall(100000, 2, _auth, transport) );
+            portmapClient = new PortmapV2Client( new RpcCall(PORTMAP_PROGRAMM, PORTMAP_V2, _auth, transport) );
             if(!portmapClient.ping()) {
                 // FIXME: return correct exception
                 throw new RpcProgUnavailable("portmap service not available");
