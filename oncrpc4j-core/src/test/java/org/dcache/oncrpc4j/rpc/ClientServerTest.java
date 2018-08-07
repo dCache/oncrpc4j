@@ -81,7 +81,10 @@ public class ClientServerTest {
                 .withTCP()
                 .withWorkerThreadIoStrategy()
 		.withBindAddress("127.0.0.1")
+                .withSelectorThreadPoolSize(1)
+                .withWorkerThreadPoolSize(1)
                 .withRpcService(new OncRpcProgram(PROGNUM, PROGVER), echo)
+                .withServiceName("svc")
                 .build();
         svc.start();
 
@@ -90,7 +93,10 @@ public class ClientServerTest {
                 .withTCP()
                 .withClientMode()
                 .withWorkerThreadIoStrategy()
+                .withSelectorThreadPoolSize(1)
+                .withWorkerThreadPoolSize(1)
                 .withRpcService(new OncRpcProgram(PROGNUM, PROGVER), upper)
+                .withServiceName("clnt")
                 .build();
         clnt.start();
         RpcTransport t = clnt.connect(svc.getInetSocketAddress(IpProtocolType.TCP));
