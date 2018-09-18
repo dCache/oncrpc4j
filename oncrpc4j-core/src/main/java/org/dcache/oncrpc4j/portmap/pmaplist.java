@@ -20,8 +20,6 @@
 package org.dcache.oncrpc4j.portmap;
 
 import java.io.IOException;
-import java.util.LinkedList;
-import java.util.List;
 import org.dcache.oncrpc4j.rpc.OncRpcException;
 import org.dcache.oncrpc4j.xdr.XdrAble;
 import org.dcache.oncrpc4j.xdr.XdrDecodingStream;
@@ -62,16 +60,12 @@ public class pmaplist implements XdrAble {
     }
 
     public void xdrEncode(XdrEncodingStream xdr) throws OncRpcException, IOException {
-        if(_mapping != null ) {
+        if (_mapping != null) {
             xdr.xdrEncodeBoolean(true);
             _mapping.xdrEncode(xdr);
-            if (_next != null) {
-                _next.xdrEncode(xdr);
-            } else {
-                xdr.xdrEncodeBoolean(false);
-            }
-        }else{
-             xdr.xdrEncodeBoolean(false);
+            _next.xdrEncode(xdr);
+        } else {
+            xdr.xdrEncodeBoolean(false);
         }
     }
 

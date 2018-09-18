@@ -68,10 +68,10 @@ public class rpcb_list implements XdrAble{
     @Override
     public void xdrEncode(XdrEncodingStream xdr) throws OncRpcException, IOException {
 
-        xdr.xdrEncodeBoolean(true);
-       _rpcbMap.xdrEncode(xdr);
-        if(_next != null) {
-            _next.xdrEncode(xdr);
+        if (_rpcbMap != null) {
+            xdr.xdrEncodeBoolean(true);
+           _rpcbMap.xdrEncode(xdr);
+           _next.xdrEncode(xdr);
         }else{
             xdr.xdrEncodeBoolean(false);
         }
