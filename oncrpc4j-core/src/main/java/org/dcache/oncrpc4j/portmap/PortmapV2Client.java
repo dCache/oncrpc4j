@@ -25,6 +25,7 @@ import org.dcache.oncrpc4j.rpc.RpcCall;
 import org.dcache.oncrpc4j.xdr.XdrBoolean;
 import org.dcache.oncrpc4j.xdr.XdrInt;
 import org.dcache.oncrpc4j.xdr.XdrVoid;
+import org.dcache.oncrpc4j.rpc.net.IpProtocolType;
 import org.dcache.oncrpc4j.rpc.net.netid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +38,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 public class PortmapV2Client implements OncPortmapClient {
+
+    private final static String SERVICE_OWNER_UNKNOWN = "unknown"; // v2 doesn't supports owner info
 
     private final static Logger _log = LoggerFactory.getLogger(PortmapV2Client.class);
     private final RpcCall _call;
@@ -54,10 +57,12 @@ public class PortmapV2Client implements OncPortmapClient {
 		do {
 			mapping c = list_reply.getEntry();
 			if ( c != null ) {
-				out.add( new rpcb(c) );
+				out.add( new rpcb(c.getProg(), c.getVers(),
+                                        IpProtocolType.toString(c.getProt()),
+                                        netid.toString(c.getPort()), SERVICE_OWNER_UNKNOWN));
 			}
 		}
-		while( (list_reply = list_reply.getNext()) != null ); 
+		while( (list_reply = list_reply.getNext()) != null );
 		return out;
     }
 
@@ -72,17 +77,18 @@ public class PortmapV2Client implements OncPortmapClient {
         return pong;
     }
 
-    public boolean setPort(int program, int version, String netids, String addr, String owner)
+    @Override
+    public boolean setPort(int program, int version, String netids, String addr, String ignored)
             throws OncRpcException, IOException, TimeoutException {
-        _log.debug("portmap set port: prog: {} vers: {}, netid: {} addr: {}, owner: {}",
-                new Object[]{program, version, netids, addr, owner});
+        _log.debug("portmap set port: prog: {} vers: {}, netid: {} addr: {}",
+                new Object[]{program, version, netids, addr});
 
         int protocol = netid.idOf(netids);
         if (protocol == -1) {
             return false;
         }
         InetSocketAddress address = org.dcache.oncrpc4j.rpc.net.netid.toInetSocketAddress(addr);
-        mapping m1 = new mapping(program, version, protocol, address.getPort(),owner);
+        mapping m1 = new mapping(program, version, protocol, address.getPort());
 
         XdrBoolean isSet = new XdrBoolean();
         _call.call(OncRpcPortmap.PMAPPROC_SET, m1, isSet);
@@ -91,12 +97,12 @@ public class PortmapV2Client implements OncPortmapClient {
     }
 
     @Override
-    public boolean unsetPort(int program, int version, String owner)
+    public boolean unsetPort(int program, int version, String ignored)
             throws OncRpcException, IOException, TimeoutException {
-        _log.debug("portmap unset port: prog: {} vers: {}, owner: {}",
-                new Object[]{program, version, owner});
+        _log.debug("portmap unset port: prog: {} vers: {}",
+                new Object[]{program, version});
 
-        mapping m = new mapping(program, version, 0, -1,owner);
+        mapping m = new mapping(program, version, 0, -1);
 
         XdrBoolean isSet = new XdrBoolean();
         _call.call(OncRpcPortmap.PMAPPROC_UNSET, m, isSet);

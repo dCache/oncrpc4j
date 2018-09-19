@@ -20,12 +20,10 @@
 package org.dcache.oncrpc4j.portmap;
 
 import java.io.IOException;
-import org.dcache.oncrpc4j.rpc.net.IpProtocolType;
 import org.dcache.oncrpc4j.rpc.OncRpcException;
 import org.dcache.oncrpc4j.xdr.XdrAble;
 import org.dcache.oncrpc4j.xdr.XdrDecodingStream;
 import org.dcache.oncrpc4j.xdr.XdrEncodingStream;
-import org.dcache.oncrpc4j.rpc.net.netid;
 
 /**
  *
@@ -56,14 +54,6 @@ public class rpcb implements XdrAble {
 
     public rpcb() {}
 
-    public rpcb(mapping old) {
-        _prog = old.getProg();
-        _vers = old.getVers();
-        _netid = IpProtocolType.toString(old.getProt());
-        _addr = netid.toString(old.getPort());
-        _owner = old.getOwner();
-    }
-
     public rpcb(int prog, int vers, String netid, String addr, String owner) {
         _prog = prog;
         _vers = vers;
@@ -87,7 +77,11 @@ public class rpcb implements XdrAble {
 	public String getOwner() {
 		return _owner;
 	}	
-	
+
+    public String getAddr() {
+        return _addr;
+    }
+
     public void xdrDecode(XdrDecodingStream xdr) throws OncRpcException, IOException {
         _prog = xdr.xdrDecodeInt();
         _vers = xdr.xdrDecodeInt();
@@ -111,11 +105,6 @@ public class rpcb implements XdrAble {
     public String toString() {
         return String.format("prog: %d, vers: %d, netid: %s, addr: %s, owner: %s",
                 _prog, _vers, _netid, _addr, _owner);
-    }
-
-    public mapping toMapping() {
-
-        return new mapping(_prog, _vers, netid.idOf(_netid) , netid.getPort(_addr),_owner );
     }
 
     boolean match(rpcb query) {
