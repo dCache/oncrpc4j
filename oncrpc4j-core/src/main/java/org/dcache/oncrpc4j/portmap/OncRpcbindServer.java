@@ -32,9 +32,6 @@ import org.dcache.auth.UidPrincipal;
 import org.dcache.oncrpc4j.rpc.OncRpcException;
 import org.dcache.oncrpc4j.rpc.RpcCall;
 import org.dcache.oncrpc4j.rpc.RpcDispatchable;
-import org.dcache.oncrpc4j.rpc.OncRpcSvc;
-import org.dcache.oncrpc4j.rpc.OncRpcProgram;
-import org.dcache.oncrpc4j.rpc.OncRpcSvcBuilder;
 import org.dcache.oncrpc4j.rpc.RpcAuthType;
 import org.dcache.oncrpc4j.rpc.net.IpProtocolType;
 import org.dcache.oncrpc4j.rpc.net.netid;
@@ -209,35 +206,5 @@ public class OncRpcbindServer implements RpcDispatchable {
                 .findFirst()
                 .map(Principal::getName)
                 .orElse(SERVICE_OWNER_UNSPECIFIED);
-    }
-
-    public static void main(String[] args) throws Exception {
-
-        if (args.length > 1) {
-            System.err.println("Usage: OncRpcbindServer <port>");
-            System.exit(1);
-        }
-
-        int port = OncRpcPortmap.PORTMAP_PORT;
-        if (args.length == 1) {
-            port = Integer.parseInt(args[0]);
-        }
-
-
-        RpcDispatchable rpcbind = new OncRpcbindServer();
-
-        OncRpcSvc server  = new OncRpcSvcBuilder()
-                .withPort(port)
-                .withTCP()
-                .withUDP()
-                .withSameThreadIoStrategy()
-                .withoutAutoPublish()
-                .build();
-        server.register(new OncRpcProgram( OncRpcPortmap.PORTMAP_PROGRAMM,
-                OncRpcPortmap.PORTMAP_V2), rpcbind);
-
-        server.start();
-        System.in.read();
-
     }
 }
