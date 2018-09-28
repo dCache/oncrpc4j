@@ -69,7 +69,7 @@
     
     <!--  version of test dependencies  -->
     <junit.version>4.12</junit.version>
-    <mockito-core.version>2.10.0</mockito-core.version>
+    <mockito-core.version>2.22.0</mockito-core.version>
     <logback-classic.version>1.2.3</logback-classic.version>
   </properties>
 	
