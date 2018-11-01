@@ -20,16 +20,17 @@
 package org.dcache.oncrpc4j.rpc;
 
 import com.google.common.util.concurrent.MoreExecutors;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.dcache.oncrpc4j.rpc.gss.GssSessionManager;
-import org.glassfish.grizzly.threadpool.FixedThreadPool;
-import org.glassfish.grizzly.threadpool.ThreadPoolConfig;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static org.dcache.oncrpc4j.grizzly.GrizzlyUtils.getWorkerPoolCfg;
+import static org.dcache.oncrpc4j.grizzly.GrizzlyUtils.getDefaultWorkerPoolSize;
 import static org.dcache.oncrpc4j.rpc.net.IpProtocolType.*;
 
 
@@ -251,9 +252,14 @@ public class OncRpcSvcBuilder {
             return _workerThreadExecutionService;
         }
 
-        ThreadPoolConfig workerPoolConfig = getWorkerPoolCfg(_ioStrategy,
-                _serviceName, _workerThreadPoolSize);
-        return new FixedThreadPool(workerPoolConfig);
+        ThreadFactory threadFactory = new ThreadFactoryBuilder()
+                .setNameFormat(_serviceName + " (%d)")
+                .build();
+
+        int threadPoolSize = _workerThreadPoolSize != 0 ? _workerThreadPoolSize
+                : getDefaultWorkerPoolSize();
+
+        return Executors.newFixedThreadPool(threadPoolSize, threadFactory);
     }
 
     public int getSelectorThreadPoolSize() {
