@@ -51,6 +51,9 @@ public class GrizzlyUtils {
      */
     final static int MIN_WORKERS = 5;
 
+    /**
+     * Number of available CPUs.
+     */
     final static int CPUS = Runtime.getRuntime().availableProcessors();
 
     private GrizzlyUtils(){}
@@ -82,16 +85,21 @@ public class GrizzlyUtils {
                 ? Math.max(MIN_SELECTORS, CPUS / 4) : Math.max(MIN_WORKERS, CPUS);
     }
 
-    static private int getWorkerPoolSize(IoStrategy ioStrategy) {
-        return ioStrategy == WORKER_THREAD
-                ? Math.max(MIN_WORKERS, (CPUS * 2)) : 0;
+    /**
+     * Get recommended default number of worker threads. The recommended number is based
+     * on number of available CPUs and at least equal to {@link #MIN_WORKERS}.
+     *
+     * @return recommended number of worker threads.
+     */
+    public static int getDefaultWorkerPoolSize() {
+        return Math.max(MIN_WORKERS, (CPUS * 2));
     }
 
     /**
      * Pre-configure Selectors thread pool for given {@link IOStrategy},
      * {@code serviceName} and {@code poolSize}. If {@code poolSize} is zero,
      * then default value will be used. If {@code poolSize} is smaller than minimal
-     * allowed number of threads, then {@link MIN_SELECTORS} will be used.
+     * allowed number of threads, then {@link #MIN_SELECTORS} will be used.
      *
      * @param ioStrategy to use
      * @param serviceName service name (affects thread names)
@@ -107,36 +115,6 @@ public class GrizzlyUtils {
         poolCfg.setCorePoolSize(threadPoolSize).setMaxPoolSize(threadPoolSize);
         if (serviceName != null) {
             poolCfg.setPoolName(serviceName); //grizzly will add "SelectorRunner"
-        }
-
-        return poolCfg;
-    }
-
-    /**
-     * Pre-configure Worker thread pool for given {@link IOStrategy},
-     * {@code serviceName} and {@code poolSize}. If {@code poolSize} is zero,
-     * then default value will be used. If {@code poolSize} is smaller than minimal
-     * allowed number of threads, then {@link MIN_WORKERS} will be used.
-     *
-     * @param ioStrategy in use
-     * @param serviceName service name (affects thread names)
-     * @param poolSize thread pool size. If zero, default thread pool is used.
-     * @return thread pool configuration or {@code null}, if ioStrategy don't
-     * supports worker threads.
-     */
-    public static ThreadPoolConfig getWorkerPoolCfg(IoStrategy ioStrategy, String serviceName, int poolSize) {
-
-        if (ioStrategy == SAME_THREAD) {
-            return null;
-        }
-
-        checkArgument(poolSize >= 0, "Negative  thread pool size");
-
-        final int threadPoolSize = poolSize > 0 ? Math.max(poolSize, MIN_WORKERS) : getWorkerPoolSize(ioStrategy);
-        final ThreadPoolConfig poolCfg = ThreadPoolConfig.defaultConfig();
-        poolCfg.setCorePoolSize(threadPoolSize).setMaxPoolSize(threadPoolSize);
-        if (serviceName != null) {
-            poolCfg.setPoolName(serviceName + " Worker");
         }
 
         return poolCfg;
