@@ -419,7 +419,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream, AutoCloseable 
 
         byte[] bytes = new byte[length];
         for (int i = 0; i < length; ++i) {
-            bytes[i] = (byte) xdrDecodeInt();
+            bytes[i] = xdrDecodeByte();
         }
         return bytes;
     }
@@ -760,7 +760,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream, AutoCloseable 
         // will be removed again when deserializing.
         //
         for (int i = 0; i < length; ++i) {
-            xdrEncodeInt((int) value[i]);
+            xdrEncodeByte(value[i]);
         }
     }
 

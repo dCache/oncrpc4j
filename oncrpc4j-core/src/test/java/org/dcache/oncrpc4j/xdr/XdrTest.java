@@ -19,11 +19,8 @@
  */
 package org.dcache.oncrpc4j.xdr;
 
+import java.nio.ByteBuffer;
 import org.dcache.oncrpc4j.util.Bytes;
-import org.dcache.oncrpc4j.xdr.BadXdrOncRpcException;
-import org.dcache.oncrpc4j.xdr.XdrEncodingStream;
-import org.dcache.oncrpc4j.xdr.XdrDecodingStream;
-import org.dcache.oncrpc4j.xdr.Xdr;
 import java.nio.ByteOrder;
 import java.util.Arrays;
 import org.dcache.oncrpc4j.grizzly.GrizzlyMemoryManager;
@@ -32,6 +29,8 @@ import org.glassfish.grizzly.memory.BuffersBuffer;
 import org.glassfish.grizzly.memory.CompositeBuffer;
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.mockito.Mockito.*;
 import static org.junit.Assert.*;
 
 public class XdrTest {
@@ -73,6 +72,21 @@ public class XdrTest {
         assertTrue("encoded/decoded data do not match", Arrays.equals(data, decoded));
     }
 
+    @Test
+    public void testEncodeDecodeOpaque2() throws BadXdrOncRpcException {
+
+        byte[] data = "some random data".getBytes();
+        XdrEncodingStream encoder = new Xdr(_buffer);
+        encoder.beginEncoding();
+        encoder.xdrEncodeOpaque(data, data.length);
+        encoder.endEncoding();
+
+        XdrDecodingStream decoder = new Xdr(_buffer);
+        decoder.beginDecoding();
+        byte[] decoded = decoder.xdrDecodeOpaque(data.length);
+
+        assertTrue("encoded/decoded data do not match", Arrays.equals(data, decoded));
+    }
 
     @Test
     public void testDecodeBooleanTrue() throws BadXdrOncRpcException {
@@ -230,23 +244,6 @@ public class XdrTest {
     }
 
     @Test
-    public void testEncodeDecodeIntVector() throws BadXdrOncRpcException {
-
-        int vector[] = { 1, 2, 3, 4 };
-        XdrEncodingStream encoder = new Xdr(_buffer);
-        encoder.beginEncoding();
-        encoder.xdrEncodeIntVector(vector);
-        encoder.endEncoding();
-
-        XdrDecodingStream decoder = new Xdr(_buffer);
-        decoder.beginDecoding();
-
-        int[] decoded = decoder.xdrDecodeIntVector();
-
-        assertArrayEquals("encoded/decoded int array do not match", vector, decoded);
-    }
-
-    @Test
     public void testSizeConstructor() {
 
         Xdr xdr = new Xdr(1024);
@@ -369,6 +366,286 @@ public class XdrTest {
         xdr.xdrEncodeBoolean(true);
 
         xdr.getBytes();
+    }
+
+    @Test
+    public void testFixedFloatVector() throws BadXdrOncRpcException {
+        float[] floats = new float[]{1.0f, 2.0f};
+
+        Xdr xdr = new Xdr(128);
+        xdr.beginEncoding();
+        xdr.xdrEncodeFloatFixedVector(floats, 2);
+
+        xdr.endEncoding();
+
+        xdr = new Xdr(xdr.getBytes());
+        xdr.beginDecoding();
+
+        float[] decoded = xdr.xdrDecodeFloatFixedVector(2);
+        assertArrayEquals(floats, decoded, 0.0000001f);
+    }
+
+    @Test
+    public void testFloatVector() throws BadXdrOncRpcException {
+        float[] floats = new float[]{1.0f, 2.0f, 3.5f};
+
+        Xdr xdr = new Xdr(128);
+        xdr.beginEncoding();
+        xdr.xdrEncodeFloatVector(floats);
+
+        xdr.endEncoding();
+
+        xdr = new Xdr(xdr.getBytes());
+        xdr.beginDecoding();
+
+        float[] decoded = xdr.xdrDecodeFloatVector();
+        assertArrayEquals(floats, decoded, 0.0000001f);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testIllegalFixedFloatVector() throws BadXdrOncRpcException {
+        Xdr xdr = new Xdr(128);
+        xdr.beginEncoding();
+        xdr.xdrEncodeFloatFixedVector(new float[]{0.1f, 0.2f}, 3);
+    }
+
+    @Test
+    public void testFixedDoubleVector() throws BadXdrOncRpcException {
+        double[] doubles = new double[]{1.0, 2.0};
+
+        Xdr xdr = new Xdr(128);
+        xdr.beginEncoding();
+        xdr.xdrEncodeDoubleFixedVector(doubles, 2);
+
+        xdr.endEncoding();
+
+        xdr = new Xdr(xdr.getBytes());
+        xdr.beginDecoding();
+
+        double[] decoded = xdr.xdrDecodeDoubleFixedVector(2);
+        assertArrayEquals(doubles, decoded, 0.0000001);
+    }
+
+    @Test
+    public void testDoubleVector() throws BadXdrOncRpcException {
+        double[] doubles = new double[]{1.0, 2.0, 3.5};
+
+        Xdr xdr = new Xdr(128);
+        xdr.beginEncoding();
+        xdr.xdrEncodeDoubleVector(doubles);
+
+        xdr.endEncoding();
+
+        xdr = new Xdr(xdr.getBytes());
+        xdr.beginDecoding();
+
+        double[] decoded = xdr.xdrDecodeDoubleVector();
+        assertArrayEquals(doubles, decoded, 0.0000001);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testIllegalFixedDoubleVector() throws BadXdrOncRpcException {
+        Xdr xdr = new Xdr(128);
+        xdr.beginEncoding();
+        xdr.xdrEncodeDoubleFixedVector(new double[]{0.1, 0.2}, 3);
+    }
+
+    @Test
+    public void testIntVector() throws BadXdrOncRpcException {
+        int[] ints = new int[]{1, 2, 3};
+
+        Xdr xdr = new Xdr(128);
+        xdr.beginEncoding();
+        xdr.xdrEncodeIntVector(ints);
+
+        xdr.endEncoding();
+
+        xdr = new Xdr(xdr.getBytes());
+        xdr.beginDecoding();
+
+        int[] decoded = xdr.xdrDecodeIntVector();
+        assertArrayEquals(ints, decoded);
+    }
+
+    @Test
+    public void testFixedIntVector() throws BadXdrOncRpcException {
+        int[] ints = new int[]{1, 2};
+
+        Xdr xdr = new Xdr(128);
+        xdr.beginEncoding();
+        xdr.xdrEncodeIntFixedVector(ints, 2);
+
+        xdr.endEncoding();
+
+        xdr = new Xdr(xdr.getBytes());
+        xdr.beginDecoding();
+
+        int[] decoded = xdr.xdrDecodeIntFixedVector(2);
+        assertArrayEquals(ints, decoded);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testIllegalFixedIntVector() throws BadXdrOncRpcException {
+        Xdr xdr = new Xdr(128);
+        xdr.beginEncoding();
+        xdr.xdrEncodeIntFixedVector(new int[]{1, 2}, 3);
+    }
+
+    @Test
+    public void testLongVector() throws BadXdrOncRpcException {
+        long[] longs = new long[]{1, 2, 3};
+
+        Xdr xdr = new Xdr(128);
+        xdr.beginEncoding();
+        xdr.xdrEncodeLongVector(longs);
+
+        xdr.endEncoding();
+
+        xdr = new Xdr(xdr.getBytes());
+        xdr.beginDecoding();
+
+        long[] decoded = xdr.xdrDecodeLongVector();
+        assertArrayEquals(longs, decoded);
+    }
+
+    @Test
+    public void testFixedLongVector() throws BadXdrOncRpcException {
+        long[] longs = new long[]{1, 2};
+
+        Xdr xdr = new Xdr(128);
+        xdr.beginEncoding();
+        xdr.xdrEncodeLongFixedVector(longs, 2);
+
+        xdr.endEncoding();
+
+        xdr = new Xdr(xdr.getBytes());
+        xdr.beginDecoding();
+
+        long[] decoded = xdr.xdrDecodeLongFixedVector(2);
+        assertArrayEquals(longs, decoded);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testIllegalFixedLongVector() throws BadXdrOncRpcException {
+        Xdr xdr = new Xdr(128);
+        xdr.beginEncoding();
+        xdr.xdrEncodeLongFixedVector(new long[]{1, 2}, 3);
+    }
+
+    @Test
+    public void testShortVector() throws BadXdrOncRpcException {
+        short[] shorts = new short[]{1, 2, 3};
+
+        Xdr xdr = new Xdr(128);
+        xdr.beginEncoding();
+        xdr.xdrEncodeShortVector(shorts);
+
+        xdr.endEncoding();
+
+        xdr = new Xdr(xdr.getBytes());
+        xdr.beginDecoding();
+
+        short[] decoded = xdr.xdrDecodeShortVector();
+        assertArrayEquals(shorts, decoded);
+    }
+
+    @Test
+    public void testFixedShortVector() throws BadXdrOncRpcException {
+        short[] shorts = new short[]{1, 2};
+
+        Xdr xdr = new Xdr(128);
+        xdr.beginEncoding();
+        xdr.xdrEncodeShortFixedVector(shorts, 2);
+
+        xdr.endEncoding();
+
+        xdr = new Xdr(xdr.getBytes());
+        xdr.beginDecoding();
+
+        short[] decoded = xdr.xdrDecodeShortFixedVector(2);
+        assertArrayEquals(shorts, decoded);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testIllegalFixedShortVector() throws BadXdrOncRpcException {
+
+        Xdr xdr = new Xdr(128);
+        xdr.beginEncoding();
+        xdr.xdrEncodeShortFixedVector(new short[]{1, 2}, 3);
+    }
+
+    @Test
+    public void testByteVector() throws BadXdrOncRpcException {
+        byte[] bytes = new byte[]{1, 2, 3};
+
+        Xdr xdr = new Xdr(128);
+        xdr.beginEncoding();
+        xdr.xdrEncodeByteVector(bytes);
+
+        xdr.endEncoding();
+
+        xdr = new Xdr(xdr.getBytes());
+        xdr.beginDecoding();
+
+        byte[] decoded = xdr.xdrDecodeByteVector();
+        assertArrayEquals(bytes, decoded);
+    }
+
+    @Test
+    public void testFixedByteVector() throws BadXdrOncRpcException {
+        byte[] bytes = new byte[]{1, 2};
+
+        Xdr xdr = new Xdr(128);
+        xdr.beginEncoding();
+        xdr.xdrEncodeByteFixedVector(bytes, 2);
+
+        xdr.endEncoding();
+
+        xdr = new Xdr(xdr.getBytes());
+        xdr.beginDecoding();
+
+        byte[] decoded = xdr.xdrDecodeByteFixedVector(2);
+        assertArrayEquals(bytes, decoded);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testIllegalByteShortVector() throws BadXdrOncRpcException {
+
+        Xdr xdr = new Xdr(128);
+        xdr.beginEncoding();
+        xdr.xdrEncodeByteFixedVector(new byte[]{1, 2}, 3);
+    }
+
+    @Test
+    public void testByteBuffer() throws BadXdrOncRpcException {
+        ByteBuffer buf = ByteBuffer.allocate(128);
+        buf.putInt(1);
+        buf.putDouble(3.14);
+        buf.putChar('a');
+        buf.flip();
+
+        Xdr xdr = new Xdr(128);
+        xdr.beginEncoding();
+        xdr.xdrEncodeByteBuffer(buf);
+        xdr.endEncoding();
+
+        xdr = new Xdr(xdr.getBytes());
+        xdr.beginDecoding();
+        ByteBuffer decoded = xdr.xdrDecodeByteBuffer();
+
+        assertEquals(decoded.getInt(), 1);
+        assertEquals(decoded.getDouble(), 3.14, 0.00000001);
+        assertEquals(decoded.getChar(), 'a');
+    }
+
+    @Test
+    public void testRelaseBufferOnClose() {
+
+        Buffer b = mock(Buffer.class);
+        Xdr xdr = new Xdr(b);
+        xdr.close();
+
+        verify(b, times(1)).tryDispose();
     }
 
     private static Buffer allocateBuffer(int size) {
