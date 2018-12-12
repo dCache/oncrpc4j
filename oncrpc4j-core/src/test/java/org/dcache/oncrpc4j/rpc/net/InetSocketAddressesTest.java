@@ -19,12 +19,13 @@
  */
 package org.dcache.oncrpc4j.rpc.net;
 
-import org.dcache.oncrpc4j.rpc.net.InetSocketAddresses;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 
 import org.junit.Test;
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.mock;
 
 public class InetSocketAddressesTest {
 
@@ -47,9 +48,27 @@ public class InetSocketAddressesTest {
     }
 
     @Test
-    public void testLocalHostV4Revert() throws Exception {
+    public void testSocketAddressToUaddrIPv4() throws Exception {
         String uaddr = "127.0.0.1.203.81";
         InetSocketAddress socketAddress = new InetSocketAddress(InetAddress.getByName("127.0.0.1"),52049);
+
+        assertEquals("reverce convertion failed", uaddr,
+                InetSocketAddresses.uaddrOf(socketAddress));
+    }
+
+    @Test
+    public void testSocketAddressToUaddrIPv6() throws Exception {
+        String uaddr = "fe80:0:0:0:21c:c0ff:fea0:caf4.203.81";
+        InetSocketAddress socketAddress = new InetSocketAddress(InetAddress.getByName("fe80::21c:c0ff:fea0:caf4"), 52049);
+
+        assertEquals("reverce convertion failed", uaddr,
+                InetSocketAddresses.uaddrOf(socketAddress));
+    }
+
+    @Test
+    public void testSocketAddressToUaddrIPv6WithScope() throws Exception {
+        String uaddr = "fe80:0:0:0:21c:c0ff:fea0:caf4.203.81";
+        InetSocketAddress socketAddress = new InetSocketAddress(InetAddress.getByName("fe80::21c:c0ff:fea0:caf4%1"), 52049);
 
         assertEquals("reverce convertion failed", uaddr,
                 InetSocketAddresses.uaddrOf(socketAddress));
@@ -72,4 +91,47 @@ public class InetSocketAddressesTest {
         assertEquals(InetAddress.getByName("fe80::21c:c0ff:fea0:caf4"), address.getAddress());
         assertEquals(1111, address.getPort());
     }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testHostNoPortIPv4() {
+        String uaddr = "127.0.0.1";
+        InetSocketAddresses.forUaddrString(uaddr);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testHostPartiallyNoPortIPv4() {
+        String uaddr = "127.0.0.1.1";
+        InetSocketAddresses.forUaddrString(uaddr);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testHostNoPortIPv6() {
+        String uaddr = "fe80::21c:c0ff:fea0:caf4";
+        InetSocketAddresses.forUaddrString(uaddr);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testHostPartiallyNoPortIPv6() {
+        String uaddr = "fe80::21c:c0ff:fea0:caf4.1";
+        InetSocketAddresses.forUaddrString(uaddr);
+    }
+
+    @Test
+    public void testTCPv4Netid() throws UnknownHostException {
+        InetAddress address = InetAddress.getByName("1.1.1.1");
+        assertEquals("invalid netid", "tcp", InetSocketAddresses.tcpNetidOf(address));
+    }
+
+    @Test
+    public void testTCPv6Netid() throws UnknownHostException {
+        InetAddress address = InetAddress.getByName("fe80::21c:c0ff:fea0:caf4");
+        assertEquals("invalid netid", "tcp6", InetSocketAddresses.tcpNetidOf(address));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testInvalitInetaddressType() throws UnknownHostException {
+        InetAddress address = mock(InetAddress.class); // not a direct instance of Inet4/6Address
+        assertEquals("invalid netid", "tcp6", InetSocketAddresses.tcpNetidOf(address));
+    }
+
 }
