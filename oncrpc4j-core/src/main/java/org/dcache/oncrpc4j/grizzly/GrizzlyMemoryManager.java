@@ -33,6 +33,9 @@ public class GrizzlyMemoryManager {
     private static final MemoryManager GRIZZLY_MM =
             MemoryManager.DEFAULT_MEMORY_MANAGER;
 
+    // Utility class
+    private GrizzlyMemoryManager() {}
+
     public static Buffer allocate(int size) {
         return GRIZZLY_MM.allocate(size);
     }
