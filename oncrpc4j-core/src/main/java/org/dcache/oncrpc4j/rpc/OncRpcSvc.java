@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2018 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2019 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -42,6 +42,8 @@ import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransportBuilder;
 import org.glassfish.grizzly.nio.transport.UDPNIOTransport;
 import org.glassfish.grizzly.nio.transport.UDPNIOTransportBuilder;
+import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
+import org.glassfish.grizzly.ssl.SSLFilter;
 import org.glassfish.grizzly.strategies.SameThreadIOStrategy;
 import org.glassfish.grizzly.threadpool.ThreadPoolConfig;
 import org.slf4j.Logger;
@@ -63,6 +65,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import javax.net.ssl.SSLContext;
 
 import static com.google.common.base.Throwables.getRootCause;
 import static com.google.common.base.Throwables.propagateIfPossible;
@@ -95,6 +98,11 @@ public class OncRpcSvc {
      * Handle RPCSEC_GSS
      */
     private final GssSessionManager _gssSessionManager;
+
+    /**
+     * SSL context to use, if configured.
+     */
+    private final SSLContext _sslContext;
 
     /**
      * mapping of registered programs.
@@ -164,6 +172,7 @@ public class OncRpcSvc {
         _programs.putAll(builder.getRpcServices());
         _withSubjectPropagation = builder.getSubjectPropagation();
 	_svcName = builder.getServiceName();
+        _sslContext = builder.getSSLContext();
     }
 
     /**
@@ -296,6 +305,17 @@ public class OncRpcSvc {
 
             FilterChainBuilder filterChain = FilterChainBuilder.stateless();
             filterChain.add(new TransportFilter());
+            if (_sslContext != null) {
+                SSLEngineConfigurator serverSSLEngineConfigurator =
+                        new SSLEngineConfigurator(_sslContext, false, false, false);
+
+                SSLEngineConfigurator clientSSLEngineConfigurator =
+                        new SSLEngineConfigurator(_sslContext, true, false, false);
+
+                filterChain.add(new SSLFilter(serverSSLEngineConfigurator,
+                        clientSSLEngineConfigurator));
+            }
+
             filterChain.add(rpcMessageReceiverFor(t));
             filterChain.add(new RpcProtocolFilter(_replyQueue));
             // use GSS if configures

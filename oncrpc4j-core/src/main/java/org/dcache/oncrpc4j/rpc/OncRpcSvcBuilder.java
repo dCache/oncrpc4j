@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2018 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2019 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+import javax.net.ssl.SSLContext;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.dcache.oncrpc4j.grizzly.GrizzlyUtils.getDefaultWorkerPoolSize;
@@ -76,6 +77,7 @@ public class OncRpcSvcBuilder {
     private int _selectorThreadPoolSize = 0;
     private int _workerThreadPoolSize = 0;
     private boolean _subjectPropagation = false;
+    private SSLContext _sslContext = null;
 
     public OncRpcSvcBuilder withAutoPublish() {
         _autoPublish = true;
@@ -199,6 +201,11 @@ public class OncRpcSvcBuilder {
         return this;
     }
 
+    public OncRpcSvcBuilder withSSLContext(SSLContext sslContext) {
+        _sslContext = sslContext;
+        return this;
+    }
+
     public boolean getSubjectPropagation() {
         return _subjectPropagation;
     }
@@ -276,6 +283,10 @@ public class OncRpcSvcBuilder {
 
     public Map<OncRpcProgram, RpcDispatchable> getRpcServices() {
         return _programs;
+    }
+
+    public SSLContext getSSLContext() {
+        return _sslContext;
     }
 
     public OncRpcSvc build() {

@@ -66,6 +66,7 @@
     <guava.version>24.1-jre</guava.version>
     <slf4j-api.version>1.7.25</slf4j-api.version>
     <spring-context.version>5.1.0.RELEASE</spring-context.version>
+    <bc.version>1.60</bc.version>
     
     <!--  version of test dependencies  -->
     <junit.version>4.12</junit.version>
@@ -250,6 +251,28 @@
               <artifactId>slf4j-simple</artifactId>
               <version>${slf4j-api.version}</version>
           </dependency>
+
+          <dependency>
+              <groupId>org.bouncycastle</groupId>
+              <artifactId>bcprov-jdk15on</artifactId>
+              <version>${bc.version}</version>
+          </dependency>
+          <dependency>
+              <groupId>org.bouncycastle</groupId>
+              <artifactId>bcprov-ext-jdk15on</artifactId>
+              <version>${bc.version}</version>
+          </dependency>
+          <dependency>
+              <groupId>org.bouncycastle</groupId>
+              <artifactId>bcpkix-jdk15on</artifactId>
+              <version>${bc.version}</version>
+          </dependency>
+          <dependency>
+              <groupId>org.bouncycastle</groupId>
+              <artifactId>bctls-jdk15on</artifactId>
+              <version>${bc.version}</version>
+          </dependency>
+
       </dependencies>
   </dependencyManagement>
 
