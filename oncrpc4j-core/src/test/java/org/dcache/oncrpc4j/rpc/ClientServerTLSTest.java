@@ -27,6 +27,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.dcache.oncrpc4j.xdr.XdrVoid;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -48,6 +49,37 @@ public class ClientServerTLSTest {
     private OncRpcSvc svc;
     private OncRpcSvc clnt;
     private RpcCall clntCall;
+    private SSLContext sslContext;
+
+    private RpcDispatchable echo = (RpcCall call) -> {
+        switch (call.getProcedure()) {
+            case ECHO: {
+                XdrString s = new XdrString();
+                call.retrieveCall(s);
+                call.reply(s);
+                break;
+            }
+            case UPPER: {
+                RpcCall cb = new RpcCall(PROGNUM, PROGVER, new RpcAuthTypeNone(), call.getTransport());
+                XdrString s = new XdrString();
+                call.retrieveCall(s);
+                cb.call(ECHO, s, s);
+                call.reply(s);
+                break;
+            }
+            case 0: {
+                call.reply(XdrVoid.XDR_VOID);
+            }
+        }
+    };
+
+    private RpcDispatchable upper = (RpcCall call) -> {
+        XdrString s = new XdrString();
+        call.retrieveCall(s);
+        XdrString u = new XdrString(s.stringValue().toUpperCase());
+        call.reply(u);
+    };
+
 
     @BeforeClass
     public static void setupClass() {
@@ -56,34 +88,21 @@ public class ClientServerTLSTest {
 
     @Before
     public void setUp() throws Exception {
+        sslContext = createSslContext();
+    }
 
-        RpcDispatchable echo = (RpcCall call) -> {
-            switch (call.getProcedure()) {
-                case ECHO: {
-                    XdrString s = new XdrString();
-                    call.retrieveCall(s);
-                    call.reply(s);
-                    break;
-                }
-                case UPPER: {
-                    RpcCall cb = new RpcCall(PROGNUM, PROGVER, new RpcAuthTypeNone(), call.getTransport());
-                    XdrString s = new XdrString();
-                    call.retrieveCall(s);
-                    cb.call(ECHO, s, s);
-                    call.reply(s);
-                    break;
-                }
-            }
-        };
+    @After
+    public void tearDown() throws IOException {
+        if (svc != null) {
+            svc.stop();
+        }
+        if (clnt != null) {
+            clnt.stop();
+        }
+    }
 
-        RpcDispatchable upper = (RpcCall call) -> {
-            XdrString s = new XdrString();
-            call.retrieveCall(s);
-            XdrString u = new XdrString(s.stringValue().toUpperCase());
-            call.reply(u);
-        };
-
-        SSLContext sslContext = createSslContext();
+    @Test
+    public void shouldCallCorrectProcedure() throws IOException {
 
         svc = new OncRpcSvcBuilder()
                 .withoutAutoPublish()
@@ -113,20 +132,8 @@ public class ClientServerTLSTest {
 
         RpcTransport t = clnt.connect(svc.getInetSocketAddress(IpProtocolType.TCP));
         clntCall = new RpcCall(PROGNUM, PROGVER, new RpcAuthTypeNone(), t);
-    }
 
-    @After
-    public void tearDown() throws IOException {
-        if (svc != null) {
-            svc.stop();
-        }
-        if (clnt != null) {
-            clnt.stop();
-        }
-    }
 
-    @Test
-    public void shouldCallCorrectProcedure() throws IOException {
         XdrString s = new XdrString("hello");
         XdrString reply = new XdrString();
         clntCall.call(ECHO, s, reply);
@@ -137,12 +144,196 @@ public class ClientServerTLSTest {
 
     @Test
     public void shouldTriggerClientCallback() throws IOException {
+
+                svc = new OncRpcSvcBuilder()
+                .withoutAutoPublish()
+                .withTCP()
+                .withWorkerThreadIoStrategy()
+                .withBindAddress("127.0.0.1")
+                .withSelectorThreadPoolSize(1)
+                .withWorkerThreadPoolSize(1)
+                .withRpcService(new OncRpcProgram(PROGNUM, PROGVER), echo)
+                .withSSLContext(sslContext)
+                .withServiceName("svc")
+                .build();
+        svc.start();
+
+        clnt = new OncRpcSvcBuilder()
+                .withoutAutoPublish()
+                .withTCP()
+                .withClientMode()
+                .withWorkerThreadIoStrategy()
+                .withSelectorThreadPoolSize(1)
+                .withWorkerThreadPoolSize(1)
+                .withRpcService(new OncRpcProgram(PROGNUM, PROGVER), upper)
+                .withSSLContext(sslContext)
+                .withServiceName("clnt")
+                .build();
+        clnt.start();
+
+        RpcTransport t = clnt.connect(svc.getInetSocketAddress(IpProtocolType.TCP));
+        clntCall = new RpcCall(PROGNUM, PROGVER, new RpcAuthTypeNone(), t);
+
+
         XdrString s = new XdrString("hello");
         XdrString reply = new XdrString();
 
         clntCall.call(UPPER, s, reply);
 
         assertEquals("reply mismatch", s.stringValue().toUpperCase(), reply.stringValue());
+    }
+
+    @Test
+    public void shouldStartTLSHandshake() throws IOException {
+
+        svc = new OncRpcSvcBuilder()
+                .withoutAutoPublish()
+                .withTCP()
+                .withWorkerThreadIoStrategy()
+                .withBindAddress("127.0.0.1")
+                .withSelectorThreadPoolSize(1)
+                .withWorkerThreadPoolSize(1)
+                .withRpcService(new OncRpcProgram(PROGNUM, PROGVER), echo)
+                .withSSLContext(sslContext)
+                .withStartTLS()
+                .withServiceName("svc")
+                .build();
+        svc.start();
+
+        clnt = new OncRpcSvcBuilder()
+                .withoutAutoPublish()
+                .withTCP()
+                .withClientMode()
+                .withWorkerThreadIoStrategy()
+                .withSelectorThreadPoolSize(1)
+                .withWorkerThreadPoolSize(1)
+                .withSSLContext(sslContext)
+                .withStartTLS()
+                .withServiceName("clnt")
+                .build();
+        clnt.start();
+
+        RpcTransport t = clnt.connect(svc.getInetSocketAddress(IpProtocolType.TCP));
+        clntCall = new RpcCall(PROGNUM, PROGVER, new RpcAuthTypeNone(), t);
+
+        // poke server to start tls
+        clntCall.call(0, XdrVoid.XDR_VOID, XdrVoid.XDR_VOID, new RpcAuthTypeTls());
+        clntCall.getTransport().startTLS();
+
+        XdrString s = new XdrString("hello");
+        XdrString reply = new XdrString();
+
+        clntCall.call(ECHO, s, reply);
+
+        assertEquals("reply mismatch", s, reply);
+    }
+
+    @Test(expected = RpcAuthException.class)
+    public void shouldFailWhenNoTLSOnClient() throws IOException {
+
+        svc = new OncRpcSvcBuilder()
+                .withoutAutoPublish()
+                .withTCP()
+                .withWorkerThreadIoStrategy()
+                .withBindAddress("127.0.0.1")
+                .withSelectorThreadPoolSize(1)
+                .withWorkerThreadPoolSize(1)
+                .withRpcService(new OncRpcProgram(PROGNUM, PROGVER), echo)
+                .withSSLContext(sslContext)
+                .withStartTLS()
+                .withServiceName("svc")
+                .build();
+        svc.start();
+
+        clnt = new OncRpcSvcBuilder()
+                .withoutAutoPublish()
+                .withTCP()
+                .withClientMode()
+                .withWorkerThreadIoStrategy()
+                .withSelectorThreadPoolSize(1)
+                .withWorkerThreadPoolSize(1)
+                .withRpcService(new OncRpcProgram(PROGNUM, PROGVER), upper)
+                .withServiceName("clnt")
+                .build();
+        clnt.start();
+
+        RpcTransport t = clnt.connect(svc.getInetSocketAddress(IpProtocolType.TCP));
+        clntCall = new RpcCall(PROGNUM, PROGVER, new RpcAuthTypeNone(), t);
+        // poke server to start tls
+        clntCall.call(0, XdrVoid.XDR_VOID, XdrVoid.XDR_VOID, new RpcAuthTypeTls());
+        clntCall.getTransport().startTLS();
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void shouldFailSecondStartTLS() throws IOException {
+
+        svc = new OncRpcSvcBuilder()
+                .withoutAutoPublish()
+                .withTCP()
+                .withWorkerThreadIoStrategy()
+                .withBindAddress("127.0.0.1")
+                .withSelectorThreadPoolSize(1)
+                .withWorkerThreadPoolSize(1)
+                .withRpcService(new OncRpcProgram(PROGNUM, PROGVER), echo)
+                .withSSLContext(sslContext)
+                .withStartTLS()
+                .withServiceName("svc")
+                .build();
+        svc.start();
+
+        clnt = new OncRpcSvcBuilder()
+                .withoutAutoPublish()
+                .withTCP()
+                .withClientMode()
+                .withWorkerThreadIoStrategy()
+                .withSelectorThreadPoolSize(1)
+                .withWorkerThreadPoolSize(1)
+                .withSSLContext(sslContext)
+                .withStartTLS()
+                .withServiceName("clnt")
+                .build();
+        clnt.start();
+
+        RpcTransport t = clnt.connect(svc.getInetSocketAddress(IpProtocolType.TCP));
+        clntCall = new RpcCall(PROGNUM, PROGVER, new RpcAuthTypeNone(), t);
+        // poke server to start tls
+        clntCall.call(0, XdrVoid.XDR_VOID, XdrVoid.XDR_VOID, new RpcAuthTypeTls());
+        clntCall.getTransport().startTLS();
+        clntCall.getTransport().startTLS();
+    }
+
+    @Test(expected = OncRpcRejectedException.class)
+    public void shouldRejectStartTlsWhenNotConfigured() throws IOException {
+
+        svc = new OncRpcSvcBuilder()
+                .withoutAutoPublish()
+                .withTCP()
+                .withWorkerThreadIoStrategy()
+                .withBindAddress("127.0.0.1")
+                .withSelectorThreadPoolSize(1)
+                .withWorkerThreadPoolSize(1)
+                .withRpcService(new OncRpcProgram(PROGNUM, PROGVER), echo)
+                .withServiceName("svc")
+                .build();
+        svc.start();
+
+        clnt = new OncRpcSvcBuilder()
+                .withoutAutoPublish()
+                .withTCP()
+                .withClientMode()
+                .withWorkerThreadIoStrategy()
+                .withSelectorThreadPoolSize(1)
+                .withWorkerThreadPoolSize(1)
+                .withSSLContext(sslContext)
+                .withStartTLS()
+                .withServiceName("clnt")
+                .build();
+        clnt.start();
+
+        RpcTransport t = clnt.connect(svc.getInetSocketAddress(IpProtocolType.TCP));
+        // poke server to start tls
+        clntCall = new RpcCall(PROGNUM, PROGVER, new RpcAuthTypeNone(), t);
+        clntCall.call(0, XdrVoid.XDR_VOID, XdrVoid.XDR_VOID, new RpcAuthTypeTls());
     }
 
     public static SSLContext createSslContext() throws Exception {

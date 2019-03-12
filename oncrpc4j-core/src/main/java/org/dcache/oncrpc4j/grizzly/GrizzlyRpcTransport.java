@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2018 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2019 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -31,7 +31,12 @@ import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.EmptyCompletionHandler;
 import org.glassfish.grizzly.WriteResult;
 import org.glassfish.grizzly.asyncqueue.WritableMessage;
+import org.glassfish.grizzly.filterchain.FilterChain;
+import org.glassfish.grizzly.ssl.SSLFilter;
 
+import org.dcache.oncrpc4j.rpc.RpcAuthError;
+import org.dcache.oncrpc4j.rpc.RpcAuthException;
+import org.dcache.oncrpc4j.rpc.RpcAuthStat;
 import org.dcache.oncrpc4j.rpc.RpcTransport;
 
 import static java.util.Objects.requireNonNull;
@@ -107,5 +112,22 @@ public class GrizzlyRpcTransport implements RpcTransport {
     @Override
     public String toString() {
         return getRemoteSocketAddress() + " <=> " + getLocalSocketAddress();
+    }
+
+    @Override
+    public void startTLS() throws RpcAuthException {
+        final FilterChain currentChain = (FilterChain) _connection.getProcessor();
+        if (currentChain.indexOfType(SSLFilter.class) >= 0) {
+            // already enabled
+            throw new IllegalStateException("TLS is already enabled.");
+        }
+
+        currentChain.stream()
+                .filter(StartTlsFilter.class::isInstance)
+                .findAny()
+                .map(StartTlsFilter.class::cast)
+                .orElseThrow(() -> new RpcAuthException("SSL is not configured",
+                        new RpcAuthError(RpcAuthStat.AUTH_FAILED)))
+                .startTLS(_connection);
     }
 }

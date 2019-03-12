@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2018 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2019 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -19,9 +19,9 @@
  */
 package org.dcache.oncrpc4j.rpc;
 
+import com.google.common.annotations.Beta;
 import java.net.InetSocketAddress;
 import java.nio.channels.CompletionHandler;
-import org.dcache.oncrpc4j.rpc.ReplyQueue;
 import org.dcache.oncrpc4j.xdr.Xdr;
 
 /**
@@ -75,4 +75,13 @@ public interface RpcTransport {
      * @return
      */
     public RpcTransport getPeerTransport();
+
+
+    /**
+     * Enable TLS on this transport.
+     * @throws RpcAuthException if handshake can't be initialized (due to missing configuration).
+     * @throws IllegalStateException if TLS is already enabled.
+     */
+    @Beta
+    void startTLS() throws RpcAuthException, IllegalStateException;
 }

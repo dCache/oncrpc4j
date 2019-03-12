@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2018 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2019 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -32,7 +32,7 @@ public class RpcCredential {
 
     private RpcCredential() {}
 
-    public static RpcAuth decode(XdrDecodingStream xdr) throws OncRpcException, IOException {
+    public static RpcAuth decode(XdrDecodingStream xdr, RpcTransport transport) throws OncRpcException, IOException {
 
         int authType = xdr.xdrDecodeInt();
         RpcAuth credential;
@@ -45,6 +45,10 @@ public class RpcCredential {
                 break;
             case RpcAuthType.RPCGSS_SEC:
                 credential = new RpcAuthGss();
+                break;
+            case RpcAuthType.TLS:
+                credential = new RpcAuthTypeTls();
+                transport.startTLS();
                 break;
             default:
                 throw new RpcAuthException("Unsuported type: " + authType,

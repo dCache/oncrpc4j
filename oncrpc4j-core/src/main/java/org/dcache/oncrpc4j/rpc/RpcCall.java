@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2018 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2019 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -205,7 +205,7 @@ public class RpcCall {
         _prog = _xdr.xdrDecodeInt();
         _version = _xdr.xdrDecodeInt();
         _proc = _xdr.xdrDecodeInt();
-        _cred = RpcCredential.decode(_xdr);
+        _cred = RpcCredential.decode(_xdr, _transport);
      }
 
     /**

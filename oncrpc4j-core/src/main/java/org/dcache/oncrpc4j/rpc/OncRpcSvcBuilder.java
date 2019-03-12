@@ -19,6 +19,7 @@
  */
 package org.dcache.oncrpc4j.rpc;
 
+import com.google.common.annotations.Beta;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.dcache.oncrpc4j.rpc.gss.GssSessionManager;
@@ -78,9 +79,16 @@ public class OncRpcSvcBuilder {
     private int _workerThreadPoolSize = 0;
     private boolean _subjectPropagation = false;
     private SSLContext _sslContext = null;
+    private boolean _startTLS = false;
 
     public OncRpcSvcBuilder withAutoPublish() {
         _autoPublish = true;
+        return this;
+    }
+
+    @Beta
+    public OncRpcSvcBuilder withStartTLS() {
+        _startTLS = true;
         return this;
     }
 
@@ -224,6 +232,11 @@ public class OncRpcSvcBuilder {
 
     public boolean isAutoPublish() {
         return _autoPublish;
+    }
+
+    @Beta
+    public boolean isStartTLS() {
+        return _startTLS;
     }
 
     public IoStrategy getIoStrategy() {

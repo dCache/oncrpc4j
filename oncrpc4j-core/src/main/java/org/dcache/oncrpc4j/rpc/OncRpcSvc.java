@@ -19,6 +19,7 @@
  */
 package org.dcache.oncrpc4j.rpc;
 
+import org.dcache.oncrpc4j.grizzly.StartTlsFilter;
 import org.dcache.oncrpc4j.rpc.net.IpProtocolType;
 import org.dcache.oncrpc4j.rpc.net.InetSocketAddresses;
 import org.dcache.oncrpc4j.rpc.gss.GssProtocolFilter;
@@ -105,6 +106,11 @@ public class OncRpcSvc {
     private final SSLContext _sslContext;
 
     /**
+     * Start TLS only when requested.
+     */
+    private final boolean _startTLS;
+
+    /**
      * mapping of registered programs.
      */
     private final Map<OncRpcProgram, RpcDispatchable> _programs =
@@ -173,6 +179,7 @@ public class OncRpcSvc {
         _withSubjectPropagation = builder.getSubjectPropagation();
 	_svcName = builder.getServiceName();
         _sslContext = builder.getSSLContext();
+        _startTLS = builder.isStartTLS();
     }
 
     /**
@@ -312,8 +319,9 @@ public class OncRpcSvc {
                 SSLEngineConfigurator clientSSLEngineConfigurator =
                         new SSLEngineConfigurator(_sslContext, true, false, false);
 
-                filterChain.add(new SSLFilter(serverSSLEngineConfigurator,
-                        clientSSLEngineConfigurator));
+                SSLFilter sslFilter = new SSLFilter(serverSSLEngineConfigurator,
+                        clientSSLEngineConfigurator);
+                filterChain.add(_startTLS ? new StartTlsFilter(sslFilter, _isClient) : sslFilter);
             }
 
             filterChain.add(rpcMessageReceiverFor(t));
