@@ -19,15 +19,19 @@
  */
 package org.dcache.oncrpc4j.rpc;
 
+import com.sun.security.auth.UnixNumericGroupPrincipal;
+import com.sun.security.auth.UnixNumericUserPrincipal;
+import org.dcache.oncrpc4j.xdr.XdrAble;
 import org.dcache.oncrpc4j.xdr.XdrDecodingStream;
 import org.dcache.oncrpc4j.xdr.XdrEncodingStream;
-import org.dcache.oncrpc4j.xdr.XdrAble;
-import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.util.Arrays;
+
 import javax.security.auth.Subject;
-import org.dcache.auth.Subjects;
+import java.io.IOException;
+import java.security.Principal;
+import java.util.Arrays;
+import java.util.Set;
 
 public class RpcAuthTypeUnix implements RpcAuth, XdrAble {
 
@@ -56,8 +60,7 @@ public class RpcAuthTypeUnix implements RpcAuth, XdrAble {
                 4/*machine len place holder*/ + _machine.length() +
                 ((4 - (_machine.length() & 3)) & 3) /*padding bytes*/+
                  + 4/*stamp*/;
-
-        _subject = Subjects.of(_uid, _gid, _gids);
+        _subject = buildUnixSubject(uid, gid, gids);
     }
 
     public void xdrDecode(XdrDecodingStream xdr) throws OncRpcException, IOException {
@@ -70,7 +73,18 @@ public class RpcAuthTypeUnix implements RpcAuth, XdrAble {
         _gids = xdr.xdrDecodeIntVector();
         _verifier.xdrDecode(xdr);
 
-        _subject = Subjects.of(_uid, _gid, _gids);
+        _subject = buildUnixSubject(_uid, _gid, _gids);
+    }
+
+    private static Subject buildUnixSubject(int uid, int gid, int[] gids) {
+        final Subject unixSubject = new Subject();
+        final Set<Principal> principals = unixSubject.getPrincipals();
+        principals.add(new UnixNumericUserPrincipal(uid));
+        principals.add(new UnixNumericGroupPrincipal(gid, true));
+        for (int gidElem : gids) {
+            principals.add(new UnixNumericGroupPrincipal(gidElem, false));
+        }
+        return unixSubject;
     }
 
     @Override

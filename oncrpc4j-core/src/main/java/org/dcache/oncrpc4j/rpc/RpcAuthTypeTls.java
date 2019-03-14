@@ -26,7 +26,6 @@ import org.dcache.oncrpc4j.xdr.XdrAble;
 import org.dcache.oncrpc4j.xdr.XdrDecodingStream;
 import org.dcache.oncrpc4j.xdr.XdrEncodingStream;
 
-import org.dcache.auth.Subjects;
 
 /**
  *
@@ -35,6 +34,12 @@ public class RpcAuthTypeTls implements RpcAuth, XdrAble {
 
     private final static byte[] STARTTLS = "STARTTLS".getBytes(StandardCharsets.US_ASCII);
     private final RpcAuthVerifier verifier = new RpcAuthVerifier(RpcAuthType.NONE, STARTTLS);
+    private final Subject _subject;
+
+    public RpcAuthTypeTls() {
+        _subject = new Subject();
+        _subject.setReadOnly();
+    }
 
     @Override
     public int type() {
@@ -48,7 +53,7 @@ public class RpcAuthTypeTls implements RpcAuth, XdrAble {
 
     @Override
     public Subject getSubject() {
-        return Subjects.NOBODY;
+        return _subject;
     }
 
     @Override

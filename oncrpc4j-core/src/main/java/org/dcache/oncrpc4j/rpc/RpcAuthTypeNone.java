@@ -19,21 +19,21 @@
  */
 package org.dcache.oncrpc4j.rpc;
 
+import org.dcache.oncrpc4j.xdr.XdrAble;
 import org.dcache.oncrpc4j.xdr.XdrDecodingStream;
 import org.dcache.oncrpc4j.xdr.XdrEncodingStream;
-import org.dcache.oncrpc4j.xdr.XdrAble;
-import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import javax.security.auth.Subject;
-import org.dcache.auth.Subjects;
+import java.io.IOException;
 
 public class RpcAuthTypeNone implements RpcAuth, XdrAble {
 
-    private final int _type =  RpcAuthType.NONE;
+    private final int _type = RpcAuthType.NONE;
     private byte[] body;
     private RpcAuthVerifier _verifier = new RpcAuthVerifier(RpcAuthType.NONE, new byte[0]);
-    private final Subject _subject = Subjects.NOBODY;
+    private final Subject _subject;
 
     private final static Logger _log = LoggerFactory.getLogger(RpcAuthTypeNone.class);
 
@@ -43,6 +43,8 @@ public class RpcAuthTypeNone implements RpcAuth, XdrAble {
 
     public RpcAuthTypeNone(byte[] body) {
         this.body = body;
+        _subject = new Subject();
+        _subject.setReadOnly();
     }
 
     @Override
