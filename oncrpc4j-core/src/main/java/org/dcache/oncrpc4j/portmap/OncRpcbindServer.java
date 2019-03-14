@@ -19,24 +19,25 @@
  */
 package org.dcache.oncrpc4j.portmap;
 
+import com.sun.security.auth.UnixNumericUserPrincipal;
+import org.dcache.oncrpc4j.rpc.OncRpcException;
+import org.dcache.oncrpc4j.rpc.RpcAuthType;
+import org.dcache.oncrpc4j.rpc.RpcCall;
+import org.dcache.oncrpc4j.rpc.RpcDispatchable;
+import org.dcache.oncrpc4j.rpc.net.IpProtocolType;
+import org.dcache.oncrpc4j.rpc.net.netid;
+import org.dcache.oncrpc4j.xdr.XdrBoolean;
+import org.dcache.oncrpc4j.xdr.XdrVoid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.security.auth.kerberos.KerberosPrincipal;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Predicate;
-import javax.security.auth.kerberos.KerberosPrincipal;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.dcache.auth.UidPrincipal;
-import org.dcache.oncrpc4j.rpc.OncRpcException;
-import org.dcache.oncrpc4j.rpc.RpcCall;
-import org.dcache.oncrpc4j.rpc.RpcDispatchable;
-import org.dcache.oncrpc4j.rpc.RpcAuthType;
-import org.dcache.oncrpc4j.rpc.net.IpProtocolType;
-import org.dcache.oncrpc4j.rpc.net.netid;
-import org.dcache.oncrpc4j.xdr.XdrBoolean;
-import org.dcache.oncrpc4j.xdr.XdrVoid;
 
 
 public class OncRpcbindServer implements RpcDispatchable {
@@ -192,7 +193,7 @@ public class OncRpcbindServer implements RpcDispatchable {
                 filter = p -> p.getClass() == KerberosPrincipal.class;
                 break;
             case RpcAuthType.UNIX:
-                filter = p -> p.getClass() == UidPrincipal.class;
+                filter = p -> p.getClass() == UnixNumericUserPrincipal.class;
                 break;
             default:
                 filter = p -> false;
