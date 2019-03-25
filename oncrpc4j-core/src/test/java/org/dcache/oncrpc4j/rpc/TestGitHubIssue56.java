@@ -20,6 +20,7 @@ public class TestGitHubIssue56 {
                 .withTCP()
                 .withUDP()
                 .withoutAutoPublish()
+                .withBindAddress("127.0.0.1")
                 .withRpcService(new OncRpcProgram(OncRpcPortmap.PORTMAP_PROGRAMM, OncRpcPortmap.PORTMAP_V2), new OncRpcbindServer())
                 .build();
         rpcbindServer.start();
@@ -36,6 +37,7 @@ public class TestGitHubIssue56 {
         OncRpcSvc rpcbindServer = new OncRpcSvcBuilder()
                 .withTCP()
                 .withUDP()
+                .withBindAddress("127.0.0.1")
                 .withoutAutoPublish()
                 .withRpcService(new OncRpcProgram(OncRpcPortmap.PORTMAP_PROGRAMM, OncRpcPortmap.PORTMAP_V2), new OncRpcbindServer())
                 .build();
