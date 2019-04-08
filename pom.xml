@@ -41,6 +41,7 @@
       <module>oncrpc4j-spring</module>
       <module>oncrpc4j-rpcgen</module>
       <module>oncrpc4j-portmapdaemon</module>
+      <module>oncrpc4j-benchmark</module>
   </modules>
   
   <properties>
@@ -51,7 +52,7 @@
   
     <!--  version of plugins in pluginManagement -->
     <build-helper-maven-plugin.version>1.9.1</build-helper-maven-plugin.version>
-    <exec-maven-plugin.version>1.4.0</exec-maven-plugin.version>
+    <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
     <maven-pmd-plugin.version>3.0.1</maven-pmd-plugin.version>
     
     <!--  version of other plugins-->
@@ -72,6 +73,7 @@
     <junit.version>4.12</junit.version>
     <mockito-core.version>2.22.0</mockito-core.version>
     <logback-classic.version>1.2.3</logback-classic.version>
+    <jmh.version>1.21</jmh.version>
   </properties>
 	
 
@@ -272,7 +274,16 @@
               <artifactId>bctls-jdk15on</artifactId>
               <version>${bc.version}</version>
           </dependency>
-
+          <dependency>
+              <groupId>org.openjdk.jmh</groupId>
+              <artifactId>jmh-core</artifactId>
+              <version>${jmh.version}</version>
+          </dependency>
+          <dependency>
+              <groupId>org.openjdk.jmh</groupId>
+              <artifactId>jmh-generator-annprocess</artifactId>
+              <version>${jmh.version}</version>
+          </dependency>
       </dependencies>
   </dependencyManagement>
 
