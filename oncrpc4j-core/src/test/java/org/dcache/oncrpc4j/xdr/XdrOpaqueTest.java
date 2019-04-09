@@ -101,6 +101,24 @@ public class XdrOpaqueTest {
     }
 
     @Test
+    public void testDecodeWellKnownStandardConstructor() throws IOException {
+
+        byte[] data = new byte[]{
+            0x0, 0x0, 0x0, 0x08, // size
+            0x0C, 0x0A, 0x0F, 0x0E, 0x0B, 0x0A, 0x0B, 0x0E // data
+        };
+
+        try ( Xdr xdr = new Xdr(data)) {
+            xdr.beginDecoding();
+
+            XdrOpaque opaque = new XdrOpaque();
+            opaque.xdrDecode(xdr);
+            // the data part must match (e.g without size)
+            assertArrayEquals(Arrays.copyOfRange(data, 4, 12), opaque.getOpaque());
+        }
+    }
+
+    @Test
     public void testEncodeWellKnown() throws IOException {
 
         byte[] data = new byte[]{

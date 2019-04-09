@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2018 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2019 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -32,6 +32,9 @@ import java.util.Arrays;
 public class XdrOpaque implements XdrAble {
 
     private byte[] _opaque;
+
+    public XdrOpaque() {
+    }
 
     public XdrOpaque(byte[] opaque) {
         _opaque = opaque;
