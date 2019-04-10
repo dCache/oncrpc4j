@@ -30,6 +30,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLParameters;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.dcache.oncrpc4j.grizzly.GrizzlyUtils.getDefaultWorkerPoolSize;
@@ -80,6 +81,7 @@ public class OncRpcSvcBuilder {
     private boolean _subjectPropagation = false;
     private SSLContext _sslContext = null;
     private boolean _startTLS = false;
+    private SSLParameters _sslParams;
 
     public OncRpcSvcBuilder withAutoPublish() {
         _autoPublish = true;
@@ -214,6 +216,11 @@ public class OncRpcSvcBuilder {
         return this;
     }
 
+    public OncRpcSvcBuilder withSSLParameters(SSLParameters sslParams) {
+        _sslParams = sslParams;
+        return this;
+    }
+
     public boolean getSubjectPropagation() {
         return _subjectPropagation;
     }
@@ -300,6 +307,10 @@ public class OncRpcSvcBuilder {
 
     public SSLContext getSSLContext() {
         return _sslContext;
+    }
+
+    public SSLParameters getSSLParameters() {
+        return _sslParams;
     }
 
     public OncRpcSvc build() {

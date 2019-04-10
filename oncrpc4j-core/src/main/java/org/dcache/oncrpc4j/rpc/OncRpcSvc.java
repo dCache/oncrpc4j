@@ -72,6 +72,7 @@ import static com.google.common.base.Throwables.getRootCause;
 import static com.google.common.base.Throwables.propagateIfPossible;
 import java.net.SocketAddress;
 import java.util.stream.Collectors;
+import javax.net.ssl.SSLParameters;
 import org.dcache.oncrpc4j.grizzly.GrizzlyRpcTransport;
 import static org.dcache.oncrpc4j.grizzly.GrizzlyUtils.getSelectorPoolCfg;
 import static org.dcache.oncrpc4j.grizzly.GrizzlyUtils.rpcMessageReceiverFor;
@@ -104,6 +105,11 @@ public class OncRpcSvc {
      * SSL context to use, if configured.
      */
     private final SSLContext _sslContext;
+
+    /**
+     * SSL parameters that should be applied to SSL engine.
+     */
+    private final SSLParameters _sslParams;
 
     /**
      * Start TLS only when requested.
@@ -180,6 +186,7 @@ public class OncRpcSvc {
 	_svcName = builder.getServiceName();
         _sslContext = builder.getSSLContext();
         _startTLS = builder.isStartTLS();
+        _sslParams = builder.getSSLParameters();
     }
 
     /**
@@ -319,6 +326,18 @@ public class OncRpcSvc {
                 SSLEngineConfigurator clientSSLEngineConfigurator =
                         new SSLEngineConfigurator(_sslContext, true, false, false);
 
+                if (_sslParams != null) {
+                    String[] cipherSuites = _sslParams.getCipherSuites();
+                    serverSSLEngineConfigurator.setEnabledCipherSuites(cipherSuites);
+                    clientSSLEngineConfigurator.setEnabledCipherSuites(cipherSuites);
+
+                    String[] protocols = _sslParams.getProtocols();
+                    serverSSLEngineConfigurator.setEnabledProtocols(protocols);
+                    clientSSLEngineConfigurator.setEnabledProtocols(protocols);
+
+                    serverSSLEngineConfigurator.setNeedClientAuth(_sslParams.getNeedClientAuth());
+                    serverSSLEngineConfigurator.setWantClientAuth(_sslParams.getWantClientAuth());
+                }
                 SSLFilter sslFilter = new SSLFilter(serverSSLEngineConfigurator,
                         clientSSLEngineConfigurator);
                 filterChain.add(_startTLS ? new StartTlsFilter(sslFilter, _isClient) : sslFilter);

@@ -3,12 +3,14 @@ package org.dcache.oncrpc4j.rpc;
 import org.dcache.oncrpc4j.rpc.net.IpProtocolType;
 import org.dcache.oncrpc4j.xdr.XdrString;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
+import java.security.PrivateKey;
 import java.security.SecureRandom;
 import java.security.Security;
 import java.security.cert.Certificate;
@@ -16,6 +18,7 @@ import java.util.Date;
 import java.util.concurrent.TimeUnit;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLParameters;
 import javax.net.ssl.TrustManagerFactory;
 
 import org.bouncycastle.asn1.x500.X500Name;
@@ -49,7 +52,8 @@ public class ClientServerTLSTest {
     private OncRpcSvc svc;
     private OncRpcSvc clnt;
     private RpcCall clntCall;
-    private SSLContext sslContext;
+    private SSLContext sslServerContext;
+    private SSLContext sslClientContext;
 
     private RpcDispatchable echo = (RpcCall call) -> {
         switch (call.getProcedure()) {
@@ -88,7 +92,15 @@ public class ClientServerTLSTest {
 
     @Before
     public void setUp() throws Exception {
-        sslContext = createSslContext();
+
+        KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA", "BC");
+        keyPairGenerator.initialize(2048, new SecureRandom());
+        KeyPair keyPair = keyPairGenerator.generateKeyPair();
+
+        Certificate certificate = generateSelfSignedCert(keyPair);
+
+        sslServerContext = createServerSslContext(certificate, keyPair.getPrivate());
+        sslClientContext = createClientSslContext(certificate);
     }
 
     @After
@@ -112,7 +124,7 @@ public class ClientServerTLSTest {
                 .withSelectorThreadPoolSize(1)
                 .withWorkerThreadPoolSize(1)
                 .withRpcService(new OncRpcProgram(PROGNUM, PROGVER), echo)
-                .withSSLContext(sslContext)
+                .withSSLContext(sslServerContext)
                 .withServiceName("svc")
                 .build();
         svc.start();
@@ -125,7 +137,7 @@ public class ClientServerTLSTest {
                 .withSelectorThreadPoolSize(1)
                 .withWorkerThreadPoolSize(1)
                 .withRpcService(new OncRpcProgram(PROGNUM, PROGVER), upper)
-                .withSSLContext(sslContext)
+                .withSSLContext(sslClientContext)
                 .withServiceName("clnt")
                 .build();
         clnt.start();
@@ -153,7 +165,7 @@ public class ClientServerTLSTest {
                 .withSelectorThreadPoolSize(1)
                 .withWorkerThreadPoolSize(1)
                 .withRpcService(new OncRpcProgram(PROGNUM, PROGVER), echo)
-                .withSSLContext(sslContext)
+                .withSSLContext(sslServerContext)
                 .withServiceName("svc")
                 .build();
         svc.start();
@@ -166,7 +178,7 @@ public class ClientServerTLSTest {
                 .withSelectorThreadPoolSize(1)
                 .withWorkerThreadPoolSize(1)
                 .withRpcService(new OncRpcProgram(PROGNUM, PROGVER), upper)
-                .withSSLContext(sslContext)
+                .withSSLContext(sslClientContext)
                 .withServiceName("clnt")
                 .build();
         clnt.start();
@@ -194,7 +206,7 @@ public class ClientServerTLSTest {
                 .withSelectorThreadPoolSize(1)
                 .withWorkerThreadPoolSize(1)
                 .withRpcService(new OncRpcProgram(PROGNUM, PROGVER), echo)
-                .withSSLContext(sslContext)
+                .withSSLContext(sslServerContext)
                 .withStartTLS()
                 .withServiceName("svc")
                 .build();
@@ -207,7 +219,7 @@ public class ClientServerTLSTest {
                 .withWorkerThreadIoStrategy()
                 .withSelectorThreadPoolSize(1)
                 .withWorkerThreadPoolSize(1)
-                .withSSLContext(sslContext)
+                .withSSLContext(sslClientContext)
                 .withStartTLS()
                 .withServiceName("clnt")
                 .build();
@@ -239,7 +251,7 @@ public class ClientServerTLSTest {
                 .withSelectorThreadPoolSize(1)
                 .withWorkerThreadPoolSize(1)
                 .withRpcService(new OncRpcProgram(PROGNUM, PROGVER), echo)
-                .withSSLContext(sslContext)
+                .withSSLContext(sslServerContext)
                 .withStartTLS()
                 .withServiceName("svc")
                 .build();
@@ -275,7 +287,7 @@ public class ClientServerTLSTest {
                 .withSelectorThreadPoolSize(1)
                 .withWorkerThreadPoolSize(1)
                 .withRpcService(new OncRpcProgram(PROGNUM, PROGVER), echo)
-                .withSSLContext(sslContext)
+                .withSSLContext(sslServerContext)
                 .withStartTLS()
                 .withServiceName("svc")
                 .build();
@@ -288,7 +300,7 @@ public class ClientServerTLSTest {
                 .withWorkerThreadIoStrategy()
                 .withSelectorThreadPoolSize(1)
                 .withWorkerThreadPoolSize(1)
-                .withSSLContext(sslContext)
+                .withSSLContext(sslClientContext)
                 .withStartTLS()
                 .withServiceName("clnt")
                 .build();
@@ -324,7 +336,7 @@ public class ClientServerTLSTest {
                 .withWorkerThreadIoStrategy()
                 .withSelectorThreadPoolSize(1)
                 .withWorkerThreadPoolSize(1)
-                .withSSLContext(sslContext)
+                .withSSLContext(sslClientContext)
                 .withStartTLS()
                 .withServiceName("clnt")
                 .build();
@@ -336,21 +348,81 @@ public class ClientServerTLSTest {
         clntCall.call(0, XdrVoid.XDR_VOID, XdrVoid.XDR_VOID, new RpcAuthTypeTls());
     }
 
-    public static SSLContext createSslContext() throws Exception {
+
+    @Test(expected = EOFException.class) // rfc8446#section-6.2
+    public void shouldRejectTlsWhenClientCertRequired() throws IOException, Exception {
+
+        SSLParameters parameters = new SSLParameters();
+        parameters.setNeedClientAuth(true);
+
+        svc = new OncRpcSvcBuilder()
+                .withoutAutoPublish()
+                .withTCP()
+                .withWorkerThreadIoStrategy()
+                .withBindAddress("127.0.0.1")
+                .withSelectorThreadPoolSize(1)
+                .withWorkerThreadPoolSize(1)
+                .withRpcService(new OncRpcProgram(PROGNUM, PROGVER), echo)
+                .withSSLContext(sslServerContext)
+                .withSSLParameters(parameters)
+                .withServiceName("svc")
+                .build();
+        svc.start();
+
+        clnt = new OncRpcSvcBuilder()
+                .withoutAutoPublish()
+                .withTCP()
+                .withClientMode()
+                .withWorkerThreadIoStrategy()
+                .withSelectorThreadPoolSize(1)
+                .withWorkerThreadPoolSize(1)
+                .withRpcService(new OncRpcProgram(PROGNUM, PROGVER), upper)
+                .withSSLContext(sslClientContext)
+                .withServiceName("clnt")
+                .build();
+        clnt.start();
+
+        RpcTransport t = clnt.connect(svc.getInetSocketAddress(IpProtocolType.TCP));
+        clntCall = new RpcCall(PROGNUM, PROGVER, new RpcAuthTypeNone(), t);
+
+        XdrString s = new XdrString("hello");
+        XdrString reply = new XdrString();
+        clntCall.call(ECHO, s, reply);
+    }
+
+    public static SSLContext createClientSslContext(Certificate certificate) throws Exception {
 
         char[] password = "password".toCharArray();
 
+        // create emtpy keystore and put certificates into it
+        KeyStore keyStore = createEmptyKeystore();
+        keyStore.setEntry("chain", new KeyStore.TrustedCertificateEntry(certificate),null);
 
-        KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA", "BC");
-        keyPairGenerator.initialize(2048, new SecureRandom());
-        KeyPair keyPair = keyPairGenerator.generateKeyPair();
+        KeyManagerFactory keyManagerFactory
+                = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+        keyManagerFactory.init(keyStore, password);
 
-        Certificate certificate = generateSelfSignedCert(keyPair);
+        TrustManagerFactory trustManagerFactory
+                = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+        trustManagerFactory.init(keyStore);
+
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(keyManagerFactory.getKeyManagers(),
+                trustManagerFactory.getTrustManagers(),
+                new SecureRandom());
+
+        return sslContext;
+    }
+
+    public static SSLContext createServerSslContext(Certificate certificate, PrivateKey privateKey) throws Exception {
+
+        char[] password = "password".toCharArray();
+
         Certificate[] certificateChain = {certificate};
 
         // create emtpy keystore and put certificates into it
         KeyStore keyStore = createEmptyKeystore();
-        keyStore.setKeyEntry("private", keyPair.getPrivate(), password, certificateChain);
+        keyStore.setKeyEntry("private", privateKey, password, certificateChain);
         keyStore.setCertificateEntry("cert", certificate);
 
         KeyManagerFactory keyManagerFactory
