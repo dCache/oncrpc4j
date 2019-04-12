@@ -325,8 +325,38 @@ module com.foo.bar {
 }
 ```
 
-## How to contribute
+## RPC-over-TLS
 
+**oncrpc4j** support rpc-over-tls IETF activity. To try it out:
+```java
+SSLContext sslServerContext = ...;
+
+svc = new OncRpcSvcBuilder()
+    .withTCP()
+    ....
+    .withSSLContext(sslServerContext)
+    .withServiceName("svc")
+    .build();
+svc.start();
+```
+
+or, if special `SSLParameters` configuration is required, like cipher types, then:
+
+```java
+SSLContext sslServerContext = ...;
+SSLParameters parameters = ...;
+
+svc = new OncRpcSvcBuilder()
+    .withTCP()
+    ....
+    .withSSLContext(sslServerContext)
+    .withSSLParameters(parameters)
+    .withServiceName("svc")
+    .build();
+svc.start();
+```
+
+## How to contribute
 
 **oncrpc4j** uses the linux kernel model of using git not only a source
 repository, but also as a way to track contributions and copyrights.
