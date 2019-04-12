@@ -46,6 +46,7 @@ public class ClientServerTLSTest {
     private static final int PROGNUM = 100017;
     private static final int PROGVER = 1;
 
+    private static final int NULL = 0;
     private static final int ECHO = 1;
     private static final int UPPER = 2;
 
@@ -71,7 +72,7 @@ public class ClientServerTLSTest {
                 call.reply(s);
                 break;
             }
-            case 0: {
+            case NULL: {
                 call.reply(XdrVoid.XDR_VOID);
             }
         }
@@ -272,7 +273,7 @@ public class ClientServerTLSTest {
         RpcTransport t = clnt.connect(svc.getInetSocketAddress(IpProtocolType.TCP));
         clntCall = new RpcCall(PROGNUM, PROGVER, new RpcAuthTypeNone(), t);
         // poke server to start tls
-        clntCall.call(0, XdrVoid.XDR_VOID, XdrVoid.XDR_VOID, new RpcAuthTypeTls());
+        clntCall.call(NULL, XdrVoid.XDR_VOID, XdrVoid.XDR_VOID, new RpcAuthTypeTls());
         clntCall.getTransport().startTLS();
     }
 
@@ -309,7 +310,7 @@ public class ClientServerTLSTest {
         RpcTransport t = clnt.connect(svc.getInetSocketAddress(IpProtocolType.TCP));
         clntCall = new RpcCall(PROGNUM, PROGVER, new RpcAuthTypeNone(), t);
         // poke server to start tls
-        clntCall.call(0, XdrVoid.XDR_VOID, XdrVoid.XDR_VOID, new RpcAuthTypeTls());
+        clntCall.call(NULL, XdrVoid.XDR_VOID, XdrVoid.XDR_VOID, new RpcAuthTypeTls());
         clntCall.getTransport().startTLS();
         clntCall.getTransport().startTLS();
     }
@@ -345,7 +346,7 @@ public class ClientServerTLSTest {
         RpcTransport t = clnt.connect(svc.getInetSocketAddress(IpProtocolType.TCP));
         // poke server to start tls
         clntCall = new RpcCall(PROGNUM, PROGVER, new RpcAuthTypeNone(), t);
-        clntCall.call(0, XdrVoid.XDR_VOID, XdrVoid.XDR_VOID, new RpcAuthTypeTls());
+        clntCall.call(NULL, XdrVoid.XDR_VOID, XdrVoid.XDR_VOID, new RpcAuthTypeTls());
     }
 
 
@@ -385,9 +386,7 @@ public class ClientServerTLSTest {
         RpcTransport t = clnt.connect(svc.getInetSocketAddress(IpProtocolType.TCP));
         clntCall = new RpcCall(PROGNUM, PROGVER, new RpcAuthTypeNone(), t);
 
-        XdrString s = new XdrString("hello");
-        XdrString reply = new XdrString();
-        clntCall.call(ECHO, s, reply);
+        clntCall.call(NULL, XdrVoid.XDR_VOID, new XdrVoid());
     }
 
     public static SSLContext createClientSslContext(Certificate certificate) throws Exception {
