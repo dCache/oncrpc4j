@@ -327,7 +327,7 @@ module com.foo.bar {
 
 ## RPC-over-TLS
 
-**oncrpc4j** support rpc-over-tls IETF activity. To try it out:
+**oncrpc4j** support rpc-over-tls [IETF](https://datatracker.ietf.org/doc/draft-cel-nfsv4-rpc-tls/) activity. The goal of the project is to protect in-transit Remote Procedure Call messages with TLS. To enable RPC-over-TLS:
 ```java
 SSLContext sslServerContext = ...;
 
