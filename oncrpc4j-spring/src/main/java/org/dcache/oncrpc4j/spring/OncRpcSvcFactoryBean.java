@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2018 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2019 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -19,10 +19,13 @@
  */
 package org.dcache.oncrpc4j.spring;
 
+import com.google.common.annotations.Beta;
 import org.springframework.beans.factory.FactoryBean;
 
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLParameters;
 import org.dcache.oncrpc4j.rpc.OncRpcProgram;
 import org.dcache.oncrpc4j.rpc.OncRpcSvcBuilder;
 import org.dcache.oncrpc4j.rpc.RpcDispatchable;
@@ -128,5 +131,22 @@ public class OncRpcSvcFactoryBean implements FactoryBean<OncRpcSvcBuilder> {
 
     public void setWorkerThreadPoolSize(int poolSize) {
         builder.withWorkerThreadPoolSize(poolSize);
+    }
+
+    public void setSslContext(SSLContext sslContext) {
+        builder.withSSLContext(sslContext);
+    }
+
+    public void setSslParameters(SSLParameters sslParameters) {
+        builder.withSSLParameters(sslParameters);
+    }
+
+    @Beta
+    public void setEnableStartTLS(boolean enable) {
+        if (enable) {
+            builder.withStartTLS();
+        } else {
+            builder.withoutStartTLS();
+        }
     }
 }
