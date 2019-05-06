@@ -94,6 +94,12 @@ public class OncRpcSvcBuilder {
         return this;
     }
 
+    @Beta
+    public OncRpcSvcBuilder withoutStartTLS() {
+        _startTLS = false;
+        return this;
+    }
+
     public OncRpcSvcBuilder withoutAutoPublish() {
         _autoPublish = false;
         return this;
