@@ -20,6 +20,7 @@
 package org.dcache.oncrpc4j.rpc;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import javax.security.auth.Subject;
 import org.dcache.oncrpc4j.xdr.XdrAble;
 import org.dcache.oncrpc4j.xdr.XdrDecodingStream;
@@ -32,7 +33,8 @@ import org.dcache.auth.Subjects;
  */
 public class RpcAuthTypeTls implements RpcAuth, XdrAble {
 
-    private final RpcAuthVerifier verifier = new RpcAuthVerifier(RpcAuthType.NONE, new byte[0]);
+    private final static byte[] STARTTLS = "STARTTLS".getBytes(StandardCharsets.US_ASCII);
+    private final RpcAuthVerifier verifier = new RpcAuthVerifier(RpcAuthType.NONE, STARTTLS);
 
     @Override
     public int type() {
