@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2018 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2019 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -40,7 +40,7 @@ import java.util.concurrent.TimeoutException;
 import org.dcache.oncrpc4j.rpc.RpcTransport;
 
 /**
- * An instance of this class will create an embedded rpc portmap
+ * An instance of this class will create an embedded RPC portmap
  * service if OS does not provides one.
  */
 public class OncRpcEmbeddedPortmap {
@@ -50,10 +50,27 @@ public class OncRpcEmbeddedPortmap {
     private static final RpcAuth _auth = new RpcAuthTypeNone();
     private OncRpcSvc optionalEmbeddedServer = null;
 
+    /**
+     * Start a new embedded portmap service when another one is not running.
+     * The embedded portmap is stared only when there was no reply from an existing
+     * portmap service within 2 (two) seconds timeout. To test existing service an
+     * RPC ping request is sent over UDP to well know port {@code 111}.
+     *
+     * @see #OncRpcEmbeddedPortmap(long, TimeUnit)
+     */
     public OncRpcEmbeddedPortmap() {
         this(2, TimeUnit.SECONDS);
     }
 
+    /**
+     * Start a new embedded portmap service when another one is not running.
+     * The embedded portmap is stared only when there was no reply from an existing
+     * portmap service within given timeout. To test existing service an RPC ping
+     * request is sent over UDP to well know port {@code 111}.
+     *
+     * @param timeoutValue the timeout value given in the {@code timeoutUnit}
+     * @param timeoutUnit the unit of the {@code timeoutValue} argument
+     */
     public OncRpcEmbeddedPortmap(long timeoutValue, TimeUnit timeoutUnit) {
 
         // we start embedded portmap only if there no other one is running
@@ -103,7 +120,7 @@ public class OncRpcEmbeddedPortmap {
 	}
     /**
      * Shutdown embedded <tt>portmap</tt> service if running.
-     * @throws IOException
+     * @throws IOException if embedded service failed to shutdown.
      */
     public void shutdown() throws IOException {
         if (optionalEmbeddedServer != null) {

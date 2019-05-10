@@ -201,9 +201,9 @@ public class OncRpcSvc {
     }
 
     /**
-     * Unregister program.
+     * Unregister given RPC program.
      *
-     * @param prog
+     * @param prog RPC program to unregister.
      */
     public void unregister(OncRpcProgram prog) {
         _log.info("Unregistering program {}", prog);
@@ -212,7 +212,7 @@ public class OncRpcSvc {
 
     /**
      * Add programs to existing services.
-     * @param services
+     * @param services RPC programs to be served by this service.
      * @deprecated use {@link OncRpcSvcBuilder#withRpcService} instead.
      */
     @Deprecated
@@ -449,9 +449,9 @@ public class OncRpcSvc {
     }
 
     /**
-     * Returns the address of the endpoint this service is bound to,
+     * Returns the socket address of the endpoint to which this service is bound,
      * or <code>null</code> if it is not bound yet.
-     * @param protocol
+     * @param protocol protocol identifier as specified in {@link IpProtocolType}.
      * @return a {@link InetSocketAddress} representing the local endpoint of
      * this service, or <code>null</code> if it is not bound yet.
      */

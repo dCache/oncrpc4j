@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2018 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2019 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -102,7 +102,7 @@ public class ReplyQueue {
      * Get {@link CompletionHandler} for the provided xid.
      * On completion key will be unregistered.
      *
-     * @param xid of rpc request.
+     * @param xid of RPC request.
      * @return completion handler for given xid or {@code null} if xid is unknown.
      */
     public CompletionHandler<RpcReply, RpcTransport> get(int xid) {

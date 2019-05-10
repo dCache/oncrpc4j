@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2018 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2019 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -35,6 +35,7 @@ public class XdrInt implements XdrAble {
 
     /**
      * Returns the value of this <code>XdrInt</code> object as an {@code int}.
+     * @return value of this XdrInt as {@code int}.
      */
     public int intValue() {
         return _value;

@@ -193,10 +193,9 @@ public class RpcCall {
 
     /**
      * Accept message. Have to be called prior processing RPC call.
-     * @throws IOException
-     * @throws OncRpcException
+     * @throws IOException if messages can't be accepted.
      */
-    public void accept() throws IOException, OncRpcException {
+    public void accept() throws IOException {
          _rpcvers = _xdr.xdrDecodeInt();
          if (_rpcvers != RPCVERS) {
             throw new RpcMismatchReply(_rpcvers, 2);
@@ -236,15 +235,16 @@ public class RpcCall {
     }
 
     /**
-     * Get RPC {@XdrTransport} used by this call.
-     * @return transport
+     * Get RPC {@link RpcTransport} used by this call.
+     * @return transport used by this RPC call.
      */
     public RpcTransport getTransport() {
         return _transport;
     }
 
     /**
-     * Get xid associated with this rpc message.
+     * Get xid associated with this RPC message.
+     * @return xid RPC message unique identifier.
      */
     public int getXid() {
         return _xid;
@@ -271,8 +271,8 @@ public class RpcCall {
      * caller (AUTH_ERROR).
      *
      * @see RpcRejectStatus
-     * @param status
-     * @param reason
+     * @param status status why request was rejected.
+     * @param reason {@code status} specific reply object.
      */
     public void reject(int status, XdrAble reason) {
         XdrEncodingStream xdr = _xdr;
@@ -389,8 +389,8 @@ public class RpcCall {
      * @param timeoutValue timeout value. 0 means no timeout
      * @param timeoutUnits units for timeout value
      * @param auth auth to use for the call
-     * @throws OncRpcException
-     * @throws IOException
+     * @throws OncRpcException if RPC error occurs
+     * @throws IOException if I/O error occurs
      * @since 2.4.0
      */
     public void call(int procedure, XdrAble args, CompletionHandler<RpcReply, RpcTransport> callback, long timeoutValue, TimeUnit timeoutUnits, RpcAuth auth)
@@ -431,8 +431,7 @@ public class RpcCall {
      * @param timeoutUnits units for timeout value
      * @param auth auth to use for this call. null for constructor-provided default
      * @return the xid for the call
-     * @throws OncRpcException
-     * @throws IOException
+     * @throws IOException if I/O or RPC error occurs
      */
     private int callInternal(int procedure, XdrAble args, CompletionHandler<RpcReply, RpcTransport> callback,
                              long timeoutValue, TimeUnit timeoutUnits, RpcAuth auth)
@@ -495,8 +494,8 @@ public class RpcCall {
      * @param type The expected type of the reply
      * @param auth auth to use for the call
      * @return A CompletableFuture representing the result of the operation.
-     * @throws OncRpcException
-     * @throws IOException
+     * @throws OncRpcException if RPC error occurs
+     * @throws IOException if I/O error occurs
      * @since 2.4.0
      */
     public <T extends XdrAble> CompletableFuture<T> call(int procedure, XdrAble args, final Class<T> type, final RpcAuth auth)
@@ -509,9 +508,6 @@ public class RpcCall {
             throw new RuntimeException("Failed to create in instance of " + type, e);
         }
     }
-
-    /**
-     */
 
     /**
      * Send asynchronous RPC request to a remove server.
@@ -529,8 +525,8 @@ public class RpcCall {
      * @param args The argument of the procedure.
      * @param type The expected type of the reply
      * @return A CompletableFuture representing the result of the operation.
-     * @throws OncRpcException
-     * @throws IOException
+     * @throws OncRpcException if RPC error occurs
+     * @throws IOException if I/O error occurs
      * @since 2.4.0
      */
     public <T extends XdrAble> CompletableFuture<T> call(int procedure, XdrAble args, final Class<T> type)
@@ -547,8 +543,9 @@ public class RpcCall {
      * @param timeoutValue timeout value. 0 means no timeout
      * @param timeoutUnits units for timeout value
      * @param auth auth to use for the call
-     * @throws OncRpcException
-     * @throws IOException
+     * @throws OncRpcException if RPC error occurs
+     * @throws IOException if I/O error occurs
+     * @throws TimeoutException if timeout elapses before reply is received.
      */
     public void call(int procedure, XdrAble args, XdrAble result, long timeoutValue, TimeUnit timeoutUnits, RpcAuth auth)
             throws IOException, TimeoutException {
@@ -571,6 +568,8 @@ public class RpcCall {
 
     /**
      * convenience version of {@link #call(int, XdrAble, XdrAble, long, TimeUnit, RpcAuth)} with default auth
+     * @throws IOException if I/O or RPC error occurs.
+     * @throws TimeoutException if timeout elapses before reply is received.
      */
     public void call(int procedure, XdrAble args, XdrAble result, long timeoutValue, TimeUnit timeoutUnits)
             throws IOException, TimeoutException {
@@ -579,6 +578,7 @@ public class RpcCall {
 
     /**
      * convenience version of {@link #call(int, XdrAble, XdrAble, long, TimeUnit, RpcAuth)} with no timeout
+     * @throws IOException if I/O or RPC error occurs.
      */
     public void call(int procedure, XdrAble args, XdrAble result, RpcAuth auth)
             throws IOException {
@@ -591,6 +591,7 @@ public class RpcCall {
 
     /**
      * convenience version of {@link #call(int, XdrAble, XdrAble, long, TimeUnit, RpcAuth)} with no timeout or auth
+     * @throws IOException if I/O or RPC error occurs.
      */
     public void call(int procedure, XdrAble args, XdrAble result)
             throws IOException {
@@ -689,7 +690,7 @@ public class RpcCall {
 
     /**
      * Register {@link CompletionHandler} to receive notification when message
-     * send is complete. NOTICE: when processing rpc call on the server side
+     * send is complete. NOTICE: when processing RPC call on the server side
      * the @{code registerSendListener} has the same effect as {@link #registerSendOnceListener}
      * as a new instance of {@link RpcCall} is used to process the request.
      * @param listener the message sent listener

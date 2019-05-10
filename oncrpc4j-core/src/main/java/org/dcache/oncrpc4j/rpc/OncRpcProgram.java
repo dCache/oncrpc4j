@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2018 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2019 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -56,8 +56,8 @@ public class OncRpcProgram {
 
     /**
      * Construct a new OncRpcProgram for with a given program number and version.
-     * @param number
-     * @param version 
+     * @param number RPC program number.
+     * @param version RPC program version.
      */
     public OncRpcProgram(int number, int version) {
         _number = number;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2018 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2019 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -31,9 +31,9 @@ public final class Bytes {
     /**
      * Puts a big-endian representation of {@code value} into <code>bytes</code>
      * staring from <code>offset</code>.
-     * @param bytes
-     * @param offset
-     * @param value
+     * @param bytes the destination byte array
+     * @param offset the offset at which data should be written
+     * @param value long value to write into the array
      * @throws IllegalArgumentException there is no enough room for 8 bytes.
      */
     public static void putLong(byte[] bytes, int offset, long value)
@@ -56,9 +56,9 @@ public final class Bytes {
     /**
      * Puts a big-endian representation of {@code value} into <code>bytes</code>
      * staring from <code>offset</code>.
-     * @param bytes
-     * @param offset
-     * @param value
+     * @param bytes the destination byte array
+     * @param offset the offset at which data should be written
+     * @param value int value value to write into the array
      * @throws IllegalArgumentException there is no enough room for 4 bytes.
      */
     public static void putInt(byte[] bytes, int offset, int value)
@@ -77,8 +77,8 @@ public final class Bytes {
     /**
      * Returns the big-endian {@code long} value whose byte representation is the 8
      * bytes of <code>bytes</code> staring <code>offset</code>.
-     * @param bytes
-     * @param offset
+     * @param bytes the source byte array
+     * @param offset the offset at which data should be read
      * @return long value
      */
     public static long getLong(byte[] bytes, int offset) {
@@ -95,8 +95,8 @@ public final class Bytes {
     /**
      * Returns the big-endian {@code int} value whose byte representation is the 4
      * bytes of <code>bytes</code> staring <code>offset</code>.
-     * @param bytes
-     * @param offset
+     * @param bytes the source byte array
+     * @param offset the offset at which data should be read
      * @return int value
      */
     public static int getInt(byte[] bytes, int offset) {

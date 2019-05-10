@@ -69,10 +69,10 @@ public interface RpcTransport {
 
     /**
      * Get {@link RpcTransport} for to sent/receive requests in opposite direction.
-     * The returned transport can be used by servers to send rpc calls to clients and
-     * can be used by clients to receive rpc calls from servers.
+     * The returned transport can be used by servers to send RPC calls to clients and
+     * can be used by clients to receive RPC calls from servers.
      *
-     * @return
+     * @return {@code RpcTransport} connected to the remote peer.
      */
     public RpcTransport getPeerTransport();
 

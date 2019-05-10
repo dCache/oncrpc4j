@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2018 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2019 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -28,7 +28,6 @@ import static com.google.common.net.InetAddresses.*;
 
 /**
  * Utility class for InetSocketAddress manipulations.
- * @author tigran
  */
 public class InetSocketAddresses {
 
@@ -62,8 +61,8 @@ public class InetSocketAddresses {
      * Additionally, the two alternative forms specified in Section 2.2
      * of RFC 4291 are also acceptable.
      * </pre>
-     * @param uaddr
-     * @return socket address
+     * @param uaddr socket address in the universal address format
+     * @return {@code InetSocketAddress} corresponding to the given {@code uaddr}
      */
     public static InetSocketAddress forUaddrString(String uaddr) {
 
@@ -90,8 +89,8 @@ public class InetSocketAddresses {
     /**
      * Convert a {@link String} in a form <code>host:port</code>
      * into corresponding {@link InetSocketAddress}.
-     * @param address
-     * @return socketAddress
+     * @param address the address string to parse
+     * @return socket address for the given hostname and the port combination.
      */
     public static InetSocketAddress inetAddressOf(String address) {
 
@@ -108,8 +107,8 @@ public class InetSocketAddresses {
 
     /**
      * Convert {@link InetSocketAddress} to it's UADDR representation as defined in rfc5665.
-     * @param socketAddress
-     * @return uaddr.
+     * @param socketAddress the socket address to convert
+     * @return string representing uaddr
      */
     public static String uaddrOf(InetSocketAddress socketAddress) {
 
@@ -128,18 +127,18 @@ public class InetSocketAddresses {
     /**
      * Convert <code>hostname</code> and <code>port</code> into UADDR representation
      * as defined in rfc5665.
-     * @param host
-     * @param port
-     * @return uaddr
+     * @param host the host name of the endpoint.
+     * @param port the port number
+     * @return string representing uaddr
      */
     public static String uaddrOf(String host, int port) {
-        return uaddrOf( new InetSocketAddress(host, port));
+        return uaddrOf(new InetSocketAddress(host, port));
     }
 
     /**
      * Get netid type for given {@link InetAddress}.
      *
-     * @param address
+     * @param address the address for which netid should be provided
      * @return string corresponding to netid.
      * @throws IllegalArgumentException in case of address type is unsupported.
      */

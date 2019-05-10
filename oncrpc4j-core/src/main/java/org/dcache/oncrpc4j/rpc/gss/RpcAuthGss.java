@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2018 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2019 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -117,10 +117,10 @@ public class RpcAuthGss implements RpcAuth, XdrAble {
         /*
          * header size is RPC header + credential.
          *
-         * rpc header is 7 int32: xid type rpcversion prog vers proc auth_flavour
+         * RPC header is 7 int32: xid type rpcversion prog vers proc auth_flavour
          * credential is 1 int32 + it's value : len + opaque
          *
-         * set position to the beginning of rpc message and limit to the end of credential.
+         * set position to the beginning of RPC message and limit to the end of credential.
          */
         _header.limit( _header.position() + len);
         _header.position( _header.position() - 8*4);

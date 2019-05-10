@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2018 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2019 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -36,6 +36,7 @@ public class XdrString implements XdrAble {
 
     /**
      * Returns the value of this <code>XdrString</code> object as a {@code String}.
+     * @return value of this XdrString as {@code String}.
      */
     public String stringValue() {
         return _value;

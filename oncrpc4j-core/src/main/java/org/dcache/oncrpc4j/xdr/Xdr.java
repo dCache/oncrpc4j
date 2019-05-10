@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2018 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2019 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -790,10 +790,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream, AutoCloseable 
     /**
      * Encodes (aka "serializes") a byte and write it down this XDR stream.
      *
-     * @param value Byte value to encode.
-     *
-     * @throws OncRpcException if an ONC/RPC error occurs.
-     * @throws IOException if an I/O error occurs.
+     * @param value byte value to encode.
      */
     @Override
     public void xdrEncodeByte(byte value) {

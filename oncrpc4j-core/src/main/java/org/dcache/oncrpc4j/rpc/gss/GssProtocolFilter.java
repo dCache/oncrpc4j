@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2018 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2019 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -47,27 +47,24 @@ import org.ietf.jgss.MessageProp;
  * A {@link Filter} that handles RPCSEC_GSS requests.
  * Filter is responsible to establish and destroy GSS context.
  * For requests with established contexts RPC requests repacked into
- * GSS aware {@link RpsGssCall}.
+ * GSS aware {@link RpcGssCall}.
  *
  * @since 0.0.4
  */
 public class GssProtocolFilter extends BaseFilter {
 
     private final static Logger _log = LoggerFactory.getLogger(GssProtocolFilter.class);
+
     /**
-     * Return value from either accept or init stating that
-     * the context creation phase is complete for this peer.
-     * @see #init
-     * @see #accept
+     * GSS handshake status returned to the client to indicate that the context
+     * creation phase is complete.
      */
     public static final int COMPLETE = 0;
+
     /**
-     * Return value from either accept or init stating that
-     * another token is required from the peer to continue context
-     * creation. This may be returned several times indicating
-     * multiple token exchanges.
-     * @see #init
-     * @see #accept
+     * GSS handshake status returned to the client to indicate that another
+     * token is required to compete context creation. This status code can be
+     * returned several times when multiple token exchanges required.
      */
     public static final int CONTINUE_NEEDED = 1;
 
@@ -162,7 +159,7 @@ public class GssProtocolFilter extends BaseFilter {
      * According to rfc2203 verifier should contain the checksum of the RPC header
      * up to and including the credential.
      *
-     * @param auth
+     * @param auth RPC request authentication credentials.
      * @param context gss context
      * @throws GSSException if cant validate the checksum
      */

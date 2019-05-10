@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2018 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2019 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -76,9 +76,11 @@ public final class RpcAuthStat {
 
     /**
      * Get human readable {@link String} representation of error code.
+     * @param status RPC authentication status code.
+     * @return string representing the provided {@code status}
      */
-    public static String toString(int i) {
-        switch (i) {
+    public static String toString(int status) {
+        switch (status) {
             case AUTH_OK:
                 return "OK";
             case AUTH_BADCRED:
@@ -110,6 +112,6 @@ public final class RpcAuthStat {
             case RPCSEC_GSS_CTXPROBLEM:
                 return "RPCSEC_GSS_CTXPROBLEM";
         }
-        return "Unknow state " + i;
+        return "Unknow state " + status;
     }
 }
