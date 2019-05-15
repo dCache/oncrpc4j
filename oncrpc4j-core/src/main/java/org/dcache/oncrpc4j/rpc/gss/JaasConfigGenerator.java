@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2018 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2019 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -42,9 +42,11 @@ class JaasConfigGenerator {
     private static final FileAttribute<Set<PosixFilePermission>> OWNER_RW =
             PosixFilePermissions.asFileAttribute(EnumSet.of(OWNER_READ, OWNER_WRITE));
 
+    private final static String KRB5_DEBUG = System.getProperty("sun.security.krb5.debug", "false");
+
     private final static String JAAS_CONFIG_TEMPLATE = "com.sun.security.jgss.accept {\n"
             + "  com.sun.security.auth.module.Krb5LoginModule required\n"
-            + "  debug=false\n"
+            + "  debug=" + KRB5_DEBUG + "\n"
             + "  principal=\"%s\"\n"
             + "  doNotPrompt=true\n"
             + "  useKeyTab=true\n"
