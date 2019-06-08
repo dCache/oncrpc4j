@@ -43,7 +43,7 @@ import static org.junit.Assert.*;
  */
 public class ClientServerTLSTest {
 
-    private static final int PROGNUM = 100017;
+    private static final int PROGNUM = "ClientServerTLSTest".hashCode();
     private static final int PROGVER = 1;
 
     private static final int NULL = 0;

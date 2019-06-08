@@ -25,6 +25,8 @@ import org.junit.Test;
 public class OncRpcEmbeddedPortmapTest {
 	// https://tools.ietf.org/html/draft-ietf-nfsv4-rpc-netid-06
 	public static final String[] NETID_NAMES = new String[] {"-","ticlts","ticots","ticotsord","tcp","tcp6","udp","udp6","rdma","rdma6","sctp","sctp6"};
+	private static final int PROGNUM = "OncRpcEmbeddedPortmapTest".hashCode();
+
 	private OncRpcEmbeddedPortmap portmap = null;
 
 	@Test
@@ -36,7 +38,7 @@ public class OncRpcEmbeddedPortmapTest {
 			.withTCP()
 			.withAutoPublish()
 			.withSameThreadIoStrategy()
-			.withRpcService(new OncRpcProgram(100017, 1), call -> call.reply(XdrVoid.XDR_VOID))
+			.withRpcService(new OncRpcProgram(PROGNUM, 1), call -> call.reply(XdrVoid.XDR_VOID))
 			.build();
 		svc.start();
 		// Open portmap and check nedtid content with dump

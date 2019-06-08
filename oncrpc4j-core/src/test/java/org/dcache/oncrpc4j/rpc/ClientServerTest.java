@@ -26,7 +26,7 @@ import static org.junit.Assert.*;
  */
 public class ClientServerTest {
 
-    private static final int PROGNUM = 100017;
+    private static final int PROGNUM = "ClientServerTest".hashCode();
     private static final int PROGVER = 1;
 
     private static final int ECHO = 1;
