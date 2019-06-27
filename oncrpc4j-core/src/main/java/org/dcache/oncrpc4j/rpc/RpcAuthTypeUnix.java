@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2018 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2019 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -21,6 +21,7 @@ package org.dcache.oncrpc4j.rpc;
 
 import com.sun.security.auth.UnixNumericGroupPrincipal;
 import com.sun.security.auth.UnixNumericUserPrincipal;
+import com.sun.security.auth.module.UnixSystem;
 import org.dcache.oncrpc4j.xdr.XdrAble;
 import org.dcache.oncrpc4j.xdr.XdrDecodingStream;
 import org.dcache.oncrpc4j.xdr.XdrEncodingStream;
@@ -29,9 +30,13 @@ import org.slf4j.LoggerFactory;
 
 import javax.security.auth.Subject;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.security.Principal;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Set;
+
+import static com.google.common.base.Preconditions.checkState;
 
 public class RpcAuthTypeUnix implements RpcAuth, XdrAble {
 
@@ -136,5 +141,33 @@ public class RpcAuthTypeUnix implements RpcAuth, XdrAble {
 
     public int[] gids() {
         return _gids;
+    }
+
+    /**
+     * Get {@link RpcAuthTypeUnix} corresponding to the UNIX user running
+     * this application.
+     * @return RPC auth corresponding to UNIX credentials.
+     * @throws IllegalStateException
+     * @throws IOException if failed to get information to build  UNIX credentials.
+     */
+    public static RpcAuthTypeUnix ofCurrentUnixUser() throws
+            IllegalStateException, IOException {
+
+        String os = System.getProperty("os.name");
+        checkState(!os.toLowerCase().startsWith("windows"), "%s platform not supported", os);
+
+        UnixSystem user = new UnixSystem();
+
+        long uid = user.getUid();
+        long gid = user.getGid();
+        long[] gids = user.getGroups();
+
+        return new RpcAuthTypeUnix(
+                (int)uid,
+                (int)gid,
+                Arrays.stream(gids).mapToInt(l -> (int)l).toArray(),
+                (int)Instant.now().getEpochSecond(),
+                InetAddress.getLocalHost().getHostName()
+        );
     }
 }
