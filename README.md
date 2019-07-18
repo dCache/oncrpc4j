@@ -1,5 +1,4 @@
-ONCRPC4J
-========
+# ONCRPC4J
 
 This is a part of dCache.ORG's NFSv4.1 work.
 
@@ -11,11 +10,9 @@ minimal changes.
 
 The library supports *IPv6*, *RPCSEC_GSS* and compliant with [rfc1831](http://www.ietf.org/rfc/rfc1831.txt) and [rfc2203](http://www.ietf.org/rfc/rfc2203.txt).
 
+## There are several options how to use *ONCRPC4J* in your application
 
-### There are several options how to use *ONCRPC4J* in your application:###
-
-Embedding service into an application
--------------------------------------
+### Embedding service into an application
 
 ```java
 package me.mypackage;
@@ -56,7 +53,7 @@ public class Svcd {
 }
 ```
 
-###or as a spring bean###
+### or as a spring bean
 
 ```java
 package me.mypackage;
@@ -115,13 +112,11 @@ public class Svcd implements RpcDispatchable {
 
 Notice, that included *SpringRunner* will try to instantiate and run bean with id __oncrpcsvc__.
 
-
 ```sh
-$ java -cp $CLASSPATH org.dcache.oncrpc4j.spring.SpringRunner svc.xml
+java -cp $CLASSPATH org.dcache.oncrpc4j.spring.SpringRunner svc.xml
 ```
 
-Migration from ONCRPC4J-2.x
----------------------------
+## Migration from ONCRPC4J-2.x
 
 With version 3.0.0 a new package schema is introduced. As the change is not backward compatible with older
 version some minimal code changes are required.
@@ -146,12 +141,12 @@ org.dcache.xdr.GrizzlyXdrTransport => into org.dcache.oncrpc4j.grizzly.GrizzlyRp
 
 org.dcache.xdr.XdrBuffer is removed. Use org.dcache.oncrpc4j.xdr.Xdr.
 
-### Behavoir change ###
+### Behavior change
 
 The Xdr#xdrEncodeByteBuffer changed to not flip provided byte buffer. As a result, the Xdr#xdrEncodeByteBuffer
 will encode data in the buffer from buffers current position up to the limit:
 
-```
+```java
 ButeByffer buffer = ...;
 Xdr xdr = ...;
 
@@ -160,9 +155,7 @@ buffer.flip();
 xdr.xdrEncodeByteBuffer(buffer);
 ```
 
-
-Using RPCGEN to generate client and server stubs
-------------------------------------------------
+## Using RPCGEN to generate client and server stubs
 
 Assume a service which calculates a the length of a string. It provides a single remote call *strlen* which takes a string as an argument ans returns it's length. Let describe that procedure according XDR language specification:
 
@@ -174,11 +167,13 @@ program STRLEN {
     } = 1;
 } = 117;
 ```
+
 Here we define *STRLEN* program number to be *117* and version number *1*. Now we can generate stub files for client and server:
 
 ```sh
-$ java -jar oncrpc4j-rpcgen.jar -c StrlenClient strlen.x
+java -jar oncrpc4j-rpcgen.jar -c StrlenClient strlen.x
 ```
+
 Simply extend this class and implement abstract methods:
 
 ```java
@@ -248,11 +243,9 @@ public class StrlenClientApp {
 
 Your RPC client and server are ready!
 
-Use ONCRPC4J in your project
-==========================
+## Use ONCRPC4J in your project
 
-As maven dependency
-------------------
+### As maven dependency
 
 ```xml
 <dependency>
@@ -271,8 +264,8 @@ As maven dependency
 </repositories>
 ```
 
-Accessing client subject inside RPC service
--------------------------------------------
+## Accessing client subject inside RPC service
+
 In some situation, OncRpcSvc can internally call other services which require client subject to be set in the
 context of the current thread. We use standard Java's Subject.doAs() mechanism to inject user subject
 into processing thread. As a result, the user subject can be extracted from AccessControlContext.
@@ -301,6 +294,7 @@ public class SubjectAvareSvcImpl implements RpcDispatchable {
 ```
 
 To avoid unnecessary overhead, subject propagation is not enabled by default:
+
 ```java
 OncRpcSvc service = new OncRpcSvcBuilder()
         .withTCP()
@@ -311,20 +305,18 @@ OncRpcSvc service = new OncRpcSvcBuilder()
         .build();
 ```
 
-Usage with JDK 9 module system
-==============================
+## Usage with JDK 9 module system
 
 With the provided stable automatic module name __org.dcache.oncrpc4j__, **oncrpc4j**
 can be used in modular java9 application:
-```
+
+```java
 module com.foo.bar {
     requires org.dcache.oncrpc4j;
 }
 ```
 
-
-How to contribute
-=================
+## How to contribute
 
 
 **oncrpc4j** uses the linux kernel model of using git not only a source
@@ -337,37 +329,39 @@ The sign-off is a simple line at the end of the explanation for the
 patch, which certifies that you wrote it or otherwise have the right to
 pass it on as an open-source patch.  The rules are pretty simple: if you
 can certify the below:
-```
-
-        Developer's Certificate of Origin 1.1
-
-        By making a contribution to this project, I certify that:
-
-        (a) The contribution was created in whole or in part by me and I
-            have the right to submit it under the open source license
-            indicated in the file; or
-
-        (b) The contribution is based upon previous work that, to the best
-            of my knowledge, is covered under an appropriate open source
-            license and I have the right under that license to submit that
-            work with modifications, whether created in whole or in part
-            by me, under the same open source license (unless I am
-            permitted to submit under a different license), as indicated
-            in the file; or
-
-        (c) The contribution was provided directly to me by some other
-            person who certified (a), (b) or (c) and I have not modified
-            it.
-
-	(d) I understand and agree that this project and the contribution
-	    are public and that a record of the contribution (including all
-	    personal information I submit with it, including my sign-off) is
-	    maintained indefinitely and may be redistributed consistent with
-	    this project or the open source license(s) involved.
 
 ```
+Developer's Certificate of Origin 1.1
+
+By making a contribution to this project, I certify that:
+
+(a) The contribution was created in whole or in part by me and I
+    have the right to submit it under the open source license
+    indicated in the file; or
+
+(b) The contribution is based upon previous work that, to the best
+    of my knowledge, is covered under an appropriate open source
+    license and I have the right under that license to submit that
+    work with modifications, whether created in whole or in part
+    by me, under the same open source license (unless I am
+    permitted to submit under a different license), as indicated
+    in the file; or
+
+(c) The contribution was provided directly to me by some other
+    person who certified (a), (b) or (c) and I have not modified
+    it.
+
+(d) I understand and agree that this project and the contribution
+    are public and that a record of the contribution (including all
+    personal information I submit with it, including my sign-off) is
+    maintained indefinitely and may be redistributed consistent with
+    this project or the open source license(s) involved.
+```
+
 then you just add a line saying ( git commit -s )
 
-	Signed-off-by: Random J Developer <random@developer.example.org>
+```
+Signed-off-by: Random J Developer <random@developer.example.org>
+```
 
 using your real name (sorry, no pseudonyms or anonymous contributions.)
