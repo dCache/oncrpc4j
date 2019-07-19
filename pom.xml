@@ -220,11 +220,6 @@
               <version>${grizzly-framework.version}</version>
           </dependency>
           <dependency>
-              <groupId>org.glassfish.grizzly</groupId>
-              <artifactId>grizzly-framework-monitoring</artifactId>
-              <version>${grizzly-framework.version}</version>
-          </dependency>
-          <dependency>
               <groupId>org.springframework</groupId>
               <artifactId>spring-context</artifactId>
               <version>${spring-context.version}</version>

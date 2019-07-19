@@ -305,6 +305,13 @@ OncRpcSvc service = new OncRpcSvcBuilder()
         .build();
 ```
 
+## Enabling JMX based monitoring
+
+**oncrpc4j** uses [Grizzly NIO](https://github.com/eclipse-ee4j/grizzly) framework which
+comes with it's own JMX monitoring capabilities. To enable it just add `grizzly-framework-monitoring`
+jar with it's dependencies into the application's classpath.
+See [Grizzly framework dependencies](https://javaee.github.io/grizzly/dependencies.html) for the instructions.
+
 ## Usage with JDK 9 module system
 
 With the provided stable automatic module name __org.dcache.oncrpc4j__, **oncrpc4j**
