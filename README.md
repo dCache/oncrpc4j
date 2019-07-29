@@ -1,5 +1,7 @@
 # ONCRPC4J
 
+[![Latest release](https://img.shields.io/github/release/dcache/oncrpc4j.svg)](https://github.com/dcache/oncrpc4j/releases/latest)
+
 This is a part of dCache.ORG's NFSv4.1 work.
 
 Technically, this is not a fork of Remote Tea RPC library, but formally it is as
