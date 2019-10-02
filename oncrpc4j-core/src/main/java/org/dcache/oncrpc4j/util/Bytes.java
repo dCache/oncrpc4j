@@ -81,7 +81,11 @@ public final class Bytes {
      * @param offset the offset at which data should be read
      * @return long value
      */
-    public static long getLong(byte[] bytes, int offset) {
+    public static long getLong(byte[] bytes, int offset)
+            throws IllegalArgumentException {
+
+        checkArrayLength(bytes.length, offset, 8);
+
         return (bytes[offset] & 0xFFL) << 56
                 | (bytes[offset + 1] & 0xFFL) << 48
                 | (bytes[offset + 2] & 0xFFL) << 40
@@ -99,10 +103,20 @@ public final class Bytes {
      * @param offset the offset at which data should be read
      * @return int value
      */
-    public static int getInt(byte[] bytes, int offset) {
+    public static int getInt(byte[] bytes, int offset)
+            throws IllegalArgumentException {
+
+        checkArrayLength(bytes.length, offset, 4);
+
         return (bytes[offset] & 0xFF) << 24
                 | (bytes[offset + 1] & 0xFF) << 16
                 | (bytes[offset + 2] & 0xFF) << 8
                 | (bytes[offset + 3] & 0xFF);
+    }
+
+    private static void checkArrayLength(int length, int offset, int nrOfBytes) {
+        boolean arraySufficientlyLong = length > offset + (nrOfBytes - 1);
+
+        if (!arraySufficientlyLong) throw new IllegalArgumentException("Array not sufficiently long");
     }
 }
