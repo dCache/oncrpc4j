@@ -69,4 +69,20 @@ public class BytesTest {
         Bytes.putInt(_b, 0, value);
         assertEquals("put/get mismatch", value, Bytes.getInt(_b, 0));
     }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testGetLongTooSmallArray() {
+        int value = 1717;
+        Bytes.putLong(_b, 0, value);
+
+        Bytes.getLong(_b, 1);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testGetIntTooSmallArray() {
+        int value = 1717;
+        Bytes.putInt(_b, 0, value);
+
+        Bytes.getInt(_b, 5);
+    }
 }
