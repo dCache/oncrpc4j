@@ -12,9 +12,11 @@ import org.dcache.oncrpc4j.xdr.XdrString;
 import java.io.EOFException;
 import java.io.IOException;
 import java.nio.channels.CompletionHandler;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -133,7 +135,7 @@ public class ClientServerTest {
     }
 
     @Test(expected = EOFException.class, timeout = 5000)
-    public void shouldFailClientCallWhenServerStopped() throws IOException, InterruptedException {
+    public void shouldFailClientCallWhenServerStopped() throws Throwable {
         XdrString s = new XdrString("hello");
 
         try {
@@ -143,7 +145,25 @@ public class ClientServerTest {
             // ignore disconnect error
         }
 
-        clntCall.call(ECHO, s, (CompletionHandler) null);
+        AtomicReference<Throwable> t = new AtomicReference<>();
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+
+        CompletionHandler<RpcReply, RpcTransport> callback = new CompletionHandler<RpcReply, RpcTransport>() {
+            @Override
+            public void completed(RpcReply result, RpcTransport attachment) {
+                countDownLatch.countDown();
+            }
+
+            @Override
+            public void failed(Throwable exc, RpcTransport attachment) {
+                t.set(exc);
+                countDownLatch.countDown();
+            }
+        };
+
+        clntCall.call(ECHO, s, callback);
+        countDownLatch.await();
+        throw t.get();
     }
 
     @Test(expected = EOFException.class, timeout = 5000)

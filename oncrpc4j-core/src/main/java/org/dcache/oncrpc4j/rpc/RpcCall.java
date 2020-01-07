@@ -24,7 +24,6 @@ import org.dcache.oncrpc4j.xdr.XdrVoid;
 import org.dcache.oncrpc4j.xdr.XdrEncodingStream;
 import org.dcache.oncrpc4j.xdr.XdrAble;
 import com.google.common.base.Throwables;
-import java.io.EOFException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -145,6 +144,14 @@ public class RpcCall {
         }
     }
 
+    private static final CompletionHandler<RpcReply, RpcTransport> NOOP= new CompletionHandler<RpcReply, RpcTransport>() {
+        @Override
+        public void completed(RpcReply result, RpcTransport transport) {}
+
+        @Override
+        public void failed(Throwable exc, RpcTransport attachment) {}
+
+    };
     /**
      * A {@link List} of registered {@link CompletionHandler} to be notified when
      * send request complete.
@@ -456,24 +463,17 @@ public class RpcCall {
         xdr.endEncoding();
 
         ReplyQueue replyQueue = _transport.getReplyQueue();
-        if (callback != null) {
-            replyQueue.registerKey(xid, _transport.getLocalSocketAddress(), callback, timeoutValue, timeoutUnits);
-        } else {
-            //no handler, so we wont get any errors if connection was dropped. have to check.
-            if (!_transport.isOpen()) {
-                throw new EOFException("XdrTransport is not open");
-            }
-        }
+
+        CompletionHandler<RpcReply, RpcTransport> handler = callback == null? NOOP : callback;
+        replyQueue.registerKey(xid, _transport.getLocalSocketAddress(), callback, timeoutValue, timeoutUnits);
 
         _transport.send(xdr, _transport.getRemoteSocketAddress(), new NotifyListenersCompletionHandler() {
 
             @Override
             public void failed(Throwable t, InetSocketAddress attachment) {
                 super.failed(t, attachment);
-                if (callback != null) {
-                    replyQueue.get(xid);
-                    callback.failed(t, _transport);
-                }
+                replyQueue.get(xid);
+                handler.failed(t, _transport);
             }
         });
         return xid;
