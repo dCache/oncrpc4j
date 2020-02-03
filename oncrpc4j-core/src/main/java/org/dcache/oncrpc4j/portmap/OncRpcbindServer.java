@@ -89,14 +89,15 @@ public class OncRpcbindServer implements RpcDispatchable {
                         netid.toString(newMapping.getPort()),
                         SERVICE_OWNER_UNSPECIFIED
                 );
-				Boolean found = false;
+				boolean found = false;
                 synchronized(_services) {
 					for ( rpcb c : _services ) {
 						if ( c.getProg() == rpcbMapping.getProg() &&  c.getVers() == rpcbMapping.getVers() && c.getNetid().equals(rpcbMapping.getNetid()) ) {
 							found = true;
+							break;
 						}
 					}
-					if ( found == false) { // only add if not found already
+					if (!found) { // only add if not found already
 						_services.add(rpcbMapping);
 					}
                 }
@@ -112,7 +113,7 @@ public class OncRpcbindServer implements RpcDispatchable {
                         netid.toString(unsetMapping.getPort()),
                         getOwner(call)
                 );
-				Boolean removed = false;
+				boolean removed = false;
                 synchronized(_services) {
 					Set<rpcb> target = new HashSet<>();
 					// lookup entries
