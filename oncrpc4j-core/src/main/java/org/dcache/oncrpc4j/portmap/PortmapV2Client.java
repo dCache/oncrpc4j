@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2018 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2020 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -81,7 +81,7 @@ public class PortmapV2Client implements OncPortmapClient {
     public boolean setPort(int program, int version, String netids, String addr, String ignored)
             throws OncRpcException, IOException, TimeoutException {
         _log.debug("portmap set port: prog: {} vers: {}, netid: {} addr: {}",
-                new Object[]{program, version, netids, addr});
+                program, version, netids, addr);
 
         int protocol = netid.idOf(netids);
         if (protocol == -1) {

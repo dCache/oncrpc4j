@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2018 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2020 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -64,7 +64,7 @@ public class RpcbindV4Client implements OncPortmapClient {
             throws OncRpcException, IOException, TimeoutException {
 
         _log.debug("portmap set port: prog: {} vers: {}, netid: {} addr: {}, owner: {}",
-                new Object[] {program, version, netid, addr, owner});
+                program, version, netid, addr, owner);
 
         rpcb m1 = new rpcb(program, version, netid, addr, owner);
 
@@ -79,7 +79,7 @@ public class RpcbindV4Client implements OncPortmapClient {
             throws OncRpcException, IOException, TimeoutException {
 
         _log.debug("portmap unset port: prog: {} vers: {}, owner: {}",
-                new Object[]{program, version, owner});
+                program, version, owner);
 
         rpcb m = new rpcb(program, version, "", "", owner);
 
