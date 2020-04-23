@@ -241,6 +241,51 @@ public class ClientServerTLSTest {
         assertEquals("reply mismatch", s, reply);
     }
 
+    @Test
+    public void shouldStartDTLSHandshake() throws IOException {
+
+        svc = new OncRpcSvcBuilder()
+                .withoutAutoPublish()
+                .withUDP()
+                .withWorkerThreadIoStrategy()
+                .withBindAddress("127.0.0.1")
+                .withSelectorThreadPoolSize(1)
+                .withWorkerThreadPoolSize(1)
+                .withRpcService(new OncRpcProgram(PROGNUM, PROGVER), echo)
+                .withSSLContext(sslServerContext)
+                .withStartTLS()
+                .withServiceName("svc")
+                .build();
+        svc.start();
+
+        clnt = new OncRpcSvcBuilder()
+                .withoutAutoPublish()
+                .withUDP()
+                .withClientMode()
+                .withWorkerThreadIoStrategy()
+                .withSelectorThreadPoolSize(1)
+                .withWorkerThreadPoolSize(1)
+                .withSSLContext(sslClientContext)
+                .withStartTLS()
+                .withServiceName("clnt")
+                .build();
+        clnt.start();
+
+        RpcTransport t = clnt.connect(svc.getInetSocketAddress(IpProtocolType.UDP));
+        clntCall = new RpcCall(PROGNUM, PROGVER, new RpcAuthTypeNone(), t);
+
+        // poke server to start tls
+        clntCall.call(0, XdrVoid.XDR_VOID, XdrVoid.XDR_VOID, new RpcAuthTypeTls());
+        clntCall.getTransport().startTLS();
+
+        XdrString s = new XdrString("hello");
+        XdrString reply = new XdrString();
+
+        clntCall.call(ECHO, s, reply);
+
+        assertEquals("reply mismatch", s, reply);
+    }
+
     @Test(expected = RpcAuthException.class)
     public void shouldFailWhenNoTLSOnClient() throws IOException {
 
