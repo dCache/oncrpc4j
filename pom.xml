@@ -73,7 +73,7 @@
     <bc.version>1.60</bc.version>
 
     <!--  version of test dependencies  -->
-    <junit.version>4.12</junit.version>
+    <junit.version>4.13.1</junit.version>
     <mockito-core.version>2.22.0</mockito-core.version>
     <logback-classic.version>1.2.3</logback-classic.version>
     <jmh.version>1.21</jmh.version>
