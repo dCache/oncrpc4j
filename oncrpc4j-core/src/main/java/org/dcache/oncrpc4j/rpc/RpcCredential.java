@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2019 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2020 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -51,7 +51,7 @@ public class RpcCredential {
                 transport.startTLS();
                 break;
             default:
-                throw new RpcAuthException("Unsuported type: " + authType,
+                throw new RpcAuthException("Unsupported type: " + authType,
                                 new RpcAuthError(RpcAuthStat.AUTH_FAILED));
         }
         credential.xdrDecode(xdr);
