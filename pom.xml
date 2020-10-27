@@ -47,6 +47,7 @@
   <properties>
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <java.version>11</java.version>
 
     <!--  PROPERTIES FOR DEPENDENCIES
 	 Each property is constructed from the artifact name
@@ -60,7 +61,7 @@
 
     <!--  version of other plugins-->
     <animal-sniffer-maven-plugin>1.18</animal-sniffer-maven-plugin>
-    <maven-compiler-plugin.version>3.7.0</maven-compiler-plugin.version>
+    <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
     <maven-jar-plugin.version>2.4</maven-jar-plugin.version>
     <maven-release-plugin>2.4.2</maven-release-plugin>
 
@@ -117,38 +118,13 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>${maven-compiler-plugin.version}</version>
-        <configuration>
-          <source>1.8</source>
-          <target>1.8</target>
-          <showDeprecation>true</showDeprecation>
-          <encoding>UTF-8</encoding>
-        </configuration>
-      </plugin>
-
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>animal-sniffer-maven-plugin</artifactId>
-        <version>${animal-sniffer-maven-plugin}</version>
-        <configuration>
-          <signature>
-            <groupId>org.codehaus.mojo.signature</groupId>
-            <artifactId>java18</artifactId>
-            <version>1.0</version>
-          </signature>
-          <ignores>
-              <!-- part of official jdk -->
-              <ignore>com.sun.security.auth.*</ignore>
-          </ignores>
-        </configuration>
-        <executions>
-          <execution>
-            <id>check-java18</id>
-            <phase>test</phase>
-            <goals>
-              <goal>check</goal>
-            </goals>
-          </execution>
-        </executions>
+          <configuration>
+              <showDeprecation>true</showDeprecation>
+              <release>${java.version}</release>
+              <!-- without forking compilation happens in the
+              same process, so no arguments are applied -->
+              <fork>true</fork>
+          </configuration>
       </plugin>
 
       <plugin>
