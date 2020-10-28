@@ -99,8 +99,7 @@ public class PortmapV2Client implements OncPortmapClient {
     @Override
     public boolean unsetPort(int program, int version, String ignored)
             throws OncRpcException, IOException, TimeoutException {
-        _log.debug("portmap unset port: prog: {} vers: {}",
-                new Object[]{program, version});
+        _log.debug("portmap unset port: prog: {} vers: {}", program, version);
 
         mapping m = new mapping(program, version, 0, -1);
 
