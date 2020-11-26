@@ -93,7 +93,7 @@ public class ReplyQueue {
     }
 
     public void handleDisconnect(SocketAddress addr) {
-        EOFException eofException = new EOFException("Disconnected");
+        EOFException eofException = new EOFException("Disconnected from " + addr);
 
         _queue.entrySet().stream()
                 .filter(e -> e.getValue().addr.equals(addr))
