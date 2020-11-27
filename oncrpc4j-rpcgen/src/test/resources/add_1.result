@@ -1,0 +1,21 @@
+public org.dcache.oncrpc4j.rpcgen.CalculationResult add_1(long arg1, long arg2, long _timeoutValue, java.util.concurrent.TimeUnit _timeoutUnit, org.dcache.xdr.RpcAuth _auth) throws java.io.IOException, java.util.concurrent.TimeoutException, org.dcache.xdr.OncRpcException {
+    class  implements org.dcache.xdr.XdrAble {
+        public long arg1;
+
+        public long arg2;
+
+        public void xdrEncode(org.dcache.xdr.XdrEncodingStream xdr) throws java.io.IOException, org.dcache.xdr.OncRpcException {
+            xdr.xdrEncodeLong(arg1);
+            xdr.xdrEncodeLong(arg2);
+        }
+
+        public void xdrDecode(org.dcache.xdr.XdrDecodingStream xdr) throws java.io.IOException, org.dcache.xdr.OncRpcException {
+        }
+    }
+     args$ = new ();
+    args$.arg1 = arg1;
+    args$.arg2 = arg2;
+    org.dcache.oncrpc4j.rpcgen.CalculationResult result$ = new org.dcache.oncrpc4j.rpcgen.CalculationResult();
+    client.call(org.dcache.oncrpc4j.rpcgen.Calculator.add_1, args$, result$, _timeoutValue, _timeoutUnit, _auth);
+    return result$;
+}
