@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2019 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2020 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -535,7 +535,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream, AutoCloseable 
     @Override
     public void xdrEncodeIntFixedVector(int[] value, int length) {
         if (value.length != length) {
-            throw (new IllegalArgumentException("array size does not match protocol specification"));
+            throw new IllegalArgumentException("array size does not match protocol specification");
         }
         for (int i = 0; i < length; i++) {
             xdrEncodeInt(value[i]);
@@ -569,7 +569,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream, AutoCloseable 
     @Override
     public void xdrEncodeLongFixedVector(long[] value, int length) {
         if (value.length != length) {
-            throw (new IllegalArgumentException("array size does not match protocol specification"));
+            throw new IllegalArgumentException("array size does not match protocol specification");
         }
         for (int i = 0; i < length; i++) {
             xdrEncodeLong(value[i]);
@@ -624,7 +624,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream, AutoCloseable 
     @Override
     public void xdrEncodeFloatFixedVector(float[] value, int length) {
         if (value.length != length) {
-            throw (new IllegalArgumentException("array size does not match protocol specification"));
+            throw new IllegalArgumentException("array size does not match protocol specification");
         }
         for (int i = 0; i < length; i++) {
             xdrEncodeFloat(value[i]);
@@ -657,7 +657,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream, AutoCloseable 
     @Override
     public void xdrEncodeDoubleFixedVector(double[] value, int length) {
         if (value.length != length) {
-            throw (new IllegalArgumentException("array size does not match protocol specification"));
+            throw new IllegalArgumentException("array size does not match protocol specification");
         }
         for (int i = 0; i < length; i++) {
             xdrEncodeDouble(value[i]);
@@ -776,7 +776,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream, AutoCloseable 
     @Override
     public void xdrEncodeByteFixedVector(byte[] value, int length) {
         if (value.length != length) {
-            throw (new IllegalArgumentException("array size does not match protocol specification"));
+            throw new IllegalArgumentException("array size does not match protocol specification");
         }
         //
         // For speed reasons, we do sign extension here, but the higher bits
@@ -838,7 +838,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream, AutoCloseable 
     @Override
     public void xdrEncodeShortFixedVector(short[] value, int length) {
         if (value.length != length) {
-            throw (new IllegalArgumentException("array size does not match protocol specification"));
+            throw new IllegalArgumentException("array size does not match protocol specification");
         }
         for (int i = 0; i < length; i++) {
             xdrEncodeShort(value[i]);
