@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2019 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2020 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -38,6 +38,7 @@ import org.glassfish.grizzly.filterchain.FilterChain;
 import org.glassfish.grizzly.filterchain.FilterChainBuilder;
 import org.glassfish.grizzly.filterchain.TransportFilter;
 import org.glassfish.grizzly.jmxbase.GrizzlyJmxManager;
+import org.glassfish.grizzly.memory.MemoryManager;
 import org.glassfish.grizzly.nio.NIOTransport;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransportBuilder;
@@ -75,6 +76,7 @@ import java.util.stream.Collectors;
 import javax.net.ssl.SSLParameters;
 import org.dcache.oncrpc4j.grizzly.GrizzlyRpcTransport;
 import static org.dcache.oncrpc4j.grizzly.GrizzlyUtils.getSelectorPoolCfg;
+import static org.dcache.oncrpc4j.grizzly.GrizzlyUtils.getMemoryManager;
 import static org.dcache.oncrpc4j.grizzly.GrizzlyUtils.rpcMessageReceiverFor;
 import static org.dcache.oncrpc4j.grizzly.GrizzlyUtils.transportFor;
 
@@ -139,6 +141,7 @@ public class OncRpcSvc {
             throw new IllegalArgumentException("TCP or UDP protocol have to be defined");
         }
 
+        MemoryManager mm = getMemoryManager(builder.getMemoryAllocator());
         IoStrategy ioStrategy = builder.getIoStrategy();
         String serviceName = builder.getServiceName();
         ThreadPoolConfig selectorPoolConfig = getSelectorPoolCfg(ioStrategy,
@@ -152,6 +155,7 @@ public class OncRpcSvc {
                     .setIOStrategy(SameThreadIOStrategy.getInstance())
                     .setSelectorThreadPoolConfig(selectorPoolConfig)
                     .setSelectorRunnersCount(selectorPoolConfig.getMaxPoolSize())
+                    .setMemoryManager(mm)
                     .build();
             _transports.add(tcpTransport);
         }
@@ -163,6 +167,7 @@ public class OncRpcSvc {
                     .setIOStrategy(SameThreadIOStrategy.getInstance())
                     .setSelectorThreadPoolConfig(selectorPoolConfig)
                     .setSelectorRunnersCount(selectorPoolConfig.getMaxPoolSize())
+                    .setMemoryManager(mm)
                     .build();
             _transports.add(udpTransport);
         }

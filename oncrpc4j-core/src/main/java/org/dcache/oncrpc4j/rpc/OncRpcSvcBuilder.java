@@ -22,6 +22,7 @@ package org.dcache.oncrpc4j.rpc;
 import com.google.common.annotations.Beta;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import org.dcache.oncrpc4j.MemoryAllocator;
 import org.dcache.oncrpc4j.rpc.gss.GssSessionManager;
 
 import java.util.HashMap;
@@ -82,6 +83,7 @@ public class OncRpcSvcBuilder {
     private SSLContext _sslContext = null;
     private boolean _startTLS = false;
     private SSLParameters _sslParams;
+    private MemoryAllocator _allocator = MemoryAllocator.DEFAULT;
 
     public OncRpcSvcBuilder withAutoPublish() {
         _autoPublish = true;
@@ -227,6 +229,11 @@ public class OncRpcSvcBuilder {
         return this;
     }
 
+    public OncRpcSvcBuilder withMemoryAllocator(MemoryAllocator allocator) {
+        _allocator = allocator;
+        return this;
+    }
+
     public boolean getSubjectPropagation() {
         return _subjectPropagation;
     }
@@ -317,6 +324,10 @@ public class OncRpcSvcBuilder {
 
     public SSLParameters getSSLParameters() {
         return _sslParams;
+    }
+
+    public MemoryAllocator getMemoryAllocator() {
+        return  _allocator;
     }
 
     public OncRpcSvc build() {

@@ -19,6 +19,7 @@
  */
 package org.dcache.oncrpc4j.grizzly;
 
+import org.dcache.oncrpc4j.MemoryAllocator;
 import org.dcache.oncrpc4j.rpc.RpcMessageParserTCP;
 import org.dcache.oncrpc4j.rpc.RpcMessageParserUDP;
 import org.dcache.oncrpc4j.rpc.net.IpProtocolType;
@@ -26,6 +27,10 @@ import org.dcache.oncrpc4j.rpc.IoStrategy;
 import org.glassfish.grizzly.IOStrategy;
 import org.glassfish.grizzly.Transport;
 import org.glassfish.grizzly.filterchain.Filter;
+import org.glassfish.grizzly.memory.ByteBufferManager;
+import org.glassfish.grizzly.memory.HeapMemoryManager;
+import org.glassfish.grizzly.memory.MemoryManager;
+import org.glassfish.grizzly.memory.PooledMemoryManager;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 import org.glassfish.grizzly.nio.transport.UDPNIOTransport;
 import org.glassfish.grizzly.threadpool.ThreadPoolConfig;
@@ -115,5 +120,29 @@ public class GrizzlyUtils {
         }
 
         return poolCfg;
+    }
+
+    /**
+     * Get Grizzly Memory manager matching specified allocator.
+     * @param allocator allocator policy
+     * @return Grizzly Memory manager matching specified allocator
+     */
+    public static MemoryManager getMemoryManager(MemoryAllocator allocator) {
+
+        switch (allocator) {
+            case DEFAULT:
+                return MemoryManager.DEFAULT_MEMORY_MANAGER;
+            case HEAP:
+                return new HeapMemoryManager();
+            case DIRECT:
+                return new ByteBufferManager(true);
+            case POOLED_HEAP:
+                return new PooledMemoryManager(false);
+            case POOLED_DIRECT:
+                return new PooledMemoryManager(true);
+            default:
+                throw new RuntimeException("Unexpected memory allocator.");
+        }
+
     }
 }
