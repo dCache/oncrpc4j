@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2019 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2020 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -40,7 +40,6 @@ import org.glassfish.grizzly.filterchain.FilterChainContext;
 import org.glassfish.grizzly.filterchain.NextAction;
 import org.ietf.jgss.GSSContext;
 import org.ietf.jgss.GSSException;
-import org.ietf.jgss.GSSName;
 import org.ietf.jgss.MessageProp;
 
 /**

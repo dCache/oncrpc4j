@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2018 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2020 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -27,7 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.security.auth.Subject;
-import javax.security.auth.kerberos.KerberosPrincipal;
 
 import org.dcache.oncrpc4j.rpc.RpcLoginService;
 import org.dcache.oncrpc4j.xdr.XdrOpaque;
@@ -36,7 +35,6 @@ import org.ietf.jgss.GSSContext;
 import org.ietf.jgss.GSSCredential;
 import org.ietf.jgss.GSSException;
 import org.ietf.jgss.GSSManager;
-import org.ietf.jgss.GSSName;
 import org.ietf.jgss.Oid;
 
 import org.dcache.oncrpc4j.rpc.RpcTransport;
