@@ -233,11 +233,9 @@ public class OncRpcSvc {
      */
     private void publishToPortmap(Connection<InetSocketAddress> connection, Set<OncRpcProgram> programs) throws IOException {
 
-        OncRpcClient rpcClient = new OncRpcClient(InetAddress.getByName(null),
-                IpProtocolType.UDP, OncRpcPortmap.PORTMAP_PORT);
-        RpcTransport transport = rpcClient.connect();
-
-        try {
+        try (OncRpcClient rpcClient = new OncRpcClient(InetAddress.getByName(null),
+                IpProtocolType.UDP, OncRpcPortmap.PORTMAP_PORT)) {
+            RpcTransport transport = rpcClient.connect();
             OncPortmapClient portmapClient = new GenericPortmapClient(transport);
 
             Set<String> netids = new HashSet<>();
@@ -258,7 +256,7 @@ public class OncRpcSvc {
             InetAddress localAddress = connection.getLocalAddress().getAddress();
             if (localAddress instanceof Inet6Address) {
                 netids.add(netidBase + "6");
-                if (((Inet6Address)localAddress).isIPv4CompatibleAddress()) {
+                if (((Inet6Address) localAddress).isIPv4CompatibleAddress()) {
                     netids.add(netidBase);
                 }
             } else {
@@ -277,8 +275,6 @@ public class OncRpcSvc {
             }
         } catch (RpcProgUnavailable e) {
             _log.warn("Failed to register at portmap: {}", e.getMessage());
-        } finally {
-            rpcClient.close();
         }
     }
 
@@ -290,11 +286,9 @@ public class OncRpcSvc {
      */
     private void clearPortmap(Set<OncRpcProgram> programs) throws IOException {
 
-        OncRpcClient rpcClient = new OncRpcClient(InetAddress.getByName(null),
-                IpProtocolType.UDP, OncRpcPortmap.PORTMAP_PORT);
-        RpcTransport transport = rpcClient.connect();
-
-        try {
+        try (OncRpcClient rpcClient = new OncRpcClient(InetAddress.getByName(null),
+                IpProtocolType.UDP, OncRpcPortmap.PORTMAP_PORT)) {
+            RpcTransport transport = rpcClient.connect();
             OncPortmapClient portmapClient = new GenericPortmapClient(transport);
 
             String username = System.getProperty("user.name");
@@ -309,8 +303,6 @@ public class OncRpcSvc {
             }
         } catch (RpcProgUnavailable e) {
             _log.info("portmap service not available");
-        } finally {
-            rpcClient.close();
         }
     }
 
