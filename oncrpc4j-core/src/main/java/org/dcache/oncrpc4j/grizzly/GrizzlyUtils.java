@@ -19,7 +19,7 @@
  */
 package org.dcache.oncrpc4j.grizzly;
 
-import org.dcache.oncrpc4j.MemoryAllocator;
+import org.dcache.oncrpc4j.rpc.MemoryAllocator;
 import org.dcache.oncrpc4j.rpc.RpcMessageParserTCP;
 import org.dcache.oncrpc4j.rpc.RpcMessageParserUDP;
 import org.dcache.oncrpc4j.rpc.net.IpProtocolType;

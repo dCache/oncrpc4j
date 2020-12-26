@@ -22,7 +22,6 @@ package org.dcache.oncrpc4j.rpc;
 import com.google.common.annotations.Beta;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import org.dcache.oncrpc4j.MemoryAllocator;
 import org.dcache.oncrpc4j.rpc.gss.GssSessionManager;
 
 import java.util.HashMap;
