@@ -33,7 +33,12 @@ public class RpcAuthTypeNone implements RpcAuth, XdrAble {
     private final int _type = RpcAuthType.NONE;
     private byte[] body;
     private RpcAuthVerifier _verifier = new RpcAuthVerifier(RpcAuthType.NONE, new byte[0]);
-    private final Subject _subject;
+
+    private static final Subject _subject;
+    static {
+        _subject = new Subject();
+        _subject.setReadOnly();
+    }
 
     private final static Logger _log = LoggerFactory.getLogger(RpcAuthTypeNone.class);
 
@@ -43,8 +48,6 @@ public class RpcAuthTypeNone implements RpcAuth, XdrAble {
 
     public RpcAuthTypeNone(byte[] body) {
         this.body = body;
-        _subject = new Subject();
-        _subject.setReadOnly();
     }
 
     @Override
