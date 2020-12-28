@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2018 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2020 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -89,7 +89,7 @@ public class RpcMessageParserTCP extends BaseFilter {
             int size = getMessageSize(messageMarker);
 
             /*
-             * fragmen size bigger than we have received
+             * fragment size bigger than we have received
              */
             if (size > buffer.remaining()) {
                 return false;
