@@ -15,7 +15,7 @@ public class SyncBlobStoreTest extends AbstractBlobStoreTest {
         client.put_1(key, value, 0, null, null);
         Value returned = client.get_1(key, 0, null, null);
         Assert.assertNotNull(returned);
-        Assert.assertTrue(returned != value);
+        Assert.assertNotSame(returned, value);
         byte[] returnedValue = returned.data;
         Assert.assertArrayEquals(new byte[] {4,5,6}, returnedValue);
     }

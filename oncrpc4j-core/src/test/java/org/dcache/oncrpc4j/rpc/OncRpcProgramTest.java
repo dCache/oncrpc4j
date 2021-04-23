@@ -51,7 +51,7 @@ public class OncRpcProgramTest {
 
         OncRpcProgram program1 = new OncRpcProgram(progNum, progVers);
         OncRpcProgram program2 = new OncRpcProgram(progNum, progVers);
-        assertTrue("Equals programs not detected", program1.equals(program2));
+        assertEquals("Equals programs not detected", program1, program2);
     }
 
     @Test
@@ -61,7 +61,7 @@ public class OncRpcProgramTest {
 
         OncRpcProgram program1 = new OncRpcProgram(progNum, progVers);
         OncRpcProgram program2 = new OncRpcProgram(progNum, progVers + 10);
-        assertFalse("Different programs not detected", program1.equals(program2));
+        assertNotEquals("Different programs not detected", program1, program2);
     }
 
 }

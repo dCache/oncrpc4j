@@ -57,8 +57,8 @@ public class OncRpcSvcTest {
 
         InetSocketAddress tcpSocketAddresses = svc.getInetSocketAddress(IpProtocolType.TCP);
         InetSocketAddress udpSocketAddresses = svc.getInetSocketAddress(IpProtocolType.UDP);
-        assertTrue(!tcpSocketAddresses.getAddress().isAnyLocalAddress());
-        assertTrue(!udpSocketAddresses.getAddress().isAnyLocalAddress());
+        assertFalse(tcpSocketAddresses.getAddress().isAnyLocalAddress());
+        assertFalse(udpSocketAddresses.getAddress().isAnyLocalAddress());
     }
 
     @Test
@@ -98,13 +98,13 @@ public class OncRpcSvcTest {
         try ( OncRpcClient rpcClient = new OncRpcClient(InetAddress.getByName(null), IpProtocolType.UDP, svc.getInetSocketAddress(IpProtocolType.UDP).getPort() ) ) {
 			OncPortmapClient portmapClient = new GenericPortmapClient(rpcClient.connect()); // init portmapper (only v2 atm)
             assertTrue(portmapClient.ping()); // ping portmap
-			assertTrue( portmapClient.getPort(OncRpcPortmap.PORTMAP_PROGRAMM, OncRpcPortmap.PORTMAP_V2, "tcp").equals("127.0.0.1.0.111") ); // check port
+            assertEquals("127.0.0.1.0.111", portmapClient.getPort(OncRpcPortmap.PORTMAP_PROGRAMM, OncRpcPortmap.PORTMAP_V2, "tcp")); // check port
 			String addr = InetSocketAddresses.uaddrOf(new InetSocketAddress("127.0.0.1",1234)); 
 			assertTrue( portmapClient.setPort(TEST_PROG, TEST_PROG_VER, IpProtocolType.toString(IpProtocolType.TCP),addr, TEST_PROG_OWNER) ); // reg app with tcp and udp
 			assertTrue( portmapClient.setPort(TEST_PROG, TEST_PROG_VER, IpProtocolType.toString(IpProtocolType.UDP),addr, TEST_PROG_OWNER) ); // reg app with udp and udp
 			assertFalse( portmapClient.setPort(TEST_PROG, TEST_PROG_VER, IpProtocolType.toString(IpProtocolType.TCP),addr, TEST_PROG_OWNER) ); // try again app with tcp 
 			assertFalse( portmapClient.setPort(TEST_PROG, TEST_PROG_VER, IpProtocolType.toString(IpProtocolType.UDP),addr, TEST_PROG_OWNER) ); // try again app with udp 
-			assertTrue( addr.equals( portmapClient.getPort(TEST_PROG,TEST_PROG_VER, IpProtocolType.toString(IpProtocolType.TCP) ) ) ); // check tcp address match
+            assertEquals(addr, portmapClient.getPort(TEST_PROG, TEST_PROG_VER, IpProtocolType.toString(IpProtocolType.TCP))); // check tcp address match
 			assertTrue( portmapClient.unsetPort(TEST_PROG, TEST_PROG_VER, TEST_PROG_OWNER) ); // remove app 
 			assertFalse( portmapClient.unsetPort(TEST_PROG, TEST_PROG_VER,TEST_PROG_OWNER) ); // remove app again
 			// do dump lookup test
@@ -114,7 +114,7 @@ public class OncRpcSvcTest {
 					found = true;
 				}
 			}
-			assertTrue(!found); // we should not find one anymore
+            assertFalse(found); // we should not find one anymore
 			svc.unregister(portMapProg); // just remove portmap
         }
     }

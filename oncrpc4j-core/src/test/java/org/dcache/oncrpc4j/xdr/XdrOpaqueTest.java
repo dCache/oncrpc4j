@@ -49,7 +49,7 @@ public class XdrOpaqueTest {
 
         XdrOpaque opaque = new XdrOpaque("some bytes".getBytes(StandardCharsets.UTF_8));
 
-        assertTrue("opaques with equal values must be equal", opaque.equals(opaque));
+        assertEquals("opaques with equal values must be equal", opaque, opaque);
     }
 
     @Test
@@ -58,8 +58,8 @@ public class XdrOpaqueTest {
         XdrOpaque opaque1 = new XdrOpaque("some bytes".getBytes(StandardCharsets.UTF_8));
         XdrOpaque opaque2 = new XdrOpaque("some bytes".getBytes(StandardCharsets.UTF_8));
 
-        assertTrue("opaques with equal values must be equal", opaque1.equals(opaque2));
-        assertTrue("equal objects must have the same hashcode", opaque1.hashCode() == opaque2.hashCode());
+        assertEquals("opaques with equal values must be equal", opaque1, opaque2);
+        assertEquals("equal objects must have the same hashcode", opaque1.hashCode(), opaque2.hashCode());
     }
 
     @Test
@@ -68,7 +68,7 @@ public class XdrOpaqueTest {
         byte[] data = "some bytes".getBytes(StandardCharsets.UTF_8);
         XdrOpaque opaque = new XdrOpaque(data);
 
-        assertFalse("opaques with equal values must be equal", opaque.equals(data));
+        assertNotEquals("opaques with equal values must be equal", opaque, data);
     }
 
 

@@ -69,7 +69,7 @@ public class XdrTest {
         decoder.beginDecoding();
         byte[] decoded = decoder.xdrDecodeDynamicOpaque();
 
-        assertTrue("encoded/decoded data do not match", Arrays.equals(data, decoded));
+        assertArrayEquals("encoded/decoded data do not match", data, decoded);
     }
 
     @Test
@@ -85,7 +85,7 @@ public class XdrTest {
         decoder.beginDecoding();
         byte[] decoded = decoder.xdrDecodeOpaque(data.length);
 
-        assertTrue("encoded/decoded data do not match", Arrays.equals(data, decoded));
+        assertArrayEquals("encoded/decoded data do not match", data, decoded);
     }
 
     @Test

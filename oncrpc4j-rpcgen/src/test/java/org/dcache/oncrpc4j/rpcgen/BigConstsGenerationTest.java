@@ -25,15 +25,15 @@ public class BigConstsGenerationTest {
         Assert.assertTrue(Calculator.HUGE_CONST.compareTo(BigInteger.valueOf(Long.MAX_VALUE)) > 0);
         //the code below is jdk8's compareUnsigned (back ported because project is jdk7)
         //noinspection NumericOverflow
-        Assert.assertTrue(Integer.compare(maxInt + Integer.MIN_VALUE, Calculator.UNSIGNED_INT_OCT_CONST + Integer.MIN_VALUE) == 0);
+        Assert.assertEquals(0, Integer.compare(maxInt + Integer.MIN_VALUE, Calculator.UNSIGNED_INT_OCT_CONST + Integer.MIN_VALUE));
         //noinspection NumericOverflow
-        Assert.assertTrue(Integer.compare(maxInt + Integer.MIN_VALUE, Calculator.UNSIGNED_INT_HEX_CONST + Integer.MIN_VALUE) == 0);
+        Assert.assertEquals(0, Integer.compare(maxInt + Integer.MIN_VALUE, Calculator.UNSIGNED_INT_HEX_CONST + Integer.MIN_VALUE));
         //noinspection NumericOverflow
-        Assert.assertTrue(Integer.compare(maxInt + Integer.MIN_VALUE, ((int) Calculator.UNSIGNED_INT_DEC_CONST) + Integer.MIN_VALUE) == 0);
+        Assert.assertEquals(0, Integer.compare(maxInt + Integer.MIN_VALUE, ((int) Calculator.UNSIGNED_INT_DEC_CONST) + Integer.MIN_VALUE));
         //noinspection NumericOverflow
-        Assert.assertTrue(Long.compare(maxLong + Long.MIN_VALUE, Calculator.UNSIGNED_LONG_OCT_CONST + Long.MIN_VALUE) == 0);
+        Assert.assertEquals(0, Long.compare(maxLong + Long.MIN_VALUE, Calculator.UNSIGNED_LONG_OCT_CONST + Long.MIN_VALUE));
         //noinspection NumericOverflow
-        Assert.assertTrue(Long.compare(maxLong + Long.MIN_VALUE, Calculator.UNSIGNED_LONG_HEX_CONST + Long.MIN_VALUE) == 0);
-        Assert.assertTrue(Long.compare(maxLong + Long.MIN_VALUE, Calculator.UNSIGNED_LONG_DEC_CONST.longValue() + Long.MIN_VALUE) == 0);
+        Assert.assertEquals(0, Long.compare(maxLong + Long.MIN_VALUE, Calculator.UNSIGNED_LONG_HEX_CONST + Long.MIN_VALUE));
+        Assert.assertEquals(0, Long.compare(maxLong + Long.MIN_VALUE, Calculator.UNSIGNED_LONG_DEC_CONST.longValue() + Long.MIN_VALUE));
     }
 }

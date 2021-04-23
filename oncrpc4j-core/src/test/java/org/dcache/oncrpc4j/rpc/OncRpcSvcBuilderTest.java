@@ -45,7 +45,7 @@ public class OncRpcSvcBuilderTest {
 	    holder[0] = Thread.currentThread();
 	});
 
-        assertTrue("Executoed in a different thread", thisThread == holder[0]);
+        assertSame("Executoed in a different thread", thisThread, holder[0]);
     }
 
     @Test
@@ -61,7 +61,7 @@ public class OncRpcSvcBuilderTest {
 	    holder[0] = Thread.currentThread();
 	});
 
-        assertTrue("Executoed in the same thread", thisThread != holder[0]);
+        assertNotSame("Executoed in the same thread", thisThread, holder[0]);
     }
 
     @Test
@@ -73,7 +73,7 @@ public class OncRpcSvcBuilderTest {
                 .withWorkerThreadExecutionService(mockedExecutorService);
 
         ExecutorService executorService = builder.getWorkerThreadExecutorService();
-        assertTrue("Provided executor service not used", mockedExecutorService  == executorService);
+        assertSame("Provided executor service not used", mockedExecutorService, executorService);
     }
 
     @Test(expected = IllegalArgumentException.class)
