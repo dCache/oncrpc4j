@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2019 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2021 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -19,6 +19,7 @@
  */
 package org.dcache.oncrpc4j.rpc;
 
+import com.google.common.annotations.Beta;
 import org.dcache.oncrpc4j.xdr.Xdr;
 import org.dcache.oncrpc4j.xdr.XdrVoid;
 import org.dcache.oncrpc4j.xdr.XdrEncodingStream;
@@ -269,6 +270,16 @@ public class RpcCall {
     public String toString() {
         return String.format("RPCv%d call: program=%d, version=%d, procedure=%d",
                 _rpcvers, _prog, _version, _proc);
+    }
+
+    /**
+     * Require server to start TLS handshake.
+     */
+    @Beta
+    public void startTLS() throws IOException {
+        // poke server to start tls
+        call(0, XdrVoid.XDR_VOID, XdrVoid.XDR_VOID, new RpcAuthTypeTls());
+        getTransport().startTLS();
     }
 
     /**
