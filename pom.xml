@@ -71,7 +71,7 @@
     <guava.version>24.1.1-jre</guava.version>
     <slf4j-api.version>1.7.25</slf4j-api.version>
     <spring-context.version>5.1.0.RELEASE</spring-context.version>
-    <bc.version>1.60</bc.version>
+    <bc.version>1.67</bc.version>
 
     <!--  version of test dependencies  -->
     <junit.version>4.13.1</junit.version>
