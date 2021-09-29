@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2020 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2021 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -362,8 +362,8 @@ public class OncRpcSvc {
 
             if(!_isClient) {
                 Connection<InetSocketAddress> connection = _portRange == null ?
-                        ((SocketBinder) t).bind(_bindAddress, 0, _backlog) :
-                        ((SocketBinder) t).bind(_bindAddress, _portRange, _backlog);
+                        (Connection<InetSocketAddress>) ((SocketBinder) t).bind(_bindAddress, 0, _backlog) :
+                        (Connection<InetSocketAddress>) ((SocketBinder) t).bind(_bindAddress, _portRange, _backlog);
 
                 _boundConnections.add(connection);
 
