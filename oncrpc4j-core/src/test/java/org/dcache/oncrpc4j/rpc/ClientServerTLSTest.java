@@ -351,6 +351,70 @@ public class ClientServerTLSTest {
         clntCall.startTLS();
     }
 
+    @Test
+    public void shouldAcceptSecondConnectionInPlain() throws IOException {
+
+        svc = new OncRpcSvcBuilder()
+              .withoutAutoPublish()
+              .withTCP()
+              .withWorkerThreadIoStrategy()
+              .withBindAddress("127.0.0.1")
+              .withSelectorThreadPoolSize(1)
+              .withWorkerThreadPoolSize(1)
+              .withRpcService(new OncRpcProgram(PROGNUM, PROGVER), echo)
+              .withSSLContext(sslServerContext)
+              .withStartTLS()
+              .withServiceName("svc")
+              .build();
+        svc.start();
+
+        clnt = new OncRpcSvcBuilder()
+              .withoutAutoPublish()
+              .withTCP()
+              .withClientMode()
+              .withWorkerThreadIoStrategy()
+              .withSelectorThreadPoolSize(1)
+              .withWorkerThreadPoolSize(1)
+              .withSSLContext(sslClientContext)
+              .withStartTLS()
+              .withServiceName("clnt")
+              .build();
+        clnt.start();
+
+        var clnt2 = new OncRpcSvcBuilder()
+              .withoutAutoPublish()
+              .withTCP()
+              .withClientMode()
+              .withWorkerThreadIoStrategy()
+              .withSelectorThreadPoolSize(1)
+              .withWorkerThreadPoolSize(1)
+              .withServiceName("clnt2")
+              .withRpcService(new OncRpcProgram(PROGNUM, PROGVER), echo)
+              .build();
+        clnt2.start();
+
+        RpcTransport t = clnt.connect(svc.getInetSocketAddress(IpProtocolType.TCP));
+        clntCall = new RpcCall(PROGNUM, PROGVER, new RpcAuthTypeNone(), t);
+        clntCall.startTLS();
+
+        XdrString s = new XdrString("hello TLS");
+        XdrString reply = new XdrString();
+        clntCall.call(ECHO, s, reply);
+
+        assertEquals("reply mismatch", s, reply);
+
+        var t2 = clnt2.connect(svc.getInetSocketAddress(IpProtocolType.TCP));
+        var call2 = new RpcCall(PROGNUM, PROGVER, new RpcAuthTypeNone(), t2);
+
+        s = new XdrString("hello PLAIN");
+
+        // trigger callback as TLS initialized by client. we talk plain, thus server might switch to TLS
+        call2.call(UPPER, s, reply);
+
+        call2.call(ECHO, s, reply);
+        assertEquals("reply mismatch", s, reply);
+    }
+
     @Test(expected = OncRpcRejectedException.class)
     public void shouldRejectStartTlsWhenNotConfigured() throws IOException {
 

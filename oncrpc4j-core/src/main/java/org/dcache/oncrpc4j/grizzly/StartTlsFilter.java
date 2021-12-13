@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2019 - 2021 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -26,6 +26,8 @@ import org.dcache.oncrpc4j.rpc.RpcAuthException;
 import org.dcache.oncrpc4j.rpc.RpcAuthStat;
 import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.EmptyCompletionHandler;
+import org.glassfish.grizzly.Grizzly;
+import org.glassfish.grizzly.attributes.Attribute;
 import org.glassfish.grizzly.filterchain.Filter;
 import org.glassfish.grizzly.filterchain.BaseFilter;
 import org.glassfish.grizzly.filterchain.FilterChain;
@@ -42,11 +44,25 @@ import org.slf4j.LoggerFactory;
 @Beta
 public class StartTlsFilter extends BaseFilter {
 
+    /**
+     * A dummy object used as value by STARTTLS_ATTR.
+     */
+    private static final Object STARTTLS_FLAG = new Object();
+
+    /**
+     * Attribute key used by StartTlsFilter class to flag start of TLS handshake.
+     */
+    private static final String STARTTLS_ATTR_NAME = StartTlsFilter.class + ".connection-starttls";
+
+    /**
+     * STARTTLS attribute holder.
+     */
+    private static final Attribute<Object> STARTTLS_ATTR = Grizzly.DEFAULT_ATTRIBUTE_BUILDER.createAttribute(STARTTLS_ATTR_NAME);
+
     private final static Logger LOGGER = LoggerFactory.getLogger(StartTlsFilter.class);
 
     private final SSLFilter sslFilter;
     private final boolean isClient;
-    private volatile boolean start;
 
     public StartTlsFilter(SSLFilter sslFilter, boolean isClient) {
         this.sslFilter = sslFilter;
@@ -58,17 +74,17 @@ public class StartTlsFilter extends BaseFilter {
         /** After service receives start-TLS it must reply to the client and then
          * enable TLS on the connection.
          */
-
         NextAction nextAction = super.handleWrite(ctx);
-        if (start) {
-            enableSSLFilter(ctx.getConnection());
+
+        Connection connection = ctx.getConnection();
+        if (STARTTLS_ATTR.isSet(connection)) {
+            enableSSLFilter(connection);
         }
 
         return nextAction;
     }
 
     public void startTLS(Connection connection) throws RpcAuthException {
-        start = true;
         if (isClient) {
             enableSSLFilter(connection);
             try {
@@ -78,6 +94,8 @@ public class StartTlsFilter extends BaseFilter {
                 throw new RpcAuthException("Failed to perform TLS handshake",
                         new RpcAuthError(RpcAuthStat.AUTH_FAILED));
             }
+        } else {
+            STARTTLS_ATTR.set(connection, STARTTLS_FLAG);
         }
     }
 
