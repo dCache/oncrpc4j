@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2020 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2021 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -47,7 +47,7 @@ public class RpcCredential {
                 credential = new RpcAuthGss();
                 break;
             case RpcAuthType.TLS:
-                credential = new RpcAuthTypeTls();
+                credential = new RpcAuthTypeTls(RpcAuthTypeTls.STARTTLS_VERIFIER);
                 transport.startTLS();
                 break;
             default:
