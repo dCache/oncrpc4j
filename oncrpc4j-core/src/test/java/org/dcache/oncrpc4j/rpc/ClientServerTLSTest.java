@@ -280,6 +280,44 @@ public class ClientServerTLSTest {
         assertEquals("reply mismatch", s, reply);
     }
 
+    @Test
+    public void shouldIdentifyTLSConnection() throws IOException {
+
+        svc = new OncRpcSvcBuilder()
+              .withoutAutoPublish()
+              .withTCP()
+              .withWorkerThreadIoStrategy()
+              .withBindAddress("127.0.0.1")
+              .withSelectorThreadPoolSize(1)
+              .withWorkerThreadPoolSize(1)
+              .withRpcService(new OncRpcProgram(PROGNUM, PROGVER), echo)
+              .withSSLContext(sslServerContext)
+              .withStartTLS()
+              .withServiceName("svc")
+              .build();
+        svc.start();
+
+        clnt = new OncRpcSvcBuilder()
+              .withoutAutoPublish()
+              .withTCP()
+              .withClientMode()
+              .withWorkerThreadIoStrategy()
+              .withSelectorThreadPoolSize(1)
+              .withWorkerThreadPoolSize(1)
+              .withSSLContext(sslClientContext)
+              .withStartTLS()
+              .withServiceName("clnt")
+              .build();
+        clnt.start();
+
+        RpcTransport t = clnt.connect(svc.getInetSocketAddress(IpProtocolType.TCP));
+        clntCall = new RpcCall(PROGNUM, PROGVER, new RpcAuthTypeNone(), t);
+
+        assertFalse("TLS not expected", t.isTLS());
+        clntCall.startTLS();
+        assertTrue("Expected TLS", t.isTLS());
+    }
+
     @Test(expected = RpcAuthException.class)
     public void shouldFailWhenNoTLSOnClient() throws IOException {
 

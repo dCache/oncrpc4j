@@ -130,4 +130,12 @@ public class GrizzlyRpcTransport implements RpcTransport {
                         new RpcAuthError(RpcAuthStat.AUTH_FAILED)))
                 .startTLS(_connection);
     }
+
+    @Override
+    public boolean isTLS() {
+        return ((FilterChain) _connection.getProcessor()).stream()
+                .filter(SSLFilter.class::isInstance)
+                .findAny()
+                .isPresent();
+    }
 }

@@ -84,4 +84,11 @@ public interface RpcTransport {
      */
     @Beta
     void startTLS() throws RpcAuthException, IllegalStateException;
+
+    /**
+     * Check whatever this transport is protected by TLS.
+     * @return {@code true} if and only if this transport is connected and protected by TLS.
+     */
+    @Beta
+    boolean isTLS();
 }
