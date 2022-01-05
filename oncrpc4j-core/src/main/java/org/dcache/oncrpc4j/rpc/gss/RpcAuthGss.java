@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2019 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2022 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -20,6 +20,7 @@
 package org.dcache.oncrpc4j.rpc.gss;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import javax.security.auth.Subject;
@@ -106,8 +107,8 @@ public class RpcAuthGss implements RpcAuth, XdrAble {
     /**
      * Get a read-only ByteBuffer containing RPC header including credential.
      */
-    Buffer getHeader() {
-        return _header.asReadOnlyBuffer();
+    ByteBuffer getHeader() {
+        return _header.asReadOnlyBuffer().toByteBuffer();
     }
 
     public void xdrDecode(XdrDecodingStream xdr) throws OncRpcException, IOException {

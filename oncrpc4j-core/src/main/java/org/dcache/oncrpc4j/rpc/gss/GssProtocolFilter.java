@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2020 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2022 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -21,6 +21,7 @@ package org.dcache.oncrpc4j.rpc.gss;
 
 import com.google.common.primitives.Ints;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +34,6 @@ import org.dcache.oncrpc4j.rpc.RpcAuthVerifier;
 import org.dcache.oncrpc4j.rpc.RpcCall;
 import org.dcache.oncrpc4j.rpc.RpcException;
 import org.dcache.oncrpc4j.rpc.RpcRejectStatus;
-import org.glassfish.grizzly.Buffer;
 import org.glassfish.grizzly.filterchain.BaseFilter;
 import org.glassfish.grizzly.filterchain.Filter;
 import org.glassfish.grizzly.filterchain.FilterChainContext;
@@ -163,7 +163,7 @@ public class GssProtocolFilter extends BaseFilter {
      * @throws GSSException if cant validate the checksum
      */
     private void validateVerifier(RpcAuthGss auth, GSSContext context) throws GSSException {
-        Buffer header = auth.getHeader();
+        ByteBuffer header = auth.getHeader();
         byte[] bb = new byte[header.remaining()];
         header.get(bb);
         context.verifyMIC(auth.getVerifier().getBody(), 0, auth.getVerifier().getBody().length,
