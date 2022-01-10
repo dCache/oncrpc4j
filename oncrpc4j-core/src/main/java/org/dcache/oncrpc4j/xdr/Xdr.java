@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2020 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2022 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -24,6 +24,7 @@ import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import org.dcache.oncrpc4j.grizzly.GrizzlyMemoryManager;
 import org.glassfish.grizzly.Buffer;
+import org.glassfish.grizzly.memory.MemoryManager;
 
 import static com.google.common.base.Preconditions.checkState;
 
@@ -50,12 +51,16 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream, AutoCloseable 
     private boolean _inUse;
 
     /**
+     * Memory manager used to allocate, resize buffers.
+     */
+    private final MemoryManager _memoryManager;
+    /**
      * Create a new Xdr object with a buffer of given size.
      *
      * @param size of the buffer in bytes
      */
     public Xdr(int size) {
-        this(GrizzlyMemoryManager.allocate(size));
+        this(GrizzlyMemoryManager.allocate(size), GrizzlyMemoryManager.getDefaultMemoryManager());
     }
 
 
@@ -69,14 +74,26 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream, AutoCloseable 
      * @param  bytes The array that will back this Xdr.
      */
     public Xdr(byte[] bytes) {
-        this(GrizzlyMemoryManager.wrap(bytes));
+        this(GrizzlyMemoryManager.wrap(bytes), GrizzlyMemoryManager.getDefaultMemoryManager());
     }
 
     /**
      * Create a new XDR back ended with given {@link ByteBuffer}.
      * @param body buffer to use
+     * @deprecated this constructor shouldn't be ued
      */
+    @Deprecated
     public Xdr(Buffer body) {
+        this(body, GrizzlyMemoryManager.getDefaultMemoryManager());
+    }
+
+    /**
+     * Create a new XDR back ended with given {@link ByteBuffer}.
+     * @param body buffer to use
+     * @param memoryManager memory manager used to allocate provided buffer.
+     */
+    public Xdr(Buffer body, MemoryManager memoryManager) {
+        _memoryManager = memoryManager;
         _buffer = body;
         _buffer.order(ByteOrder.BIG_ENDIAN);
     }
@@ -873,7 +890,7 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream, AutoCloseable 
         if(_buffer.remaining() < size) {
             int oldCapacity = _buffer.capacity();
             int newCapacity = Math.max((oldCapacity * 3) / 2 + 1, oldCapacity + size);
-            _buffer = GrizzlyMemoryManager.reallocate(_buffer, newCapacity);
+            _buffer = GrizzlyMemoryManager.reallocate(_memoryManager, _buffer, newCapacity);
         }
     }
 

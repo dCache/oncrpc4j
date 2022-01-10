@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2018 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2022 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -21,7 +21,6 @@ package org.dcache.oncrpc4j.grizzly;
 
 import org.glassfish.grizzly.Buffer;
 import org.glassfish.grizzly.memory.Buffers;
-import org.glassfish.grizzly.memory.BuffersBuffer;
 import org.glassfish.grizzly.memory.CompositeBuffer;
 import org.glassfish.grizzly.memory.MemoryManager;
 
@@ -36,28 +35,24 @@ public class GrizzlyMemoryManager {
     // Utility class
     private GrizzlyMemoryManager() {}
 
+    public static MemoryManager getDefaultMemoryManager() {
+        return GRIZZLY_MM;
+    }
+
     public static Buffer allocate(int size) {
         return GRIZZLY_MM.allocate(size);
     }
 
-    public static Buffer reallocate(Buffer oldBuffer, int newSize) {
+    public static Buffer reallocate(MemoryManager memoryManager, Buffer oldBuffer, int newSize) {
         if (oldBuffer.isComposite()) {
-            Buffer addon = allocate(newSize-oldBuffer.capacity());
+            Buffer addon = memoryManager.allocate(newSize-oldBuffer.capacity());
             ((CompositeBuffer)oldBuffer).append(addon);
             return oldBuffer;
         }
-        return GRIZZLY_MM.reallocate(oldBuffer, newSize);
+        return memoryManager.reallocate(oldBuffer, newSize);
     }
 
     public static Buffer wrap(byte[] bytes) {
         return Buffers.wrap(GRIZZLY_MM, bytes);
-    }
-
-    public static Buffer createComposite(Buffer...buffers) {
-        return BuffersBuffer.create(GRIZZLY_MM, buffers);
-    }
-
-    public static BuffersBuffer create() {
-        return BuffersBuffer.create();
     }
 }

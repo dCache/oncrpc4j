@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2018 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2022 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -22,16 +22,22 @@ package org.dcache.oncrpc4j.xdr;
 import java.nio.ByteBuffer;
 import org.dcache.oncrpc4j.util.Bytes;
 import java.nio.ByteOrder;
-import java.util.Arrays;
 import org.dcache.oncrpc4j.grizzly.GrizzlyMemoryManager;
 import org.glassfish.grizzly.Buffer;
 import org.glassfish.grizzly.memory.BuffersBuffer;
+import org.glassfish.grizzly.memory.ByteBufferManager;
 import org.glassfish.grizzly.memory.CompositeBuffer;
+import org.glassfish.grizzly.memory.MemoryManager;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
-import static org.junit.Assert.*;
 
 public class XdrTest {
 
@@ -638,8 +644,35 @@ public class XdrTest {
         assertEquals(decoded.getChar(), 'a');
     }
 
+
+    // this test demonstrates that grizzly memory manager can grow only buffers of the same type
+    @Test(expected = Exception.class)
+    public void testGrowDirectBufferDefaultMM() throws BadXdrOncRpcException {
+        // memory manager with direct buffers, max cached buffer 512 and min allocation 0
+        MemoryManager mm = new ByteBufferManager(true, 512, 0);
+        Buffer b = mm.allocate(4);
+
+        Xdr xdr = new Xdr(b);
+        xdr.beginEncoding();
+        xdr.xdrEncodeLong(1L);
+    }
+
     @Test
-    public void testRelaseBufferOnClose() {
+    public void testGrowDirectBuffer() throws BadXdrOncRpcException {
+        // memory manager with direct buffers, max cached buffer 512 and min allocation 0
+        MemoryManager mm = new ByteBufferManager(true, 512, 0);
+        Buffer b = mm.allocate(4);
+
+        Xdr xdr = new Xdr(b, mm);
+        xdr.beginEncoding();
+        xdr.xdrEncodeLong(1L);
+
+        Buffer newBuffer = xdr.asBuffer();
+        assertThat("Underlying buffer is not grown", newBuffer.capacity(), greaterThan(b.capacity()));
+    }
+
+    @Test
+    public void testReleaseBufferOnClose() {
 
         Buffer b = mock(Buffer.class);
         Xdr xdr = new Xdr(b);

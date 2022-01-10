@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2020 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2022 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -23,12 +23,12 @@ import org.dcache.oncrpc4j.xdr.Xdr;
 import java.io.IOException;
 
 import java.nio.ByteOrder;
-import org.dcache.oncrpc4j.grizzly.GrizzlyMemoryManager;
 import org.glassfish.grizzly.Buffer;
 import org.glassfish.grizzly.filterchain.BaseFilter;
 import org.glassfish.grizzly.filterchain.FilterChainContext;
 import org.glassfish.grizzly.filterchain.NextAction;
 import org.glassfish.grizzly.memory.BuffersBuffer;
+import org.glassfish.grizzly.memory.MemoryManager;
 
 public class RpcMessageParserTCP extends BaseFilter {
 
@@ -53,7 +53,7 @@ public class RpcMessageParserTCP extends BaseFilter {
             return ctx.getStopAction(messageBuffer);
         }
 
-        ctx.setMessage(assembleXdr(messageBuffer));
+        ctx.setMessage(assembleXdr(messageBuffer, ctx.getMemoryManager()));
 
         final Buffer reminder = messageBuffer.hasRemaining()
                 ? messageBuffer.split(messageBuffer.position()) : null;
@@ -67,19 +67,19 @@ public class RpcMessageParserTCP extends BaseFilter {
         Buffer b = ctx.getMessage();
         int len = b.remaining() | RPC_LAST_FRAG;
 
-        Buffer marker = GrizzlyMemoryManager.allocate(4);
+        Buffer marker = ctx.getMemoryManager().allocate(4);
         marker.order(ByteOrder.BIG_ENDIAN);
         marker.putInt(len);
         marker.flip();
         marker.allowBufferDispose(true);
         b.allowBufferDispose(true);
-        Buffer composite = GrizzlyMemoryManager.createComposite(marker, b);
+        Buffer composite = BuffersBuffer.create(ctx.getMemoryManager(), marker, b);
         composite.allowBufferDispose(true);
         ctx.setMessage(composite);
         return ctx.getInvokeAction();
     }
 
-    private boolean isAllFragmentsArrived(Buffer messageBuffer) throws IOException {
+    private boolean isAllFragmentsArrived(Buffer messageBuffer) {
         final Buffer buffer = messageBuffer.duplicate();
         buffer.order(ByteOrder.BIG_ENDIAN);
 
@@ -119,7 +119,7 @@ public class RpcMessageParserTCP extends BaseFilter {
         return (marker & RPC_LAST_FRAG) != 0;
     }
 
-    private Xdr assembleXdr(Buffer messageBuffer) {
+    private Xdr assembleXdr(Buffer messageBuffer, MemoryManager memoryManager) {
 
         Buffer currentFragment;
         BuffersBuffer multipleFragments = null;
@@ -141,7 +141,7 @@ public class RpcMessageParserTCP extends BaseFilter {
                  * we use composite buffer only if required
                  * as they not for free.
                  */
-                multipleFragments = GrizzlyMemoryManager.create();
+                multipleFragments = BuffersBuffer.create(memoryManager);
             }
 
             if (multipleFragments != null) {
@@ -149,6 +149,6 @@ public class RpcMessageParserTCP extends BaseFilter {
             }
         } while (!messageComplete);
 
-        return new Xdr(multipleFragments == null ? currentFragment : multipleFragments);
+        return new Xdr(multipleFragments == null ? currentFragment : multipleFragments, memoryManager);
     }
 }
