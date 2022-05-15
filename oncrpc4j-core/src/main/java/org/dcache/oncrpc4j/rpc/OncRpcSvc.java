@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2021 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2022 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -67,6 +67,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Consumer;
 import javax.net.ssl.SSLContext;
 
 import static com.google.common.base.Throwables.getRootCause;
@@ -128,6 +129,11 @@ public class OncRpcSvc {
      * Name of this service
      */
     private final String _svcName;
+
+    /**
+     *  {@code java.util.function.Consumer} that is called before RPC request executed.
+     */
+    private final Consumer<RpcCall> _callInterceptor;
 
     /**
      * Create new RPC service with defined configuration.
@@ -192,6 +198,7 @@ public class OncRpcSvc {
         _sslContext = builder.getSSLContext();
         _startTLS = builder.isStartTLS();
         _sslParams = builder.getSSLParameters();
+        _callInterceptor = builder.getCallInterceptor();
     }
 
     /**
@@ -346,7 +353,7 @@ public class OncRpcSvc {
             if (_gssSessionManager != null) {
                 filterChain.add(new GssProtocolFilter(_gssSessionManager));
             }
-            filterChain.add(new RpcDispatcher(_requestExecutor, _programs, _withSubjectPropagation));
+            filterChain.add(new RpcDispatcher(_requestExecutor, _programs, _withSubjectPropagation, _callInterceptor));
 
             final FilterChain filters = filterChain.build();
 

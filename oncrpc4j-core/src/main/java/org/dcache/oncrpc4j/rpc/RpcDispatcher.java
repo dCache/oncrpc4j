@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2018 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2022 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -25,6 +25,7 @@ import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Consumer;
 
 import com.google.common.base.Throwables;
 import org.slf4j.Logger;
@@ -54,6 +55,12 @@ public class RpcDispatcher extends BaseFilter {
      * from request credentials.
      */
     private final boolean _withSubjectPropagation;
+
+    /**
+     *  {@code java.util.function.Consumer} that is called before RPC request executed.
+     */
+    private final Consumer<RpcCall> _callInterceptor;
+
     /**
      * Create new RPC dispatcher for given program.
      *
@@ -62,16 +69,18 @@ public class RpcDispatcher extends BaseFilter {
      *     with a mapping between program number and program
      *     handler.
      * @param withSubjectPropagation use {@link Subject#doAs} to exacerbate request.
+     * @param callInterceptor consumer that will be called before the dispatcher performs its real work.
      *
      * @throws NullPointerException if executor or program is null
      */
     public RpcDispatcher(ExecutorService executor, Map<OncRpcProgram,
-            RpcDispatchable> programs, boolean withSubjectPropagation)
+            RpcDispatchable> programs, boolean withSubjectPropagation, Consumer<RpcCall> callInterceptor)
             throws NullPointerException {
 
         _programs = requireNonNull(programs, "Programs is NULL");
         _asyncExecutorService = requireNonNull(executor, "ExecutorService is NULL");
         _withSubjectPropagation = withSubjectPropagation;
+        _callInterceptor = callInterceptor;
     }
 
     @Override
@@ -91,6 +100,9 @@ public class RpcDispatcher extends BaseFilter {
             _asyncExecutorService.execute(new Runnable() {
                 @Override
                 public void run() {
+
+                    _callInterceptor.accept(call);
+
                     try {
                         if (_withSubjectPropagation) {
                             Subject subject = call.getCredential().getSubject();

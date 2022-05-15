@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2019 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2022 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+import java.util.function.Consumer;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLParameters;
 
@@ -83,6 +84,8 @@ public class OncRpcSvcBuilder {
     private boolean _startTLS = false;
     private SSLParameters _sslParams;
     private MemoryAllocator _allocator = MemoryAllocator.DEFAULT;
+
+    private Consumer<RpcCall> _callInterceptor = c -> {};
 
     public OncRpcSvcBuilder withAutoPublish() {
         _autoPublish = true;
@@ -280,6 +283,15 @@ public class OncRpcSvcBuilder {
 
     public GssSessionManager getGssSessionManager() {
         return _gssSessionManager;
+    }
+
+    public OncRpcSvcBuilder withCallInterceptor(Consumer<RpcCall> interceptor) {
+        _callInterceptor = interceptor;
+        return this;
+    }
+
+    public Consumer<RpcCall> getCallInterceptor() {
+        return _callInterceptor;
     }
 
     public ExecutorService getWorkerThreadExecutorService() {
