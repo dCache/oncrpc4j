@@ -67,7 +67,7 @@
 
     <!--  version of dependencies-->
     <dcache-auth.version>0.0.11</dcache-auth.version>
-    <grizzly-framework.version>3.0.0</grizzly-framework.version>
+    <grizzly-framework.version>4.0.0</grizzly-framework.version>
     <guava.version>31.1-jre</guava.version>
     <slf4j-api.version>1.7.25</slf4j-api.version>
     <spring-context.version>5.1.0.RELEASE</spring-context.version>
