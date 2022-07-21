@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2018 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2022 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -19,9 +19,6 @@
  */
 package org.dcache.oncrpc4j.rpc;
 
-import org.dcache.oncrpc4j.rpc.RpcMessage;
-import org.dcache.oncrpc4j.rpc.ReplyQueue;
-import org.dcache.oncrpc4j.rpc.RpcProtocolFilter;
 import org.dcache.oncrpc4j.xdr.Xdr;
 import java.io.IOException;
 import org.glassfish.grizzly.Connection;
@@ -58,8 +55,8 @@ public class RpcProtocolFilterTest {
     private Xdr createBadXdr() {
         Xdr xdr = new Xdr(32);
         xdr.beginEncoding();
-        RpcMessage rpcMessage = new RpcMessage(1, 2); // xdr, type 0 = call, 1 = reply, 2 = not allowed
-        rpcMessage.xdrEncode(xdr);
+        xdr.xdrEncodeInt(1); // xid
+        xdr.xdrEncodeInt(2); // type: 0 = call, 1 = reply, x = invalid
         return xdr;
     }
 }

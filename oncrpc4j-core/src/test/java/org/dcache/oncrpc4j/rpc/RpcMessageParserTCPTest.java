@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2018 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2022 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -19,13 +19,6 @@
  */
 package org.dcache.oncrpc4j.rpc;
 
-import org.dcache.oncrpc4j.rpc.RpcAuth;
-import org.dcache.oncrpc4j.rpc.RpcMessageParserTCP;
-import org.dcache.oncrpc4j.rpc.RpcMessage;
-import org.dcache.oncrpc4j.rpc.ReplyQueue;
-import org.dcache.oncrpc4j.rpc.RpcMessageType;
-import org.dcache.oncrpc4j.rpc.RpcAuthTypeNone;
-import org.dcache.oncrpc4j.rpc.RpcProtocolFilter;
 import org.dcache.oncrpc4j.xdr.XdrVoid;
 import org.dcache.oncrpc4j.xdr.XdrAble;
 import org.dcache.oncrpc4j.xdr.XdrString;
@@ -147,8 +140,8 @@ public class RpcMessageParserTCPTest {
             Xdr xdr = new Xdr(Xdr.MAX_XDR_SIZE);
             xdr.beginEncoding();
 
-            RpcMessage rpcMessage = new RpcMessage(xid, RpcMessageType.CALL);
-            rpcMessage.xdrEncode(xdr);
+            xdr.xdrEncodeInt(xid);
+            xdr.xdrEncodeInt(RpcMessageType.CALL);
             xdr.xdrEncodeInt(rpcvers);
             xdr.xdrEncodeInt(prog);
             xdr.xdrEncodeInt(vers);

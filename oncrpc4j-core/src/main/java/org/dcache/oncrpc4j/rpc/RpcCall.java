@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2021 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2022 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -295,9 +295,9 @@ public class RpcCall {
     public void reject(int status, XdrAble reason) {
         XdrEncodingStream xdr = _xdr;
         try {
-            RpcMessage replyMessage = new RpcMessage(_xid, RpcMessageType.REPLY);
             xdr.beginEncoding();
-            replyMessage.xdrEncode(_xdr);
+            xdr.xdrEncodeInt(_xid);
+            xdr.xdrEncodeInt(RpcMessageType.REPLY);
             xdr.xdrEncodeInt(RpcReplyStatus.MSG_DENIED);
             xdr.xdrEncodeInt(status);
             reason.xdrEncode(_xdr);
@@ -324,9 +324,9 @@ public class RpcCall {
 
         XdrEncodingStream xdr = _xdr;
         try {
-            RpcMessage replyMessage = new RpcMessage(_xid, RpcMessageType.REPLY);
             xdr.beginEncoding();
-            replyMessage.xdrEncode(_xdr);
+            xdr.xdrEncodeInt(_xid);
+            xdr.xdrEncodeInt(RpcMessageType.REPLY);
             xdr.xdrEncodeInt(RpcReplyStatus.MSG_ACCEPTED);
             _cred.getVerifier().xdrEncode(xdr);
             xdr.xdrEncodeInt(state);
@@ -459,8 +459,8 @@ public class RpcCall {
 
         Xdr xdr = new Xdr(Xdr.INITIAL_XDR_SIZE);
         xdr.beginEncoding();
-        RpcMessage rpcMessage = new RpcMessage(xid, RpcMessageType.CALL);
-        rpcMessage.xdrEncode(xdr);
+        xdr.xdrEncodeInt(xid);
+        xdr.xdrEncodeInt(RpcMessageType.CALL);
         xdr.xdrEncodeInt(RPCVERS);
         xdr.xdrEncodeInt(_prog);
         xdr.xdrEncodeInt(_version);

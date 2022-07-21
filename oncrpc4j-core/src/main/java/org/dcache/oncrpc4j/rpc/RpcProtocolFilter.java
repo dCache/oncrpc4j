@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2018 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2022 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -50,7 +50,9 @@ public class RpcProtocolFilter extends BaseFilter {
 
         xdr.beginDecoding();
 
-        RpcMessage message = new RpcMessage(xdr);
+        final int xid = xdr.xdrDecodeInt();
+        final int type = xdr.xdrDecodeInt();
+
         /**
          * In case of UDP grizzly does not populates connection with correct destination address.
          * We have to get peer address from the request context, which will contain SocketAddress where from
@@ -58,9 +60,9 @@ public class RpcProtocolFilter extends BaseFilter {
          */
         RpcTransport transport = new GrizzlyRpcTransport(ctx.getConnection(), (InetSocketAddress)ctx.getAddress(), _replyQueue);
 
-        switch (message.type()) {
+        switch (type) {
             case RpcMessageType.CALL:
-                RpcCall call = new RpcCall(message.xid(), xdr, transport);
+                RpcCall call = new RpcCall(xid, xdr, transport);
                 try {
                     call.accept();
                     ctx.setMessage(call);
@@ -76,8 +78,8 @@ public class RpcProtocolFilter extends BaseFilter {
                 return ctx.getInvokeAction();
             case RpcMessageType.REPLY:
                 try {
-                    RpcReply reply = new RpcReply(message.xid(), xdr, transport);
-                    CompletionHandler<RpcReply, RpcTransport> callback = _replyQueue.get(message.xid());
+                    RpcReply reply = new RpcReply(xid, xdr, transport);
+                    CompletionHandler<RpcReply, RpcTransport> callback = _replyQueue.get(xid);
                     if (callback != null) {
                         if (!reply.isAccepted()) {
                             callback.failed(new OncRpcRejectedException(reply.getRejectStatus()), transport);
