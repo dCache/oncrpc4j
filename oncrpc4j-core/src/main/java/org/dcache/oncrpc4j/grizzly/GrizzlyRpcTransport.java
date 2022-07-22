@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2019 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2022 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -20,10 +20,14 @@
 package org.dcache.oncrpc4j.grizzly;
 
 
+import java.nio.ByteOrder;
 import org.dcache.oncrpc4j.rpc.ReplyQueue;
+import org.dcache.oncrpc4j.rpc.RpcMessageParserTCP;
 import org.dcache.oncrpc4j.xdr.Xdr;
 import java.net.InetSocketAddress;
 import java.nio.channels.CompletionHandler;
+import org.glassfish.grizzly.memory.BuffersBuffer;
+import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.glassfish.grizzly.Buffer;
@@ -48,6 +52,12 @@ public class GrizzlyRpcTransport implements RpcTransport {
     private final InetSocketAddress _localAddress;
     private final InetSocketAddress _remoteAddress;
 
+    /**
+     * If true, then underlying transport is stream-oriented (like TCP) and messages must be separated
+     * by record marking.
+     */
+    private final boolean _isStreaming;
+
     private final static Logger _log = LoggerFactory.getLogger(GrizzlyRpcTransport.class);
 
     public GrizzlyRpcTransport(Connection<InetSocketAddress> connection, ReplyQueue replyQueue) {
@@ -59,6 +69,7 @@ public class GrizzlyRpcTransport implements RpcTransport {
         _replyQueue = replyQueue;
         _localAddress = _connection.getLocalAddress();
         _remoteAddress = remoteAddress;
+        _isStreaming = connection.getTransport() instanceof TCPNIOTransport;
     }
 
     @Override
@@ -68,10 +79,19 @@ public class GrizzlyRpcTransport implements RpcTransport {
 
     @Override
     public <A> void send(final Xdr xdr, A attachment, CompletionHandler<Integer, ? super A> handler) {
-        final Buffer buffer = xdr.asBuffer();
-        buffer.allowBufferDispose(true);
 
         requireNonNull(handler, "CompletionHandler can't be null");
+        Buffer buffer = xdr.asBuffer();
+
+        // add record marker, if needed
+        if (_isStreaming) {
+            int len = buffer.remaining() | RpcMessageParserTCP.RPC_LAST_FRAG;
+            Buffer marker = _connection.getMemoryManager().allocate(Integer.BYTES);
+            marker.order(ByteOrder.BIG_ENDIAN);
+            marker.putInt(len);
+            marker.flip();
+            buffer = BuffersBuffer.create(_connection.getMemoryManager(), marker, buffer);
+        }
 
         // pass destination address to handle UDP connections as well
         _connection.write(_remoteAddress, buffer,

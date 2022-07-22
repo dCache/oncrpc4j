@@ -35,11 +35,11 @@ public class RpcMessageParserTCP extends BaseFilter {
     /**
      * RPC fragment record marker mask
      */
-    private final static int RPC_LAST_FRAG = 0x80000000;
+    public final static int RPC_LAST_FRAG = 0x80000000;
     /**
      * RPC fragment size mask
      */
-    private final static int RPC_SIZE_MASK = 0x7fffffff;
+    public final static int RPC_SIZE_MASK = 0x7fffffff;
 
     @Override
     public NextAction handleRead(FilterChainContext ctx) throws IOException {
@@ -59,24 +59,6 @@ public class RpcMessageParserTCP extends BaseFilter {
                 ? messageBuffer.split(messageBuffer.position()) : null;
 
         return ctx.getInvokeAction(reminder);
-    }
-
-    @Override
-    public NextAction handleWrite(FilterChainContext ctx) throws IOException {
-
-        Buffer b = ctx.getMessage();
-        int len = b.remaining() | RPC_LAST_FRAG;
-
-        Buffer marker = ctx.getMemoryManager().allocate(4);
-        marker.order(ByteOrder.BIG_ENDIAN);
-        marker.putInt(len);
-        marker.flip();
-        marker.allowBufferDispose(true);
-        b.allowBufferDispose(true);
-        Buffer composite = BuffersBuffer.create(ctx.getMemoryManager(), marker, b);
-        composite.allowBufferDispose(true);
-        ctx.setMessage(composite);
-        return ctx.getInvokeAction();
     }
 
     private boolean isAllFragmentsArrived(Buffer messageBuffer) {
