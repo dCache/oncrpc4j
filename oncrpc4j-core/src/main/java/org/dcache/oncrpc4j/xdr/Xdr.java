@@ -24,6 +24,8 @@ import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import org.dcache.oncrpc4j.grizzly.GrizzlyMemoryManager;
 import org.glassfish.grizzly.Buffer;
+import org.glassfish.grizzly.memory.BuffersBuffer;
+import org.glassfish.grizzly.memory.ByteBufferWrapper;
 import org.glassfish.grizzly.memory.MemoryManager;
 
 import static com.google.common.base.Preconditions.checkState;
@@ -756,6 +758,29 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream, AutoCloseable 
         xdrEncodeInt(len);
         ensureCapacity(len+padding);
         _buffer.put(buf);
+        _buffer.position(_buffer.position() + padding);
+    }
+
+    /**
+     * A version of {@link #xdrEncodeByteBuffer(ByteBuffer)} which avoids internal copy.
+     * Note: any change to the {@code buf} will cause unpredicted behavior.
+     *
+     * @param buf The buffer from which bytes are to be retrieved.
+     */
+    public void xdrEncodeShallowByteBuffer(ByteBuffer buf) {
+        int len = buf.remaining();
+        int padding = (4 - (len & 3)) & 3;
+        xdrEncodeInt(len);
+        int ep = _buffer.position() + buf.remaining();
+        var b = new ByteBufferWrapper(buf);
+        b.allowBufferDispose(true);
+        var composite = BuffersBuffer.create(_memoryManager);
+        composite.append(_buffer.slice(0, _buffer.position())).append(b);
+        composite.position(ep);
+        composite.limit(ep);
+
+        _buffer = composite;
+        ensureCapacity(padding);
         _buffer.position(_buffer.position() + padding);
     }
 
