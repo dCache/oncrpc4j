@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2018 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2022 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -24,7 +24,10 @@ import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 
 import org.junit.Test;
+
+import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.junit.Assert.*;
+import static org.junit.Assume.assumeThat;
 import static org.mockito.Mockito.mock;
 
 public class InetSocketAddressesTest {
@@ -130,6 +133,8 @@ public class InetSocketAddressesTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testInvalitInetaddressType() throws UnknownHostException {
+        // java19 have made InetAddress sealed with permitted subtypes Inet4Address, Inet6Address
+        assumeThat(Runtime.version().feature(), lessThanOrEqualTo(11));
         InetAddress address = mock(InetAddress.class); // not a direct instance of Inet4/6Address
         assertEquals("invalid netid", "tcp6", InetSocketAddresses.tcpNetidOf(address));
     }
