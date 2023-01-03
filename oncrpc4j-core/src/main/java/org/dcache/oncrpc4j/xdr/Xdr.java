@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2022 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2023 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -768,14 +768,26 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream, AutoCloseable 
      * @param buf The buffer from which bytes are to be retrieved.
      */
     public void xdrEncodeShallowByteBuffer(ByteBuffer buf) {
+        var wrap = new ByteBufferWrapper(buf);
+        wrap.allowBufferDispose(true);
+        xdrEncodeShallowByteBuffer(wrap);
+    }
+
+    /**
+     * A version of {@link #xdrEncodeShallowByteBuffer(ByteBuffer)} which uses Grizzly {@code buffer}.
+     * Note: any change to the {@code buf} will cause unpredicted behavior.
+     *
+     * @param buf The buffer from which bytes are to be retrieved.
+     */
+    public void xdrEncodeShallowByteBuffer(Buffer buf) {
         int len = buf.remaining();
         int padding = (4 - (len & 3)) & 3;
         xdrEncodeInt(len);
         int ep = _buffer.position() + buf.remaining();
-        var b = new ByteBufferWrapper(buf);
-        b.allowBufferDispose(true);
+
         var composite = BuffersBuffer.create(_memoryManager);
-        composite.append(_buffer.slice(0, _buffer.position())).append(b);
+        composite.allowBufferDispose(true);
+        composite.append(_buffer.slice(0, _buffer.position())).append(buf);
         composite.position(ep);
         composite.limit(ep);
 
