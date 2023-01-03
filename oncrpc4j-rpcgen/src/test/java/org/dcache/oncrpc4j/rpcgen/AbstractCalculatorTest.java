@@ -1,6 +1,5 @@
 package org.dcache.oncrpc4j.rpcgen;
 
-import java.net.InetSocketAddress;
 import org.dcache.oncrpc4j.rpc.net.IpProtocolType;
 import org.dcache.oncrpc4j.rpc.OncRpcProgram;
 import org.dcache.oncrpc4j.rpc.OncRpcSvc;
@@ -15,7 +14,7 @@ public abstract class AbstractCalculatorTest {
     protected OncRpcSvc server;
     protected CalculatorClient client;
     protected String address = "127.0.0.1";
-    protected int port = 0;
+    volatile protected int port = 0;
 
     @Before
     public void setup() throws Exception{
@@ -29,11 +28,11 @@ public abstract class AbstractCalculatorTest {
         server.register(new OncRpcProgram(Calculator.CALCULATOR, Calculator.CALCULATORVERS), serverImpl);
         server.start();
 
-        InetSocketAddress sockAddr = server.getInetSocketAddress(IpProtocolType.TCP);
+        port = server.getInetSocketAddress(IpProtocolType.TCP).getPort();
 
         client = new CalculatorClient(
                 InetAddress.getByName(address),
-                sockAddr.getPort(),
+                port,
                 Calculator.CALCULATOR,
                 Calculator.CALCULATORVERS,
                 IpProtocolType.TCP);
