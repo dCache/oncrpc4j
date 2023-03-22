@@ -154,8 +154,6 @@ public class GrizzlyRpcTransport implements RpcTransport {
     @Override
     public boolean isTLS() {
         return ((FilterChain) _connection.getProcessor()).stream()
-                .filter(SSLFilter.class::isInstance)
-                .findAny()
-                .isPresent();
+                .anyMatch(SSLFilter.class::isInstance);
     }
 }
