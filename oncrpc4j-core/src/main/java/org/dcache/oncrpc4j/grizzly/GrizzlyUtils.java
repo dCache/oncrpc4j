@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2018 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2023 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -19,11 +19,11 @@
  */
 package org.dcache.oncrpc4j.grizzly;
 
+import org.dcache.oncrpc4j.rpc.IoStrategy;
 import org.dcache.oncrpc4j.rpc.MemoryAllocator;
 import org.dcache.oncrpc4j.rpc.RpcMessageParserTCP;
 import org.dcache.oncrpc4j.rpc.RpcMessageParserUDP;
 import org.dcache.oncrpc4j.rpc.net.IpProtocolType;
-import org.dcache.oncrpc4j.rpc.IoStrategy;
 import org.glassfish.grizzly.IOStrategy;
 import org.glassfish.grizzly.Transport;
 import org.glassfish.grizzly.filterchain.Filter;
@@ -33,10 +33,12 @@ import org.glassfish.grizzly.memory.MemoryManager;
 import org.glassfish.grizzly.memory.PooledMemoryManager;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 import org.glassfish.grizzly.nio.transport.UDPNIOTransport;
+import org.glassfish.grizzly.strategies.LeaderFollowerNIOStrategy;
+import org.glassfish.grizzly.strategies.SameThreadIOStrategy;
 import org.glassfish.grizzly.threadpool.ThreadPoolConfig;
 
-import static org.dcache.oncrpc4j.rpc.IoStrategy.*;
 import static com.google.common.base.Preconditions.checkArgument;
+import static org.dcache.oncrpc4j.rpc.IoStrategy.WORKER_THREAD;
 
 /**
  * Class with utility methods for Grizzly
@@ -143,6 +145,24 @@ public class GrizzlyUtils {
             default:
                 throw new RuntimeException("Unexpected memory allocator.");
         }
+    }
 
+    /**
+     * Convert an oncrpc4j IoStrategy enum value into a grizzly NIOStrategy instance. Note that the only two that matter
+     * here are single-thread and leader-follower. Worker threads should not be used in the grizzly layer as they would
+     * just inject more context switching overhead to no benefit.
+     *
+     * @param ioStrategy the oncrpc4j IoStategy to map to an NIOStrategy instance.
+     * @return the matching NIOStrategy instance for the specified IoStrategy value.
+     */
+    public static IOStrategy getNIOStrategy(IoStrategy ioStrategy) {
+        switch (ioStrategy) {
+            case LEADER_FOLLOWER:
+                return LeaderFollowerNIOStrategy.getInstance();
+            case WORKER_THREAD:
+            case SAME_THREAD:
+            default:
+                return SameThreadIOStrategy.getInstance();
+        }
     }
 }
