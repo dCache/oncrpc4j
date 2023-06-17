@@ -19,14 +19,15 @@
  */
 package org.dcache.oncrpc4j.rpc;
 
+import org.dcache.oncrpc4j.grizzly.GrizzlyRpcTransport;
 import org.dcache.oncrpc4j.grizzly.StartTlsFilter;
-import org.dcache.oncrpc4j.rpc.net.IpProtocolType;
-import org.dcache.oncrpc4j.rpc.net.InetSocketAddresses;
-import org.dcache.oncrpc4j.rpc.gss.GssProtocolFilter;
-import org.dcache.oncrpc4j.rpc.gss.GssSessionManager;
 import org.dcache.oncrpc4j.portmap.GenericPortmapClient;
 import org.dcache.oncrpc4j.portmap.OncPortmapClient;
 import org.dcache.oncrpc4j.portmap.OncRpcPortmap;
+import org.dcache.oncrpc4j.rpc.gss.GssProtocolFilter;
+import org.dcache.oncrpc4j.rpc.gss.GssSessionManager;
+import org.dcache.oncrpc4j.rpc.net.InetSocketAddresses;
+import org.dcache.oncrpc4j.rpc.net.IpProtocolType;
 import org.glassfish.grizzly.CloseType;
 import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.ConnectionProbe;
@@ -46,15 +47,17 @@ import org.glassfish.grizzly.nio.transport.UDPNIOTransport;
 import org.glassfish.grizzly.nio.transport.UDPNIOTransportBuilder;
 import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
 import org.glassfish.grizzly.ssl.SSLFilter;
-import org.glassfish.grizzly.strategies.SameThreadIOStrategy;
 import org.glassfish.grizzly.threadpool.ThreadPoolConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLParameters;
 import java.io.IOException;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -68,16 +71,13 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
-import javax.net.ssl.SSLContext;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Throwables.getRootCause;
 import static com.google.common.base.Throwables.propagateIfPossible;
-import java.net.SocketAddress;
-import java.util.stream.Collectors;
-import javax.net.ssl.SSLParameters;
-import org.dcache.oncrpc4j.grizzly.GrizzlyRpcTransport;
-import static org.dcache.oncrpc4j.grizzly.GrizzlyUtils.getSelectorPoolCfg;
 import static org.dcache.oncrpc4j.grizzly.GrizzlyUtils.getMemoryManager;
+import static org.dcache.oncrpc4j.grizzly.GrizzlyUtils.getNIOStrategy;
+import static org.dcache.oncrpc4j.grizzly.GrizzlyUtils.getSelectorPoolCfg;
 import static org.dcache.oncrpc4j.grizzly.GrizzlyUtils.rpcMessageReceiverFor;
 import static org.dcache.oncrpc4j.grizzly.GrizzlyUtils.transportFor;
 
@@ -158,7 +158,7 @@ public class OncRpcSvc {
             final TCPNIOTransport tcpTransport = TCPNIOTransportBuilder
                     .newInstance()
                     .setReuseAddress(true)
-                    .setIOStrategy(SameThreadIOStrategy.getInstance())
+                    .setIOStrategy(getNIOStrategy(ioStrategy))
                     .setSelectorThreadPoolConfig(selectorPoolConfig)
                     .setSelectorRunnersCount(selectorPoolConfig.getMaxPoolSize())
                     .setMemoryManager(mm)
@@ -170,7 +170,7 @@ public class OncRpcSvc {
             final UDPNIOTransport udpTransport = UDPNIOTransportBuilder
                     .newInstance()
                     .setReuseAddress(true)
-                    .setIOStrategy(SameThreadIOStrategy.getInstance())
+                    .setIOStrategy(getNIOStrategy(ioStrategy))
                     .setSelectorThreadPoolConfig(selectorPoolConfig)
                     .setSelectorRunnersCount(selectorPoolConfig.getMaxPoolSize())
                     .setMemoryManager(mm)
