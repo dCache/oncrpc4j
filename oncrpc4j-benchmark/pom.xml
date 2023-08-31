@@ -5,7 +5,7 @@
     <parent>
       <groupId>org.dcache</groupId>
       <artifactId>oncrpc4j</artifactId>
-      <version>3.1.1</version>
+      <version>3.1.2-SNAPSHOT</version>
     </parent>
 
     <name>Set of JMH benchmarks for oncrpc4j</name>
