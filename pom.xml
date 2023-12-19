@@ -66,7 +66,6 @@
     <maven-release-plugin>2.4.2</maven-release-plugin>
 
     <!--  version of dependencies-->
-    <dcache-auth.version>0.0.11</dcache-auth.version>
     <grizzly-framework.version>4.0.0</grizzly-framework.version>
     <guava.version>31.1-jre</guava.version>
     <slf4j-api.version>1.7.25</slf4j-api.version>
