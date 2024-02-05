@@ -75,7 +75,7 @@
     <!--  version of test dependencies  -->
     <junit.version>4.13.1</junit.version>
     <mockito-core.version>3.6.0</mockito-core.version>
-    <logback-classic.version>1.2.3</logback-classic.version>
+    <logback-classic.version>1.2.13</logback-classic.version>
     <jmh.version>1.35</jmh.version>
   </properties>
 
