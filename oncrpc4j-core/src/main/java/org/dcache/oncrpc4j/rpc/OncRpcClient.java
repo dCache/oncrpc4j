@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2018 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2024 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -22,6 +22,7 @@ package org.dcache.oncrpc4j.rpc;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class OncRpcClient implements AutoCloseable {
@@ -52,14 +53,19 @@ public class OncRpcClient implements AutoCloseable {
     }
 
     public OncRpcClient(InetSocketAddress socketAddress, int protocol, int localPort, IoStrategy ioStrategy, String serviceName) {
-        _socketAddress = socketAddress;
-        _rpcsvc = new OncRpcSvcBuilder()
+        this(socketAddress, new OncRpcSvcBuilder()
                 .withClientMode()
                 .withPort(localPort)
                 .withIpProtocolType(protocol)
                 .withIoStrategy(ioStrategy)
                 .withServiceName(serviceName)
-                .build();
+                .build());
+    }
+
+
+    private OncRpcClient(InetSocketAddress socketAddress, OncRpcSvc clientSvc) {
+        _socketAddress = socketAddress;
+        _rpcsvc = clientSvc;
     }
 
     public RpcTransport connect() throws IOException {
@@ -82,4 +88,99 @@ public class OncRpcClient implements AutoCloseable {
     public void close() throws IOException {
         _rpcsvc.stop();
     }
+
+    public static OncRpcClientBuilder newBuilder() {
+        return new OncRpcClientBuilder();
+    }
+
+    public static class OncRpcClientBuilder {
+
+        private final OncRpcSvcBuilder svcBuilder = new OncRpcSvcBuilder()
+                .withClientMode()
+                .withWorkerThreadIoStrategy()
+                .withSelectorThreadPoolSize(1)
+                .withWorkerThreadPoolSize(1)
+                .withoutAutoPublish();
+
+        private OncRpcClientBuilder() {
+            // no direct instantiation
+        }
+
+        public OncRpcClientBuilder withProtocol(int protocol) {
+            svcBuilder.withIpProtocolType(protocol);
+            return this;
+        }
+
+        public OncRpcClientBuilder withLocalPort(int localPort) {
+            svcBuilder.withPort(localPort);
+            return this;
+        }
+
+        public OncRpcClientBuilder withIoStrategy(IoStrategy ioStrategy) {
+            svcBuilder.withIoStrategy(ioStrategy);
+            return this;
+        }
+
+        public OncRpcClientBuilder withServiceName(String serviceName) {
+            svcBuilder.withServiceName(serviceName);
+            return this;
+        }
+
+        public OncRpcClientBuilder withWorkerThreadPoolSize(int size) {
+            svcBuilder.withWorkerThreadPoolSize(size);
+            return this;
+        }
+
+        public OncRpcClientBuilder withSelectorThreadPoolSize(int size) {
+            svcBuilder.withSelectorThreadPoolSize(size);
+            return this;
+        }
+
+        public OncRpcClientBuilder withWorkerThreadIoStrategy() {
+            svcBuilder.withWorkerThreadIoStrategy();
+            return this;
+        }
+
+        public OncRpcClientBuilder withRpcService(OncRpcProgram program, RpcDispatchable dispatchable) {
+            svcBuilder.withRpcService(program, dispatchable);
+            return this;
+        }
+
+        public OncRpcClientBuilder withWorkerThreadExecutionService(ExecutorService executorService) {
+            svcBuilder.withWorkerThreadExecutionService(executorService);
+            return this;
+        }
+
+        public OncRpcClientBuilder withTCP() {
+            svcBuilder.withTCP();
+            return this;
+        }
+
+        public OncRpcClientBuilder withUDP() {
+            svcBuilder.withUDP();
+            return this;
+        }
+
+        /**
+         * Build a new {@link OncRpcClient} instance.
+         *
+         * @param endpoint the socket address of the remote RPC server
+         * @return a new {@link OncRpcClient} instance
+         */
+        public OncRpcClient build(InetSocketAddress endpoint) {
+            return new OncRpcClient(endpoint, svcBuilder.build());
+        }
+
+        /**
+         * Build a new {@link OncRpcClient} instance.
+         *
+         * @param endpoint the address of the remote RPC server
+         * @param port the port of the remote RPC server
+         * @return a new {@link OncRpcClient} instance
+         */
+        public OncRpcClient build(InetAddress endpoint, int port) {
+            return build(new InetSocketAddress(endpoint, port));
+        }
+    }
+
 }
