@@ -1,11 +1,5 @@
 package org.dcache.oncrpc4j.rpc;
 
-import org.dcache.oncrpc4j.rpc.OncRpcSvc;
-import org.dcache.oncrpc4j.rpc.RpcCall;
-import org.dcache.oncrpc4j.rpc.OncRpcProgram;
-import org.dcache.oncrpc4j.rpc.OncRpcSvcBuilder;
-import org.dcache.oncrpc4j.rpc.RpcDispatchable;
-import org.dcache.oncrpc4j.rpc.RpcAuthTypeNone;
 import org.dcache.oncrpc4j.rpc.net.IpProtocolType;
 import org.dcache.oncrpc4j.xdr.XdrVoid;
 import org.dcache.oncrpc4j.xdr.XdrString;
@@ -37,7 +31,7 @@ public class ClientServerTest {
     private static final int LOST = 4;
 
     private OncRpcSvc svc;
-    private OncRpcSvc clnt;
+    private OncRpcClient clnt;
     private RpcCall clntCall;
 
     @Before
@@ -90,18 +84,13 @@ public class ClientServerTest {
                 .build();
         svc.start();
 
-        clnt = new OncRpcSvcBuilder()
-                .withoutAutoPublish()
+        clnt = OncRpcClient.newBuilder()
                 .withTCP()
-                .withClientMode()
-                .withWorkerThreadIoStrategy()
-                .withSelectorThreadPoolSize(1)
-                .withWorkerThreadPoolSize(1)
                 .withRpcService(new OncRpcProgram(PROGNUM, PROGVER), upper)
                 .withServiceName("clnt")
-                .build();
-        clnt.start();
-        RpcTransport t = clnt.connect(svc.getInetSocketAddress(IpProtocolType.TCP));
+                .build(svc.getInetSocketAddress(IpProtocolType.TCP));
+
+        RpcTransport t = clnt.connect();
         clntCall = new RpcCall(PROGNUM, PROGVER, new RpcAuthTypeNone(), t);
     }
 
@@ -111,7 +100,7 @@ public class ClientServerTest {
             svc.stop();
         }
         if (clnt != null) {
-            clnt.stop();
+            clnt.close();
         }
     }
 
