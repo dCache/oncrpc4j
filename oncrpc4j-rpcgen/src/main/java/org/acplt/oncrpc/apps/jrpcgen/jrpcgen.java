@@ -1935,6 +1935,8 @@ public class jrpcgen {
             out.println("import java.util.concurrent.TimeoutException;");
         }
         out.println();
+        out.println("import org.dcache.oncrpc4j.rpc.OncRpcClient.OncRpcClientBuilder;");
+        out.println();
 
         out.println("/**");
         out.println(" * The class <code>" + clientClass + "</code> implements the client stub proxy");
@@ -2026,6 +2028,30 @@ public class jrpcgen {
         out.println("    public " + clientClass + "(InetAddress host, int port, RpcAuth auth, int program, int version, int protocol, int localPort, IoStrategy ioStrategy, String serviceName)");
         out.println("           throws OncRpcException, IOException {");
         out.println("        rpcClient = new OncRpcClient(host, protocol, port, localPort, ioStrategy, serviceName);");
+        out.println("        try {");
+        out.println("            client = new RpcCall(program, version, auth, rpcClient.connect());");
+        out.println("        } catch (IOException e) {");
+        out.println("            rpcClient.close();");
+        out.println("            throw e;");
+        out.println("        } ");
+        out.println("    }");
+        out.println();
+
+        out.println("    /**");
+        out.println("     * Constructs a <code>" + clientClass + "</code> client stub proxy object");
+        out.println("     * from which the " + programInfo.programId + " remote program can be accessed.");
+        out.println("     * @param host Internet address of host where to contact the remote program.");
+        out.println("     * @param port Port number at host where the remote program can be reached.");
+        out.println("     * @param auth {@link RpcAuth} to be used for RPC client authentication.");
+        out.println("     * @param program Remote program number.");
+        out.println("     * @param version Remote program version number.");
+        out.println("     * @param clientBuilder {@link org.dcache.oncrpc4j.rpc.OncRpcClient.OncRpcClientBuilder} to build the client");
+        out.println("     * @throws OncRpcException if an ONC/RPC error occurs.");
+        out.println("     * @throws IOException if an I/O error occurs.");
+        out.println("     */");
+        out.println("    public " + clientClass + "(InetAddress host, int port, RpcAuth auth, int program, int version, OncRpcClientBuilder clientBuilder)");
+        out.println("           throws OncRpcException, IOException {");
+        out.println("        rpcClient = clientBuilder.build(host, port);");
         out.println("        try {");
         out.println("            client = new RpcCall(program, version, auth, rpcClient.connect());");
         out.println("        } catch (IOException e) {");
