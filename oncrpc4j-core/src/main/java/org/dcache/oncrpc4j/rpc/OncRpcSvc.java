@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2022 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2024 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -20,6 +20,7 @@
 package org.dcache.oncrpc4j.rpc;
 
 import org.dcache.oncrpc4j.grizzly.GrizzlyRpcTransport;
+import org.dcache.oncrpc4j.grizzly.GrizzlyUtils;
 import org.dcache.oncrpc4j.grizzly.StartTlsFilter;
 import org.dcache.oncrpc4j.portmap.GenericPortmapClient;
 import org.dcache.oncrpc4j.portmap.OncPortmapClient;
@@ -45,6 +46,7 @@ import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransportBuilder;
 import org.glassfish.grizzly.nio.transport.UDPNIOTransport;
 import org.glassfish.grizzly.nio.transport.UDPNIOTransportBuilder;
+import org.glassfish.grizzly.ssl.SSLContextConfigurator;
 import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
 import org.glassfish.grizzly.ssl.SSLFilter;
 import org.glassfish.grizzly.threadpool.ThreadPoolConfig;
@@ -64,6 +66,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -107,7 +110,7 @@ public class OncRpcSvc {
     /**
      * SSL context to use, if configured.
      */
-    private final SSLContext _sslContext;
+    private final Callable<SSLContext> _sslContextProvider;
 
     /**
      * SSL parameters that should be applied to SSL engine.
@@ -194,8 +197,14 @@ public class OncRpcSvc {
         _gssSessionManager = builder.getGssSessionManager();
         _programs.putAll(builder.getRpcServices());
         _withSubjectPropagation = builder.getSubjectPropagation();
-	_svcName = builder.getServiceName();
-        _sslContext = builder.getSSLContext();
+        _svcName = builder.getServiceName();
+
+        if (builder.getSSLContext() != null) {
+            final SSLContext sslContext = builder.getSSLContext();
+            _sslContextProvider = () -> sslContext;
+        } else {
+            _sslContextProvider = builder.getSSLContextProvider();
+        }
         _startTLS = builder.isStartTLS();
         _sslParams = builder.getSSLParameters();
         _callInterceptor = builder.getCallInterceptor();
@@ -323,12 +332,17 @@ public class OncRpcSvc {
 
             FilterChainBuilder filterChain = FilterChainBuilder.stateless();
             filterChain.add(new TransportFilter());
-            if (_sslContext != null) {
+            if (_sslContextProvider != null) {
+
+                SSLContextConfigurator sslContextConfigurator = GrizzlyUtils.asContextConfigurator(_sslContextProvider);
+
+                // Grizzly original SSLEngineConfigurator reuses the context. We need to use the one
+                // that sslContextConfigurator#createSSLContext returns to support certificate reloading.
                 SSLEngineConfigurator serverSSLEngineConfigurator =
-                        new SSLEngineConfigurator(_sslContext, false, false, false);
+                        new GrizzlyUtils.ReloadableSSLEngineConfigurator(sslContextConfigurator, false, false, false);
 
                 SSLEngineConfigurator clientSSLEngineConfigurator =
-                        new SSLEngineConfigurator(_sslContext, true, false, false);
+                        new GrizzlyUtils.ReloadableSSLEngineConfigurator(sslContextConfigurator, true, false, false);
 
                 if (_sslParams != null) {
                     String[] cipherSuites = _sslParams.getCipherSuites();

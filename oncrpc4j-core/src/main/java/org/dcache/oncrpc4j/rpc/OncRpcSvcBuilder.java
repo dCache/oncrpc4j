@@ -26,6 +26,7 @@ import org.dcache.oncrpc4j.rpc.gss.GssSessionManager;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -81,6 +82,7 @@ public class OncRpcSvcBuilder {
     private int _workerThreadPoolSize = 0;
     private boolean _subjectPropagation = false;
     private SSLContext _sslContext = null;
+    private Callable<SSLContext> _sslContextProvider = null;
     private boolean _startTLS = false;
     private SSLParameters _sslParams;
     private MemoryAllocator _allocator = MemoryAllocator.DEFAULT;
@@ -236,6 +238,15 @@ public class OncRpcSvcBuilder {
         return this;
     }
 
+    public OncRpcSvcBuilder withSSLContextProvider(Callable<SSLContext> sslContextProvider) {
+        _sslContextProvider = sslContextProvider;
+        return this;
+    }
+
+    public Callable<SSLContext> getSSLContextProvider() {
+        return _sslContextProvider;
+    }
+
     public boolean getSubjectPropagation() {
         return _subjectPropagation;
     }
@@ -357,6 +368,10 @@ public class OncRpcSvcBuilder {
 
         if (_workerThreadExecutionService != null && _workerThreadPoolSize > 0) {
             throw new IllegalArgumentException("Can't set worker thread pool size with external execution service");
+        }
+
+        if (_sslContext != null && _sslContextProvider != null) {
+            throw new IllegalArgumentException("Can't set both SSLContext and SSLContextProvider");
         }
 
         return new OncRpcSvc(this);

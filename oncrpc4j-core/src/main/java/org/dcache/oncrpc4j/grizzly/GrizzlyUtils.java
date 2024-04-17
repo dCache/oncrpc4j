@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2018 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2024 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -33,12 +33,20 @@ import org.glassfish.grizzly.memory.MemoryManager;
 import org.glassfish.grizzly.memory.PooledMemoryManager;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 import org.glassfish.grizzly.nio.transport.UDPNIOTransport;
+import org.glassfish.grizzly.ssl.SSLContextConfigurator;
+import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
 import org.glassfish.grizzly.strategies.LeaderFollowerNIOStrategy;
 import org.glassfish.grizzly.strategies.SameThreadIOStrategy;
 import org.glassfish.grizzly.threadpool.ThreadPoolConfig;
 
 import static com.google.common.base.Preconditions.checkArgument;
+
 import static org.dcache.oncrpc4j.rpc.IoStrategy.WORKER_THREAD;
+
+import javax.net.ssl.SSLContext;
+
+import java.util.concurrent.Callable;
+import javax.net.ssl.SSLEngine;
 
 /**
  * Class with utility methods for Grizzly
@@ -163,6 +171,63 @@ public class GrizzlyUtils {
             case SAME_THREAD:
             default:
                 return SameThreadIOStrategy.getInstance();
+        }
+    }
+
+    /**
+     * Create a SSLContextConfigurator that uses the specified SSLContext supplier.
+     * @param supplier a supplier that will be called to obtain the SSLContext instance.
+     * @return a SSLContextConfigurator that uses the specified SSLContext supplier.
+     */
+    public static SSLContextConfigurator asContextConfigurator(Callable<SSLContext> supplier) {
+        return new SupplierBasedSSLContextConfigurator(supplier);
+    }
+
+    /**
+     * A version of {@link SSLContextConfigurator} that uses a supplier to obtain the SSLContext.
+     */
+    private static class SupplierBasedSSLContextConfigurator extends SSLContextConfigurator {
+
+        private final Callable<SSLContext> contextSupplier;
+
+        public SupplierBasedSSLContextConfigurator(Callable<SSLContext> contextSupplier) {
+            super(false);
+            this.contextSupplier = contextSupplier;
+        }
+
+        @Override
+        public SSLContext createSSLContext(boolean throwException) {
+            try {
+                return contextSupplier.call();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    /**
+     * A SSLEngineConfigurator that always uses supplied sslContextConfigurator to create
+     * a new {@link SSLContext} instance.
+     */
+    public static class ReloadableSSLEngineConfigurator extends SSLEngineConfigurator {
+
+        public ReloadableSSLEngineConfigurator(SSLContextConfigurator sslContextConfigurator, boolean clientMode,
+                                               boolean needClientAuth, boolean wantClientAuth) {
+            super(sslContextConfigurator, clientMode, needClientAuth, wantClientAuth);
+        }
+
+        @Override
+        public SSLContext getSslContext() {
+            return sslContextConfiguration.createSSLContext(true);
+        }
+
+        @Override
+        public SSLEngine createSSLEngine(String peerHost, int peerPort) {
+            var ctx = getSslContext();
+            final SSLEngine sslEngine = ctx.createSSLEngine(peerHost, peerPort);
+            configure(sslEngine);
+
+            return sslEngine;
         }
     }
 }

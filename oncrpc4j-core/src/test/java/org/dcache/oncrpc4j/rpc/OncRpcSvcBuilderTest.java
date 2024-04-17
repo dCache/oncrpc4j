@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2018 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2024 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -21,12 +21,16 @@ package org.dcache.oncrpc4j.rpc;
 
 import org.dcache.oncrpc4j.rpc.OncRpcSvc;
 import org.dcache.oncrpc4j.rpc.OncRpcSvcBuilder;
+
+import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.junit.Test;
 
 import static org.mockito.Mockito.mock;
 import static org.junit.Assert.*;
+
+import javax.net.ssl.SSLContext;
 
 /**
  *
@@ -105,4 +109,12 @@ public class OncRpcSvcBuilderTest {
                 .build();
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldThrowExceptionIfSSLContextAndProvidedDefined() throws NoSuchAlgorithmException {
+        new OncRpcSvcBuilder()
+                .withTCP()
+                .withSSLContext(SSLContext.getDefault())
+                .withSSLContextProvider(() -> SSLContext.getDefault())
+                .build();
+    }
 }
