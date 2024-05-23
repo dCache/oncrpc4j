@@ -70,7 +70,7 @@
     <guava.version>32.0.0-jre</guava.version>
     <slf4j-api.version>1.7.25</slf4j-api.version>
     <spring-context.version>5.2.22.RELEASE</spring-context.version>
-    <bc.version>1.67</bc.version>
+    <bc.version>1.70</bc.version>
 
     <!--  version of test dependencies  -->
     <junit.version>4.13.1</junit.version>
