@@ -200,6 +200,18 @@
               <version>${spring-context.version}</version>
           </dependency>
           <dependency>
+              <groupId>fr.inria.gforge.spoon</groupId>
+              <artifactId>spoon-core</artifactId>
+              <version>5.9.0</version>
+              <scope>test</scope>
+          </dependency>
+          <dependency>
+              <groupId>org.apache.maven.shared</groupId>
+              <artifactId>maven-invoker</artifactId>
+              <version>3.0.0</version>
+              <scope>test</scope>
+          </dependency>
+          <dependency>
               <groupId>junit</groupId>
               <artifactId>junit</artifactId>
               <version>${junit.version}</version>
