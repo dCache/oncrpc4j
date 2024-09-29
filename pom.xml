@@ -295,6 +295,7 @@
   <distributionManagement>
       <repository>
           <id>dcache.org</id>
+          <name>dCache.ORG Maven Repository</name>
           <url>https://download.dcache.org/nexus/content/repositories/releases</url>
       </repository>
       <snapshotRepository>
@@ -333,6 +334,16 @@
                   </plugin>
               </plugins>
           </build>
+      </profile>
+      <profile>
+          <id>maven-central</id>
+          <distributionManagement>
+              <repository>
+                  <id>ossrh</id>
+                  <name>Central Repository OSSRH</name>
+                  <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+              </repository>
+          </distributionManagement>
       </profile>
     </profiles>
 
