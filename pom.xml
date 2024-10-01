@@ -181,6 +181,16 @@
           </executions>
       </plugin>
 
+      <plugin>
+          <groupId>org.sonatype.central</groupId>
+          <artifactId>central-publishing-maven-plugin</artifactId>
+          <version>0.6.0</version>
+          <extensions>true</extensions>
+          <configuration>
+            <publishingServerId>central</publishingServerId>
+          </configuration>
+      </plugin>
+
     </plugins>
   </build>
 
@@ -334,16 +344,6 @@
                   </plugin>
               </plugins>
           </build>
-      </profile>
-      <profile>
-          <id>maven-central</id>
-          <distributionManagement>
-              <repository>
-                  <id>ossrh</id>
-                  <name>Central Repository OSSRH</name>
-                  <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-              </repository>
-          </distributionManagement>
       </profile>
     </profiles>
 
