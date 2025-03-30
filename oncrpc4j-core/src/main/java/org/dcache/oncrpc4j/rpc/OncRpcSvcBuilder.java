@@ -164,6 +164,11 @@ public class OncRpcSvcBuilder {
         return this;
     }
 
+    public OncRpcSvcBuilder withLeaderFollowerIoStrategy() {
+        _ioStrategy = IoStrategy.LEADER_FOLLOWER;
+        return this;
+    }
+
     public OncRpcSvcBuilder withWorkerThreadPoolSize(int threadPoolSize) {
         checkArgument(threadPoolSize > 0, "thread pool size must be positive");
         _workerThreadPoolSize = threadPoolSize;
