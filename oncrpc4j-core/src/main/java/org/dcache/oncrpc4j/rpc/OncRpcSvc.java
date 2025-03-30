@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2024 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2025 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -164,6 +164,7 @@ public class OncRpcSvc {
                     .setIOStrategy(getNIOStrategy(ioStrategy))
                     .setSelectorThreadPoolConfig(selectorPoolConfig)
                     .setSelectorRunnersCount(selectorPoolConfig.getMaxPoolSize())
+                    .setTcpNoDelay(builder.getTcpNoDelay())
                     .setMemoryManager(mm)
                     .build();
             _transports.add(tcpTransport);

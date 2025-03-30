@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2022 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2025 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -33,6 +33,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.function.Consumer;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLParameters;
+import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.dcache.oncrpc4j.grizzly.GrizzlyUtils.getDefaultWorkerPoolSize;
@@ -86,6 +87,7 @@ public class OncRpcSvcBuilder {
     private boolean _startTLS = false;
     private SSLParameters _sslParams;
     private MemoryAllocator _allocator = MemoryAllocator.DEFAULT;
+    private boolean _tcpNoDelay = TCPNIOTransport.DEFAULT_TCP_NO_DELAY;
 
     private Consumer<RpcCall> _callInterceptor = c -> {};
 
@@ -223,6 +225,11 @@ public class OncRpcSvcBuilder {
         return this;
     }
 
+    public OncRpcSvcBuilder withTcpNoDelay(boolean tcpNoDelay) {
+        _tcpNoDelay = tcpNoDelay;
+        return this;
+    }
+
     public OncRpcSvcBuilder withSSLContext(SSLContext sslContext) {
         _sslContext = sslContext;
         return this;
@@ -290,6 +297,10 @@ public class OncRpcSvcBuilder {
 
     public String getServiceName() {
         return _serviceName;
+    }
+
+    public boolean getTcpNoDelay() {
+        return _tcpNoDelay;
     }
 
     public GssSessionManager getGssSessionManager() {
