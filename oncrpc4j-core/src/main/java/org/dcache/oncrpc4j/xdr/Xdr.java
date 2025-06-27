@@ -42,6 +42,8 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream, AutoCloseable 
      */
     public final static int INITIAL_XDR_SIZE = 1024;
 
+    private static final byte[] EMPTY_BYTE_ARRAY = new byte[0];
+
     /**
      * Byte buffer used by XDR record.
      */
@@ -317,6 +319,9 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream, AutoCloseable 
      */
     @Override
     public void xdrDecodeOpaque(byte[] buf, int offset, int len) throws BadXdrOncRpcException {
+        if (len == 0) {
+            return;
+        }
         int padding = (4 - (len & 3)) & 3;
         ensureBytes(len + padding);
         _buffer.get(buf, offset, len);
@@ -329,6 +334,9 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream, AutoCloseable 
 
     @Override
     public byte[] xdrDecodeOpaque(int len) throws BadXdrOncRpcException {
+        if (len == 0) {
+            return EMPTY_BYTE_ARRAY;
+        }
         byte[] opaque = new byte[len];
         xdrDecodeOpaque(opaque, len);
         return opaque;
@@ -345,11 +353,12 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream, AutoCloseable 
     @Override
     public byte [] xdrDecodeDynamicOpaque() throws BadXdrOncRpcException {
         int length = xdrDecodeInt();
+        if (length == 0) {
+            return EMPTY_BYTE_ARRAY;
+        }
         checkArraySize(length);
         byte [] opaque = new byte[length];
-        if ( length != 0 ) {
-            xdrDecodeOpaque(opaque, 0, length);
-        }
+        xdrDecodeOpaque(opaque, 0, length);
         return opaque;
     }
 
@@ -362,6 +371,9 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream, AutoCloseable 
     @Override
     public String xdrDecodeString() throws BadXdrOncRpcException {
         int len = xdrDecodeInt();
+        if (len == 0) {
+          return "";
+        }
         checkArraySize(len);
         byte[] bytes = new byte[len];
         xdrDecodeOpaque(bytes, 0, len);
