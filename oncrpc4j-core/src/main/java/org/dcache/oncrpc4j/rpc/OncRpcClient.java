@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2024 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2025 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -158,6 +158,11 @@ public class OncRpcClient implements AutoCloseable {
 
         public OncRpcClientBuilder withUDP() {
             svcBuilder.withUDP();
+            return this;
+        }
+
+        public OncRpcClientBuilder withTcpNoDelay(boolean tcpNoDelay) {
+            svcBuilder.withTcpNoDelay(tcpNoDelay);
             return this;
         }
 
