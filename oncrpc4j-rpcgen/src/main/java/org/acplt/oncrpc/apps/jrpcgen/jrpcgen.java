@@ -1924,6 +1924,7 @@ public class jrpcgen {
 
         out.println("import java.io.Closeable;");
         out.println("import java.net.InetAddress;");
+        out.println("import java.util.concurrent.atomic.AtomicBoolean;");
         if (generateAsyncFutureClient) {
             out.println("import java.util.concurrent.Future;");
         }
@@ -1951,6 +1952,7 @@ public class jrpcgen {
         // generated class fields
         out.println("    private final OncRpcClient rpcClient;");
         out.println("    private final RpcCall client;");
+        out.println("    private final AtomicBoolean tlsStarted = new AtomicBoolean();");
         out.println();
 
         //
@@ -2058,6 +2060,16 @@ public class jrpcgen {
         out.println("            rpcClient.close();");
         out.println("            throw e;");
         out.println("        } ");
+        out.println("    }");
+        out.println();
+
+        out.println("    /**");
+        out.println("     * Upgrades the underlying transport to TLS using STARTTLS mechanism.");
+        out.println("     */");
+        out.println("    public void startTLS() throws IOException {");
+        out.println("        if (tlsStarted.compareAndSet(false, true)) {");
+        out.println("            client.startTLS();");
+        out.println("        }");
         out.println("    }");
         out.println();
 
