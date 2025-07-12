@@ -19,6 +19,10 @@
  */
 package org.dcache.oncrpc4j.rpc;
 
+import com.google.common.annotations.Beta;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLParameters;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -163,6 +167,28 @@ public class OncRpcClient implements AutoCloseable {
 
         public OncRpcClientBuilder withTcpNoDelay(boolean tcpNoDelay) {
             svcBuilder.withTcpNoDelay(tcpNoDelay);
+            return this;
+        }
+
+        public OncRpcClientBuilder withSSLContext(SSLContext sslContext) {
+            svcBuilder.withSSLContext(sslContext);
+            return this;
+        }
+
+        public OncRpcClientBuilder withSSLParameters(SSLParameters sslParams) {
+            svcBuilder.withSSLParameters(sslParams);
+            return this;
+        }
+
+        @Beta
+        public OncRpcClientBuilder withStartTLS() {
+            svcBuilder.withStartTLS();
+            return this;
+        }
+
+        @Beta
+        public OncRpcClientBuilder withoutStartTLS() {
+            svcBuilder.withoutStartTLS();
             return this;
         }
 
