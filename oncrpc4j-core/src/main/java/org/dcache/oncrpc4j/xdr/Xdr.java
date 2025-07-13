@@ -923,8 +923,9 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream, AutoCloseable 
         checkState(!_inUse, "getBytes called while buffer in use");
         int size = _buffer.remaining();
         byte[] bytes = new byte[size];
-        Buffer dup = _buffer.duplicate();
-        dup.get(bytes);
+        _buffer.mark();
+        _buffer.get(bytes);
+        _buffer.reset();
         return bytes;
     }
 

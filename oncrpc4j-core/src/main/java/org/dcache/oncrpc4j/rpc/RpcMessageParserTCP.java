@@ -19,10 +19,9 @@
  */
 package org.dcache.oncrpc4j.rpc;
 
-import org.dcache.oncrpc4j.xdr.Xdr;
 import java.io.IOException;
 
-import java.nio.ByteOrder;
+import org.dcache.oncrpc4j.xdr.Xdr;
 import org.glassfish.grizzly.Buffer;
 import org.glassfish.grizzly.filterchain.BaseFilter;
 import org.glassfish.grizzly.filterchain.FilterChainContext;
@@ -62,11 +61,14 @@ public class RpcMessageParserTCP extends BaseFilter {
     }
 
     private boolean isAllFragmentsArrived(Buffer messageBuffer) {
-        final Buffer buffer = messageBuffer.duplicate();
-        buffer.order(ByteOrder.BIG_ENDIAN);
+        final Buffer buffer = messageBuffer;
+        if (buffer.remaining() < 4) {
+          return false;
+        }
 
-        while (buffer.remaining() >= 4) {
-
+        buffer.mark();
+        try {
+          do {
             int messageMarker = buffer.getInt();
             int size = getMessageSize(messageMarker);
 
@@ -88,6 +90,9 @@ public class RpcMessageParserTCP extends BaseFilter {
              * seek to the end of the current fragment
              */
             buffer.position(buffer.position() + size);
+          } while(buffer.remaining() >= 4);
+        } finally {
+          buffer.reset();
         }
 
         return false;
