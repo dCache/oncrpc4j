@@ -34,6 +34,8 @@ public class OncRpcClient implements AutoCloseable {
     private static final String DEFAULT_SERVICE_NAME = null;
 
     private final InetSocketAddress _socketAddress;
+    private final long _connectTimeout;
+    private final TimeUnit _connectTimeoutUnit;
     private final OncRpcSvc _rpcsvc;
 
     public OncRpcClient(InetAddress address, int protocol, int port) {
@@ -66,14 +68,19 @@ public class OncRpcClient implements AutoCloseable {
                 .build());
     }
 
-
     private OncRpcClient(InetSocketAddress socketAddress, OncRpcSvc clientSvc) {
+        this(socketAddress, Long.MAX_VALUE, TimeUnit.MILLISECONDS, clientSvc);
+    }
+
+    public OncRpcClient(InetSocketAddress socketAddress, long connectTimeout, TimeUnit connectTimeoutUnit, OncRpcSvc clientSvc) {
         _socketAddress = socketAddress;
+        _connectTimeout = connectTimeout;
+        _connectTimeoutUnit = connectTimeoutUnit;
         _rpcsvc = clientSvc;
     }
 
     public RpcTransport connect() throws IOException {
-        return connect(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+        return connect(_connectTimeout, _connectTimeoutUnit);
     }
 
     public RpcTransport connect(long timeout, TimeUnit timeUnit) throws IOException {
@@ -105,6 +112,8 @@ public class OncRpcClient implements AutoCloseable {
                 .withSelectorThreadPoolSize(1)
                 .withWorkerThreadPoolSize(1)
                 .withoutAutoPublish();
+        private long connectTimeout = Long.MAX_VALUE;
+        private TimeUnit connectTimeoutUnit = TimeUnit.MILLISECONDS;
 
         private OncRpcClientBuilder() {
             // no direct instantiation
@@ -187,6 +196,12 @@ public class OncRpcClient implements AutoCloseable {
             return this;
         }
 
+        public OncRpcClientBuilder withConnectTimeout(long timeout, TimeUnit unit) {
+            this.connectTimeout = timeout;
+            this.connectTimeoutUnit = unit;
+            return this;
+        }
+
         /**
          * Build a new {@link OncRpcClient} instance.
          *
@@ -194,7 +209,7 @@ public class OncRpcClient implements AutoCloseable {
          * @return a new {@link OncRpcClient} instance
          */
         public OncRpcClient build(InetSocketAddress endpoint) {
-            return new OncRpcClient(endpoint, svcBuilder.build());
+            return new OncRpcClient(endpoint, connectTimeout, connectTimeoutUnit, svcBuilder.build());
         }
 
         /**
