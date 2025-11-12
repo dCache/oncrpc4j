@@ -10,7 +10,7 @@
 
     <artifactId>oncrpc4j-portmapdaemon</artifactId>
     <properties>
-      <maven-shade-plugin>2.4.3</maven-shade-plugin>
+      <maven-shade-plugin>3.6.1</maven-shade-plugin>
     </properties>
     <build>
         <plugins>
