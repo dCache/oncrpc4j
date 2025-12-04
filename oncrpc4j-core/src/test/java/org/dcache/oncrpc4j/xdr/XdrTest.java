@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2022 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2025 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -19,11 +19,21 @@
  */
 package org.dcache.oncrpc4j.xdr;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
+
 import org.dcache.oncrpc4j.util.Bytes;
+
 import java.nio.ByteOrder;
+import java.nio.file.Files;
+import java.util.Arrays;
+import java.util.concurrent.ThreadLocalRandom;
+
 import org.dcache.oncrpc4j.grizzly.GrizzlyMemoryManager;
 import org.glassfish.grizzly.Buffer;
+import org.glassfish.grizzly.FileChunk;
+import org.glassfish.grizzly.FileTransfer;
+import org.glassfish.grizzly.asyncqueue.WritableMessage;
 import org.glassfish.grizzly.memory.BuffersBuffer;
 import org.glassfish.grizzly.memory.ByteBufferManager;
 import org.glassfish.grizzly.memory.CompositeBuffer;
@@ -33,6 +43,7 @@ import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -681,7 +692,138 @@ public class XdrTest {
         verify(b, times(1)).tryDispose();
     }
 
+    @Test
+    public void testAsWritableMessageSingleBuffer() throws BadXdrOncRpcException {
+
+        Xdr encoder = new Xdr(_buffer);
+        encoder.beginEncoding();
+        encoder.xdrEncodeInt(42);
+        encoder.endEncoding();
+
+        WritableMessage[] messages = encoder.asBufferWritableMessages();
+        assertThat("Single message expected", messages.length, is(1));
+    }
+
+    @Test
+    public void testAsWritableMessageAlignedFileChunk() throws BadXdrOncRpcException {
+
+        Xdr encoder = new Xdr(_buffer);
+        encoder.beginEncoding();
+        encoder.xdrEncodeInt(42);
+        encoder.xdrEncodeFileChunk(mockFileChunk(64 * 1024));
+        encoder.endEncoding();
+
+        WritableMessage[] messages = encoder.asBufferWritableMessages();
+        assertThat("Encoding aligned file chunk", messages.length, is(2));
+    }
+
+    @Test
+    public void testAsWritableMessageMisalignedFileChunk() throws BadXdrOncRpcException {
+
+        Xdr encoder = new Xdr(_buffer);
+        encoder.beginEncoding();
+        encoder.xdrEncodeInt(42);
+        encoder.xdrEncodeFileChunk(mockFileChunk(64 * 1024 + 1));
+        encoder.endEncoding();
+
+        WritableMessage[] messages = encoder.asBufferWritableMessages();
+        assertThat("Encoding misaligned file chunk", messages.length, is(3));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testEncodingMultipleFileChunk() throws BadXdrOncRpcException {
+        Xdr encoder = new Xdr(_buffer);
+        encoder.beginEncoding();
+        encoder.xdrEncodeInt(42);
+        encoder.xdrEncodeFileChunk(mockFileChunk(64 * 1024));
+        encoder.xdrEncodeFileChunk(mockFileChunk(64 * 1024));
+    }
+
+    @Test
+    public void testMergeFileChunkOnAsBuffer() throws IOException {
+        var data = new byte[64 * 1024 + 3];
+
+        var paddingSize = (4 - (data.length & 3)) & 3;
+
+        Xdr encoder = new Xdr(128);
+        encoder.beginEncoding();
+        encoder.xdrEncodeInt(42);
+        encoder.xdrEncodeFileChunk(randomFileChunk(data));
+        encoder.endEncoding();
+
+        var buffer = encoder.asBuffer();
+        byte[] merged = new byte[buffer.remaining()];
+        buffer.get(merged);
+
+        // skip first 8 bytes (int + filechunk length), drop padding bytes at the end
+        assertTrue("File Chunk is not merged into buffer",
+                Arrays.equals(data, 0, data.length, merged, 8, merged.length - paddingSize)
+        );
+    }
+
+    @Test
+    public void testOpaqueAndFileChunkCompatibility() throws IOException {
+        var data = new byte[64 * 1024 + 3];
+
+        Xdr encoderWithFileChunk = new Xdr(128);
+        encoderWithFileChunk.beginEncoding();
+        encoderWithFileChunk.xdrEncodeInt(42);
+        encoderWithFileChunk.xdrEncodeFileChunk(randomFileChunk(data));
+        encoderWithFileChunk.endEncoding();
+
+        Xdr encoderWithOpaque = new Xdr(128);
+        encoderWithOpaque.beginEncoding();
+        encoderWithOpaque.xdrEncodeInt(42);
+        encoderWithOpaque.xdrEncodeDynamicOpaque(data);
+        encoderWithOpaque.endEncoding();
+
+        var bufferFronFileChunk = encoderWithFileChunk.asBuffer();
+        var bufferFromOpaque = encoderWithOpaque.asBuffer();
+
+        byte[] bytesFromFileChunk = new byte[bufferFronFileChunk.remaining()];
+        bufferFronFileChunk.get(bytesFromFileChunk);
+
+        byte[] bytesFromOpaque = new byte[bufferFromOpaque.remaining()];
+        bufferFromOpaque.get(bytesFromOpaque);
+
+        assertArrayEquals("File Chunk is not merged into buffer", bytesFromFileChunk, bytesFromOpaque);
+    }
+
+
+    @Test
+    public void testMergeFileChunkCorrectness() throws BadXdrOncRpcException {
+
+        Xdr encoder = new Xdr(_buffer);
+        encoder.beginEncoding();
+        encoder.xdrEncodeInt(42);
+        encoder.xdrEncodeFileChunk(mockFileChunk(64 * 1024));
+        encoder.endEncoding();
+
+        encoder.asBuffer(); // force merge
+        WritableMessage[] messages = encoder.asBufferWritableMessages();
+        assertThat("File Chunk is not merged into buffer", messages.length, is(1));
+    }
+
     private static Buffer allocateBuffer(int size) {
         return GrizzlyMemoryManager.allocate(size);
+    }
+
+    private FileChunk mockFileChunk(int size) {
+        FileChunk fileChunk = mock(FileChunk.class);
+        when(fileChunk.hasRemaining()).thenReturn(true, false);
+        when(fileChunk.remaining()).thenReturn(size);
+        return fileChunk;
+    }
+
+    private FileChunk randomFileChunk(byte[] data) throws IOException {
+
+        ThreadLocalRandom.current().nextBytes(data);
+
+        var tmp = Files.createTempFile("xdrtest", "data");
+        Files.write(tmp, data);
+        var f = tmp.toFile();
+        f.deleteOnExit();
+
+        return new FileTransfer(f, 0, data.length);
     }
 }

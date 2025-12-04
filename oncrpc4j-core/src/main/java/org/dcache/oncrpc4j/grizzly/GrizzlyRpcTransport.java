@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2022 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2025 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -20,13 +20,18 @@
 package org.dcache.oncrpc4j.grizzly;
 
 
+import java.io.EOFException;
+import java.io.IOException;
 import java.nio.ByteOrder;
 import org.dcache.oncrpc4j.rpc.ReplyQueue;
 import org.dcache.oncrpc4j.rpc.RpcMessageParserTCP;
 import org.dcache.oncrpc4j.xdr.Xdr;
 import java.net.InetSocketAddress;
+import java.nio.channels.ClosedChannelException;
 import java.nio.channels.CompletionHandler;
+
 import org.glassfish.grizzly.memory.BuffersBuffer;
+import org.glassfish.grizzly.nio.transport.TCPNIOConnection;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,6 +84,17 @@ public class GrizzlyRpcTransport implements RpcTransport {
 
     @Override
     public <A> void send(final Xdr xdr, A attachment, CompletionHandler<Integer, ? super A> handler) {
+        if (xdr.hasFileChunk() && _isStreaming && !isTLS()) {
+            sendRawTCP(xdr, attachment, handler);
+        } else {
+            sendDefault(xdr, attachment, handler);
+        }
+    }
+
+    /**
+     * Send XDR message over UDP or over TLS-protected TCP connection.
+     */
+    private <A> void sendDefault(final Xdr xdr, A attachment, CompletionHandler<Integer, ? super A> handler) {
 
         requireNonNull(handler, "CompletionHandler can't be null");
         Buffer buffer = xdr.asBuffer();
@@ -93,20 +109,57 @@ public class GrizzlyRpcTransport implements RpcTransport {
             buffer = BuffersBuffer.create(_connection.getMemoryManager(), marker, buffer);
         }
 
-        // pass destination address to handle UDP connections as well
-        _connection.write(_remoteAddress, buffer,
-                new EmptyCompletionHandler<WriteResult<WritableMessage, InetSocketAddress>>() {
+        _connection.write(_remoteAddress, buffer, new EmptyCompletionHandler<WriteResult<WritableMessage, InetSocketAddress>>() {
 
-                    @Override
-                    public void failed(Throwable throwable) {
-                        handler.failed(throwable, attachment);
-                    }
+            @Override
+            public void failed(Throwable throwable) {
+                handler.failed(throwable, attachment);
+            }
 
-                    @Override
-                    public void completed(WriteResult<WritableMessage, InetSocketAddress> result) {
-                        handler.completed((int)result.getWrittenSize(), attachment);
-                    }
+            @Override
+            public void completed(WriteResult<WritableMessage, InetSocketAddress> result) {
+                handler.completed((int) result.getWrittenSize(), attachment);
+            }
         });
+    }
+
+
+    /**
+     * Send XDR message over raw TCP connection. This method is optimized for zero-copy use-case.
+     */
+    private <A> void sendRawTCP(final Xdr xdr, A attachment, CompletionHandler<Integer, ? super A> handler) {
+
+        requireNonNull(handler, "CompletionHandler can't be null");
+        WritableMessage[] messages = xdr.asBufferWritableMessages();
+
+        int len = getMessagesSize(messages) | RpcMessageParserTCP.RPC_LAST_FRAG;
+        Buffer marker = _connection.getMemoryManager().allocate(Integer.BYTES);
+        marker.order(ByteOrder.BIG_ENDIAN);
+        marker.putInt(len);
+        marker.flip();
+
+        var v = TCPNIOConnection.class.cast(_connection);
+        int written = 0;
+        try {
+            // as XDR should be delivered as a single RPC message, lock the connection until all parts are written
+            synchronized (_connection) {
+                written += ((TCPNIOTransport) _connection.getTransport()).write(v, marker, null);
+                for (WritableMessage msg : messages) {
+                    while (msg.hasRemaining()) {
+                        written += ((TCPNIOTransport) _connection.getTransport()).write(v, msg, null);
+                    }
+                    // as we by-passed Grizzly's Buffer management, we need to release buffers manually
+                    msg.release();
+                }
+            }
+            handler.completed(written, attachment);
+        } catch (IOException e) {
+            // convert ClosedChannelException to EOFException as expected by upper layers
+            if (e instanceof ClosedChannelException) {
+                e = new EOFException();
+            }
+            handler.failed(e, attachment);
+        }
     }
 
     @Override
@@ -155,5 +208,20 @@ public class GrizzlyRpcTransport implements RpcTransport {
     public boolean isTLS() {
         return ((FilterChain) _connection.getProcessor()).stream()
                 .anyMatch(SSLFilter.class::isInstance);
+    }
+
+    /**
+     * Calculate the total size of all messages in the array.
+     *
+     * @param messages array of messages
+     * @return total size of all messages
+     */
+    private int getMessagesSize(WritableMessage[] messages) {
+        requireNonNull(messages);
+        int size = 0;
+        for (WritableMessage message : messages) {
+            size += message.remaining();
+        }
+        return size;
     }
 }

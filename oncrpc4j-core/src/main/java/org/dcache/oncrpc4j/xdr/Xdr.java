@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2023 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2025 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -19,11 +19,17 @@
  */
 package org.dcache.oncrpc4j.xdr;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import org.dcache.oncrpc4j.grizzly.GrizzlyMemoryManager;
+import org.dcache.oncrpc4j.util.Channels;
 import org.glassfish.grizzly.Buffer;
+import org.glassfish.grizzly.FileChunk;
+import org.glassfish.grizzly.asyncqueue.WritableMessage;
+import org.glassfish.grizzly.memory.Buffers;
 import org.glassfish.grizzly.memory.BuffersBuffer;
 import org.glassfish.grizzly.memory.ByteBufferWrapper;
 import org.glassfish.grizzly.memory.MemoryManager;
@@ -48,6 +54,16 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream, AutoCloseable 
      * Byte buffer used by XDR record.
      */
     protected volatile Buffer _buffer;
+
+    /**
+     * File chunk to be written after the buffer.
+     */
+    private volatile FileChunk _fileChunk;
+
+    /**
+     * Padding needed after the file chunk.
+     */
+    private int _padding;
 
     /**
      * Indicates that encoding/decoding is in progress.
@@ -135,6 +151,10 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream, AutoCloseable 
      */
     public boolean hasMoreData() {
         return _buffer.hasRemaining();
+    }
+
+    public boolean hasFileChunk() {
+        return _fileChunk != null;
     }
 
     /**
@@ -536,7 +556,44 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream, AutoCloseable 
      * @return The {@link Buffer} that backs this xdr
      */
     public Buffer asBuffer() {
+        if (_fileChunk != null) {
+            try {
+                var tmp = _memoryManager.allocate(_fileChunk.remaining() + _padding);
+                _fileChunk.writeTo(Channels.asWritableChannel(tmp));
+                // mind the padding
+                tmp.position(tmp.position() + _padding);
+                tmp.flip();
+                _fileChunk = null;
+                _padding = 0;
+                _buffer = BuffersBuffer.create(_memoryManager, _buffer, tmp);
+
+            } catch (IOException e) {
+                throw new UncheckedIOException("Failed to write file chunk to buffer", e);
+            }
+        }
         return _buffer;
+    }
+
+    /**
+     * Returns an array of {@link WritableMessage} that represent this xdr.
+     *
+     * @return array of {@link WritableMessage} that represent this xdr.
+     */
+    public WritableMessage[] asBufferWritableMessages() {
+
+        if (_fileChunk == null) {
+            return new WritableMessage[]{_buffer};
+        }
+
+        WritableMessage[] asWritableMessages;
+        if (_padding == 0) {
+            asWritableMessages = new WritableMessage[]{_buffer, _fileChunk};
+        } else {
+            asWritableMessages = new WritableMessage[]{_buffer, _fileChunk, Buffers.wrap(_memoryManager, paddingZeros, 0, _padding)};
+        }
+        _fileChunk = null;
+        _padding = 0;
+        return asWritableMessages;
     }
 
     /**
@@ -912,6 +969,25 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream, AutoCloseable 
     }
 
     /**
+     * Encodes (aka "serializes") a file chunk by writing it directly to the
+     * underlying buffer. This method avoids an internal copy of the file chunk
+     * data.
+     *
+     * @param chunk The file chunk to be encoded.
+     */
+    public void xdrEncodeFileChunk(FileChunk chunk) {
+
+        // REVISIT: support multiple file chunks in the future
+        if (_fileChunk != null) {
+            throw new IllegalArgumentException("Multiple file chunks are not supported");
+        }
+        var len = chunk.remaining();
+        xdrEncodeInt(len);
+        _padding = (4 - (len & 3)) & 3;
+        _fileChunk = chunk;
+    }
+
+    /**
      * Returns the array that contains the xdr encoded data. The changes in the Xdr will not be
      * visible to the array and vice versa. The encoding process must be finished before {@code getBytes}
      * method is called.
@@ -934,6 +1010,11 @@ public class Xdr implements XdrDecodingStream, XdrEncodingStream, AutoCloseable 
      */
     public void close() {
         _buffer.tryDispose();
+        if (_fileChunk != null) {
+            _fileChunk.release();
+            _fileChunk = null;
+            _padding = 0;
+        }
     }
 
     private void ensureCapacity(int size) {
