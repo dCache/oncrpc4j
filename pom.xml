@@ -22,6 +22,14 @@
         <tag>3.4</tag>
     </scm>
 
+    <developers>
+        <developer>
+            <name>The dCache project</name>
+            <organization>dCache</organization>
+            <organizationUrl>https://dcache.org</organizationUrl>
+        </developer>
+    </developers>
+
   <!--
     CODE LICENSE
   -->
