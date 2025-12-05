@@ -10,7 +10,7 @@
   <artifactId>oncrpc4j-spring</artifactId>
   <packaging>jar</packaging>
 
-  <name>Spring integarion for ONCRPC4J</name>
+  <name>Spring integration for ONCRPC4J</name>
   <url>http://www.dCache.ORG</url>
   
   <properties>
