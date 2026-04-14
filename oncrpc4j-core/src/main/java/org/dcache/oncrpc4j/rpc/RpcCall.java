@@ -19,6 +19,8 @@
  */
 package org.dcache.oncrpc4j.rpc;
 
+import org.dcache.oncrpc4j.rpc.oidc.*;
+
 import com.google.common.annotations.Beta;
 import org.dcache.oncrpc4j.xdr.Xdr;
 import org.dcache.oncrpc4j.xdr.XdrVoid;
@@ -598,6 +600,39 @@ public class RpcCall {
         } catch (TimeoutException e) {
             throw new IllegalStateException(e); //theoretically impossible
         }
+    }
+
+    public boolean credRefreshCall() throws IOException {
+ 
+        XdrAble result;
+        OIDC.Message oidcMessage = null;
+        OIDC.MessageDecoder msgDec = new OIDC.MessageDecoder();
+
+        OIDC.MessageVisitor<OIDC.Error, Void> visitor = OIDC.MessageVisitor.of(
+            (OIDC.ChunkMessage msg, Void... param) -> {
+              // !!! This should not happen !!!
+              return new OIDC.Error(OIDC.ErrCode.AUTHERROR);
+            },
+            (OIDC.HashMessage msg, Void... param) -> {
+              if (msg.hash().value() == 0) {
+                  ((AuthOidc)getCredential()).uid(msg.uid());
+              } else {
+                ((AuthOidc)getCredential()).hash().value(msg.hash().value());
+                return new OIDC.Error(OIDC.ErrCode.SUCCESS);
+              }
+              return new OIDC.Error(OIDC.ErrCode.NONE); 
+            },
+            (OIDC.ErrorMessage msg, Void... param) -> {
+              return new OIDC.Error(OIDC.ErrCode.AUTHERROR);
+            }
+        ); 
+
+        do {
+          call(0, XdrVoid.XDR_VOID, msgDec);
+          oidcMessage = msgDec.message();
+        } while ( oidcMessage.accept(visitor, null).code() == OIDC.ErrCode.NONE);
+        
+        return true;
     }
 
     /**

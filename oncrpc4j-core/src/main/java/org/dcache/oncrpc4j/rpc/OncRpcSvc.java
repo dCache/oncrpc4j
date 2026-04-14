@@ -27,6 +27,9 @@ import org.dcache.oncrpc4j.portmap.OncPortmapClient;
 import org.dcache.oncrpc4j.portmap.OncRpcPortmap;
 import org.dcache.oncrpc4j.rpc.gss.GssProtocolFilter;
 import org.dcache.oncrpc4j.rpc.gss.GssSessionManager;
+import org.dcache.oncrpc4j.rpc.oidc.OidcSessionManager;
+import org.dcache.oncrpc4j.rpc.oidc.OidcProtocolFilter;
+import org.dcache.oncrpc4j.rpc.oidc.OidcConfig;
 import org.dcache.oncrpc4j.rpc.net.InetSocketAddresses;
 import org.dcache.oncrpc4j.rpc.net.IpProtocolType;
 import org.glassfish.grizzly.CloseType;
@@ -102,10 +105,16 @@ public class OncRpcSvc {
     private final ReplyQueue _replyQueue = new ReplyQueue();
 
     private final boolean _withSubjectPropagation;
+
     /**
-     * Handle RPCSEC_GSS
+     * Handle a specific auth session
      */
-    private final GssSessionManager _gssSessionManager;
+    private final ISessionManager _sessionManager;
+
+    /**
+     * OIDC config
+     */
+    private final OidcConfig _oidcConfig;
 
     /**
      * SSL context to use, if configured.
@@ -195,7 +204,8 @@ public class OncRpcSvc {
 	    });
         }
         _requestExecutor = builder.getWorkerThreadExecutorService();
-        _gssSessionManager = builder.getGssSessionManager();
+        _sessionManager = builder.getSessionManager();
+        _oidcConfig = builder.getOidcConfig();
         _programs.putAll(builder.getRpcServices());
         _withSubjectPropagation = builder.getSubjectPropagation();
         _svcName = builder.getServiceName();
@@ -365,8 +375,18 @@ public class OncRpcSvc {
             filterChain.add(rpcMessageReceiverFor(t));
             filterChain.add(new RpcProtocolFilter(_replyQueue));
             // use GSS if configures
-            if (_gssSessionManager != null) {
-                filterChain.add(new GssProtocolFilter(_gssSessionManager));
+            if (_sessionManager != null) {
+                if (_sessionManager instanceof GssSessionManager) {
+                   filterChain.add(new GssProtocolFilter((GssSessionManager)_sessionManager));
+                } else if (_sessionManager instanceof OidcSessionManager) {
+
+                    OidcProtocolFilter oidcFilter = new OidcProtocolFilter(
+                        _oidcConfig,
+                        (OidcSessionManager)_sessionManager
+                    );
+                    
+                    filterChain.add(oidcFilter);
+                }
             }
             filterChain.add(new RpcDispatcher(_requestExecutor, _programs, _withSubjectPropagation, _callInterceptor));
 

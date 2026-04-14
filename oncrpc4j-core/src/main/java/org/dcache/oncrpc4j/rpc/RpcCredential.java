@@ -20,8 +20,10 @@
 package org.dcache.oncrpc4j.rpc;
 
 import org.dcache.oncrpc4j.xdr.XdrDecodingStream;
-import java.io.IOException;
 import org.dcache.oncrpc4j.rpc.gss.RpcAuthGss;
+import org.dcache.oncrpc4j.rpc.oidc.AuthOidc;
+
+import java.io.IOException;
 
 /**
  * The RPC call message has two authentication fields - the credential and verifier.
@@ -49,6 +51,9 @@ public class RpcCredential {
             case RpcAuthType.TLS:
                 credential = new RpcAuthTypeTls(RpcAuthTypeTls.STARTTLS_VERIFIER);
                 transport.startTLS();
+                break;
+            case RpcAuthType.RPCOIDC_SEC:
+                credential = new AuthOidc();
                 break;
             default:
                 throw new RpcAuthException("Unsupported type: " + authType,

@@ -19,10 +19,12 @@
  */
 package org.dcache.oncrpc4j.rpc;
 
+import org.dcache.oncrpc4j.rpc.oidc.OidcSessionManager;
+import org.dcache.oncrpc4j.rpc.oidc.OidcConfig;
+
 import com.google.common.annotations.Beta;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import org.dcache.oncrpc4j.rpc.gss.GssSessionManager;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -75,7 +77,7 @@ public class OncRpcSvcBuilder {
     private int _backlog = 4096;
     private String _bindAddress = "0.0.0.0";
     private String _serviceName = "OncRpcSvc";
-    private GssSessionManager _gssSessionManager;
+    private ISessionManager _sessionManager;
     private ExecutorService _workerThreadExecutionService;
     private boolean _isClient = false;
     private final Map<OncRpcProgram, RpcDispatchable> _programs = new HashMap<>();
@@ -88,6 +90,7 @@ public class OncRpcSvcBuilder {
     private SSLParameters _sslParams;
     private MemoryAllocator _allocator = MemoryAllocator.DEFAULT;
     private boolean _tcpNoDelay = TCPNIOTransport.DEFAULT_TCP_NO_DELAY;
+    private OidcConfig _oidcConfig = null;
 
     private Consumer<RpcCall> _callInterceptor = c -> {};
 
@@ -200,11 +203,11 @@ public class OncRpcSvcBuilder {
         return this;
     }
 
-    public OncRpcSvcBuilder withGssSessionManager(GssSessionManager gssSessionManager) {
-        _gssSessionManager = gssSessionManager;
+    public OncRpcSvcBuilder withSessionManager(ISessionManager sessionManager) {
+        _sessionManager = sessionManager;
         return this;
     }
-
+ 
     public OncRpcSvcBuilder withWorkerThreadExecutionService(ExecutorService executorService) {
         _workerThreadExecutionService = executorService;
         return this;
@@ -247,6 +250,11 @@ public class OncRpcSvcBuilder {
 
     public OncRpcSvcBuilder withMemoryAllocator(MemoryAllocator allocator) {
         _allocator = allocator;
+        return this;
+    }
+
+    public OncRpcSvcBuilder withOidcConfig(OidcConfig config) {
+        _oidcConfig = config;
         return this;
     }
 
@@ -308,8 +316,8 @@ public class OncRpcSvcBuilder {
         return _tcpNoDelay;
     }
 
-    public GssSessionManager getGssSessionManager() {
-        return _gssSessionManager;
+    public ISessionManager getSessionManager() {
+        return _sessionManager;
     }
 
     public OncRpcSvcBuilder withCallInterceptor(Consumer<RpcCall> interceptor) {
@@ -368,6 +376,10 @@ public class OncRpcSvcBuilder {
         return  _allocator;
     }
 
+    public OidcConfig getOidcConfig() {
+        return _oidcConfig;
+    }
+
     public OncRpcSvc build() {
 
         if (_protocol == 0 || (((_protocol & TCP) != TCP) && ((_protocol & UDP) != UDP))) {
@@ -388,6 +400,10 @@ public class OncRpcSvcBuilder {
 
         if (_sslContext != null && _sslContextProvider != null) {
             throw new IllegalArgumentException("Can't set both SSLContext and SSLContextProvider");
+        }
+
+        if (_sessionManager instanceof OidcSessionManager && _oidcConfig == null) {
+            throw new IllegalArgumentException("Missed configuration for OIDC");   
         }
 
         return new OncRpcSvc(this);

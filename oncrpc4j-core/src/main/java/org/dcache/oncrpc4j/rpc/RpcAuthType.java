@@ -44,4 +44,9 @@ public interface  RpcAuthType {
      * Initiate a TLS handshake.
      */
     static public final int TLS = 7;
+
+    /**
+     * OIDC based authentication.
+     */
+    static public final int RPCOIDC_SEC = 255;
 }

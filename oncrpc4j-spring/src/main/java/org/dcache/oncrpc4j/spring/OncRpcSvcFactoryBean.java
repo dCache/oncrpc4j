@@ -108,7 +108,7 @@ public class OncRpcSvcFactoryBean implements FactoryBean<OncRpcSvcBuilder> {
     }
 
     public void setGssSessionManager(GssSessionManager gssSessionManager) {
-        builder.withGssSessionManager(gssSessionManager);
+        builder.withSessionManager(gssSessionManager);
     }
 
     public void setWorkerThreadExecutionService(ExecutorService executorService) {

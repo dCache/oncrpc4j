@@ -29,6 +29,8 @@ import org.slf4j.LoggerFactory;
 import javax.security.auth.Subject;
 
 import org.dcache.oncrpc4j.rpc.RpcLoginService;
+import org.dcache.oncrpc4j.rpc.RpcTransport;
+import org.dcache.oncrpc4j.rpc.ISessionManager;
 import org.dcache.oncrpc4j.xdr.XdrOpaque;
 
 import org.ietf.jgss.GSSContext;
@@ -37,9 +39,7 @@ import org.ietf.jgss.GSSException;
 import org.ietf.jgss.GSSManager;
 import org.ietf.jgss.Oid;
 
-import org.dcache.oncrpc4j.rpc.RpcTransport;
-
-public class GssSessionManager {
+public class GssSessionManager implements ISessionManager {
 
     private final String KRB5_OID = "1.2.840.113554.1.2.2";
 

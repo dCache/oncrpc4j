@@ -119,6 +119,11 @@ public class OncRpcClient implements AutoCloseable {
             // no direct instantiation
         }
 
+       public OncRpcClientBuilder withSessionManager(ISessionManager sessionManager) {
+         svcBuilder.withSessionManager(sessionManager);
+         return this;
+       }
+
         public OncRpcClientBuilder withProtocol(int protocol) {
             svcBuilder.withIpProtocolType(protocol);
             return this;
