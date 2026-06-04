@@ -143,7 +143,12 @@ public class GrizzlyRpcTransport implements RpcTransport {
         try {
             // as XDR should be delivered as a single RPC message, lock the connection until all parts are written
             synchronized (_connection) {
-                written += ((TCPNIOTransport) _connection.getTransport()).write(v, marker, null);
+
+                // ensure that rpc frame marker is fully sent
+                while(marker.hasRemaining()) {
+                    written += ((TCPNIOTransport) _connection.getTransport()).write(v, marker, null);
+                }
+
                 for (WritableMessage msg : messages) {
                     while (msg.hasRemaining()) {
                         written += ((TCPNIOTransport) _connection.getTransport()).write(v, msg, null);
