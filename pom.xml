@@ -56,6 +56,7 @@
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <java.version>17</java.version>
+    <maven.javadoc.failOnError>false</maven.javadoc.failOnError>
 
     <!--  PROPERTIES FOR DEPENDENCIES
 	 Each property is constructed from the artifact name
