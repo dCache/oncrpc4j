@@ -266,11 +266,10 @@ into processing thread. As a result, the user subject can be extracted from Acce
 ```java
 // SomeService.java
 import javax.security.auth.Subject;
-import java.security.AccessController;
 
 public class SomeService {
     public void doSomeTask() {
-        Subject subject = Subject.getSubject(AccessController.getContext());
+        Subject subject = Subject.current();
         // start using subject
     }
 }

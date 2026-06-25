@@ -2,7 +2,6 @@ package org.dcache.oncrpc4j.rpc;
 
 import com.google.common.util.concurrent.MoreExecutors;
 import java.io.IOException;
-import java.security.AccessController;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -55,7 +54,7 @@ public class RpcDispatcherTest {
         AtomicReference<Subject> callSubject = new AtomicReference<>();
 
         programs.put(PROG_ONE, (call) -> {
-            Subject subject = Subject.getSubject(AccessController.getContext());
+            Subject subject = Subject.current();
             callSubject.set(subject);
         });
 

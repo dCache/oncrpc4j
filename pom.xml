@@ -55,7 +55,7 @@
   <properties>
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <java.version>17</java.version>
+    <java.version>21</java.version>
     <maven.javadoc.failOnError>false</maven.javadoc.failOnError>
 
     <!--  PROPERTIES FOR DEPENDENCIES
@@ -116,7 +116,7 @@
         <plugin>
             <groupId>org.jacoco</groupId>
             <artifactId>jacoco-maven-plugin</artifactId>
-            <version>0.8.10</version>
+            <version>0.8.15</version>
         </plugin>
       </plugins>
     </pluginManagement>

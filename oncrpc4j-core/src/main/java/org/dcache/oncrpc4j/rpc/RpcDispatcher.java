@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2022 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2026 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -19,10 +19,9 @@
  */
 package org.dcache.oncrpc4j.rpc;
 
+import java.util.concurrent.CompletionException;
 import javax.security.auth.Subject;
 import java.io.IOException;
-import java.security.PrivilegedActionException;
-import java.security.PrivilegedExceptionAction;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
@@ -108,11 +107,11 @@ public class RpcDispatcher extends BaseFilter {
                             Subject subject = call.getCredential().getSubject();
 
                             try {
-                                Subject.doAs(subject, (PrivilegedExceptionAction<Void>) () -> {
+                                Subject.callAs(subject, () -> {
                                     program.dispatchOncRpcCall(call);
                                     return null;
                                 });
-                            } catch (PrivilegedActionException e) {
+                            } catch (CompletionException e) {
                                 Throwable t = e.getCause();
                                 Throwables.throwIfInstanceOf(t, IOException.class);
                                 Throwables.throwIfUnchecked(t);
