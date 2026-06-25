@@ -253,17 +253,8 @@ Your RPC client and server are ready!
 <dependency>
     <groupId>org.dcache</groupId>
     <artifactId>oncrpc4j-core</artifactId>
-    <version>3.0.2</version>
+    <version>${latest}</version>
 </dependency>
-
-<repositories>
-    <repository>
-        <id>dcache-snapshots</id>
-        <name>dCache.ORG maven repository</name>
-        <url>https://download.dcache.org/nexus/content/repositories/releases</url>
-        <layout>default</layout>
-    </repository>
-</repositories>
 ```
 
 ## Accessing client subject inside RPC service
