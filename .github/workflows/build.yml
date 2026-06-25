@@ -20,7 +20,7 @@ jobs:
         run: mvn --batch-mode --update-snapshots package
 
       - name: JUnit test report
-        uses: mikepenz/action-junit-report@v5
+        uses: mikepenz/action-junit-report@v6
         if: always()
         with:
           check_name: junit test report
