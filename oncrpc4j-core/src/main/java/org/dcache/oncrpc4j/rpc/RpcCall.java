@@ -476,15 +476,17 @@ public class RpcCall {
         ReplyQueue replyQueue = _transport.getReplyQueue();
 
         CompletionHandler<RpcReply, RpcTransport> handler = callback == null? NOOP : callback;
-        replyQueue.registerKey(xid, _transport.getLocalSocketAddress(), callback, timeoutValue, timeoutUnits);
+        replyQueue.registerKey(xid, _transport.getLocalSocketAddress(), handler, timeoutValue, timeoutUnits);
 
         _transport.send(xdr, _transport.getRemoteSocketAddress(), new NotifyListenersCompletionHandler() {
 
             @Override
             public void failed(Throwable t, InetSocketAddress attachment) {
                 super.failed(t, attachment);
-                replyQueue.get(xid);
-                handler.failed(t, _transport);
+                CompletionHandler<RpcReply, RpcTransport> pendingHandler = replyQueue.get(xid);
+                if (pendingHandler != null) {
+                    pendingHandler.failed(t, _transport);
+                }
             }
         });
         return xid;
