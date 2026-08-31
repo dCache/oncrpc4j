@@ -19,8 +19,23 @@
  */
 package org.dcache.oncrpc4j.rpc;
 
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.nio.channels.CompletionHandler;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import org.dcache.oncrpc4j.xdr.Xdr;
+import org.dcache.oncrpc4j.xdr.XdrVoid;
 import org.junit.Test;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class RpcCallTest {
 
@@ -53,6 +68,33 @@ public class RpcCallTest {
 
         _xdr.beginDecoding();
         _call.accept();
+    }
+
+    @Test
+    public void call_timeoutBeforeWriteFailure_notifiesCallbackOnce() throws IOException {
+        ReplyQueue replyQueue = new ReplyQueue();
+        RpcTransport transport = mock(RpcTransport.class);
+        InetSocketAddress address = new InetSocketAddress("localhost", 2049);
+        CompletionHandler<RpcReply, RpcTransport> callback = mock(CompletionHandler.class);
+        AtomicReference<CompletionHandler<Integer, InetSocketAddress>> writeHandler =
+                new AtomicReference<>();
+
+        when(transport.getReplyQueue()).thenReturn(replyQueue);
+        when(transport.getLocalSocketAddress()).thenReturn(address);
+        when(transport.getRemoteSocketAddress()).thenReturn(address);
+        doAnswer(invocation -> {
+            writeHandler.set(invocation.getArgument(2));
+            return null;
+        }).when(transport).send(any(Xdr.class), eq(address), any(CompletionHandler.class));
+
+        RpcCall call = new RpcCall(1, 1, new RpcAuthTypeNone(), transport);
+        call.call(1, XdrVoid.XDR_VOID, callback, 100, TimeUnit.MILLISECONDS);
+
+        verify(callback, timeout(1000)).failed(any(), any());
+        writeHandler.get().failed(new IOException("write failed"), address);
+        verify(callback, times(1)).failed(any(), any());
+
+        replyQueue.shutdown();
     }
 
 }
