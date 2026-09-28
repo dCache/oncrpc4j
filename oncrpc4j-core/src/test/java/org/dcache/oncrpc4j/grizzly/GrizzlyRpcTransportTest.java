@@ -21,6 +21,7 @@ package org.dcache.oncrpc4j.grizzly;
 
 import java.io.EOFException;
 import java.net.InetSocketAddress;
+import java.net.SocketTimeoutException;
 import java.nio.channels.CompletionHandler;
 import org.dcache.oncrpc4j.rpc.ReplyQueue;
 import org.dcache.oncrpc4j.xdr.Xdr;
@@ -66,8 +67,7 @@ public class GrizzlyRpcTransportTest {
 
         verify(connection, never()).write(eq(remoteAddress), any(Buffer.class),
                 any(org.glassfish.grizzly.CompletionHandler.class));
-        verify(handler).failed(any(EOFException.class), eq(remoteAddress));
-        verify(connection).terminateWithReason(any());
+        verify(handler).failed(any(SocketTimeoutException.class), eq(remoteAddress));
         replyQueue.shutdown();
     }
 }

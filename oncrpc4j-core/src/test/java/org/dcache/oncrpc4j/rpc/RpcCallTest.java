@@ -21,17 +21,27 @@ package org.dcache.oncrpc4j.rpc;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.SocketTimeoutException;
+import java.nio.Buffer;
 import java.nio.channels.CompletionHandler;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import org.dcache.oncrpc4j.grizzly.GrizzlyRpcTransport;
 import org.dcache.oncrpc4j.xdr.Xdr;
+import org.dcache.oncrpc4j.xdr.XdrInt;
 import org.dcache.oncrpc4j.xdr.XdrVoid;
+import org.glassfish.grizzly.Connection;
+import org.glassfish.grizzly.memory.MemoryManager;
+import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
+import org.glassfish.grizzly.nio.transport.TCPNIOTransportBuilder;
 import org.junit.Test;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -95,6 +105,45 @@ public class RpcCallTest {
         verify(callback, times(1)).failed(any(), any());
 
         replyQueue.shutdown();
+    }
+
+
+    @Test
+    public void send_fullAsyncWriteQueue_failsAndTerminatesConnection()
+          throws IOException, ExecutionException, InterruptedException {
+        Connection<InetSocketAddress> connection = mock(Connection.class);
+        TCPNIOTransport tcpTransport = TCPNIOTransportBuilder.newInstance().build();
+        InetSocketAddress localAddress = new InetSocketAddress("localhost", 2049);
+        InetSocketAddress remoteAddress = new InetSocketAddress("localhost", 2050);
+        CompletionHandler<Integer, InetSocketAddress> handler = mock(CompletionHandler.class);
+
+        when(connection.getTransport()).thenReturn(tcpTransport);
+        when(connection.getLocalAddress()).thenReturn(localAddress);
+        when(connection.getPeerAddress()).thenReturn(remoteAddress);
+        when(connection.getMemoryManager()).thenReturn(MemoryManager.DEFAULT_MEMORY_MANAGER);
+        when(connection.canWrite()).thenReturn(false);
+        when(connection.getMaxAsyncWriteQueueSize()).thenReturn(1024);
+
+        ReplyQueue replyQueue = new ReplyQueue();
+        GrizzlyRpcTransport transport = new GrizzlyRpcTransport(connection, replyQueue);
+
+        RpcCall call = new RpcCall(1, 1, new RpcAuthTypeNone(), transport);
+        var future = call.call(1, new XdrInt(42), XdrVoid.class);
+
+        try {
+            future.get(1, TimeUnit.SECONDS);
+        } catch (Exception e) {
+
+            SocketTimeoutException cause = (SocketTimeoutException) e.getCause();
+
+            handler.failed(cause, remoteAddress);
+            transport.closeExceptionally(cause);
+        }
+
+        verify(connection, never()).write(eq(remoteAddress), any(Buffer.class),
+              any(org.glassfish.grizzly.CompletionHandler.class));
+        verify(handler).failed(any(SocketTimeoutException.class), eq(remoteAddress));
+        verify(connection).terminateWithReason(any());
     }
 
 }

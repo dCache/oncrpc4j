@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2025 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2026 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -22,6 +22,7 @@ package org.dcache.oncrpc4j.grizzly;
 
 import java.io.EOFException;
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.nio.ByteOrder;
 import org.dcache.oncrpc4j.rpc.ReplyQueue;
 import org.dcache.oncrpc4j.rpc.RpcMessageParserTCP;
@@ -124,21 +125,16 @@ public class GrizzlyRpcTransport implements RpcTransport {
         };
 
         if (_isStreaming) {
-            EOFException queueFull;
             synchronized (_connection) {
                 if (_connection.canWrite()) {
                     _connection.write(_remoteAddress, buffer, writeHandler);
                     return;
                 }
-                queueFull = new EOFException("Asynchronous write queue is full (limit: "
-                        + _connection.getMaxAsyncWriteQueueSize() + " bytes) for " + _remoteAddress);
-            }
-
-            buffer.release();
-            try {
-                handler.failed(queueFull, attachment);
-            } finally {
-                _connection.terminateWithReason(queueFull);
+                handler.failed(
+                      new SocketTimeoutException("Asynchronous write queue is full (limit: "
+                            + _connection.getMaxAsyncWriteQueueSize() + " bytes) for "
+                            + _remoteAddress)
+                      , attachment);
             }
         } else {
             _connection.write(_remoteAddress, buffer, writeHandler);
@@ -250,5 +246,10 @@ public class GrizzlyRpcTransport implements RpcTransport {
             size += message.remaining();
         }
         return size;
+    }
+
+    @Override
+    public void closeExceptionally(IOException cause) {
+        _connection.terminateWithReason(cause);
     }
 }
