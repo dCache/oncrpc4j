@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2025 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2026 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -22,6 +22,7 @@ package org.dcache.oncrpc4j.grizzly;
 
 import java.io.EOFException;
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.nio.ByteOrder;
 import org.dcache.oncrpc4j.rpc.ReplyQueue;
 import org.dcache.oncrpc4j.rpc.RpcMessageParserTCP;
@@ -109,7 +110,8 @@ public class GrizzlyRpcTransport implements RpcTransport {
             buffer = BuffersBuffer.create(_connection.getMemoryManager(), marker, buffer);
         }
 
-        _connection.write(_remoteAddress, buffer, new EmptyCompletionHandler<WriteResult<WritableMessage, InetSocketAddress>>() {
+        EmptyCompletionHandler<WriteResult<WritableMessage, InetSocketAddress>> writeHandler =
+                new EmptyCompletionHandler<WriteResult<WritableMessage, InetSocketAddress>>() {
 
             @Override
             public void failed(Throwable throwable) {
@@ -120,7 +122,23 @@ public class GrizzlyRpcTransport implements RpcTransport {
             public void completed(WriteResult<WritableMessage, InetSocketAddress> result) {
                 handler.completed((int) result.getWrittenSize(), attachment);
             }
-        });
+        };
+
+        if (_isStreaming) {
+            synchronized (_connection) {
+                if (_connection.canWrite()) {
+                    _connection.write(_remoteAddress, buffer, writeHandler);
+                    return;
+                }
+                handler.failed(
+                      new SocketTimeoutException("Asynchronous write queue is full (limit: "
+                            + _connection.getMaxAsyncWriteQueueSize() + " bytes) for "
+                            + _remoteAddress)
+                      , attachment);
+            }
+        } else {
+            _connection.write(_remoteAddress, buffer, writeHandler);
+        }
     }
 
 
@@ -228,5 +246,10 @@ public class GrizzlyRpcTransport implements RpcTransport {
             size += message.remaining();
         }
         return size;
+    }
+
+    @Override
+    public void closeExceptionally(IOException cause) {
+        _connection.terminateWithReason(cause);
     }
 }
