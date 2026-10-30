@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 - 2018 Deutsches Elektronen-Synchroton,
+ * Copyright (c) 2009 - 2026 Deutsches Elektronen-Synchroton,
  * Member of the Helmholtz Association, (DESY), HAMBURG, GERMANY
  *
  * This library is free software; you can redistribute it and/or modify
@@ -28,7 +28,7 @@ public class RpcCallTest {
     private RpcCall _call = new RpcCall(0, _xdr, null);
 
     @Test(expected=RpcMismatchReply.class)
-    public void testBadRpcVerion() throws Exception {
+    public void testBadRpcVersion() throws Exception {
         _xdr.beginEncoding();
 
         _xdr.xdrEncodeInt(3); // rpc version
