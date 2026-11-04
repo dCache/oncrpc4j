@@ -109,7 +109,8 @@ public class GrizzlyRpcTransport implements RpcTransport {
             buffer = BuffersBuffer.create(_connection.getMemoryManager(), marker, buffer);
         }
 
-        _connection.write(_remoteAddress, buffer, new EmptyCompletionHandler<WriteResult<WritableMessage, InetSocketAddress>>() {
+        EmptyCompletionHandler<WriteResult<WritableMessage, InetSocketAddress>> writeHandler =
+                new EmptyCompletionHandler<WriteResult<WritableMessage, InetSocketAddress>>() {
 
             @Override
             public void failed(Throwable throwable) {
@@ -120,7 +121,28 @@ public class GrizzlyRpcTransport implements RpcTransport {
             public void completed(WriteResult<WritableMessage, InetSocketAddress> result) {
                 handler.completed((int) result.getWrittenSize(), attachment);
             }
-        });
+        };
+
+        if (_isStreaming) {
+            EOFException queueFull;
+            synchronized (_connection) {
+                if (_connection.canWrite()) {
+                    _connection.write(_remoteAddress, buffer, writeHandler);
+                    return;
+                }
+                queueFull = new EOFException("Asynchronous write queue is full (limit: "
+                        + _connection.getMaxAsyncWriteQueueSize() + " bytes) for " + _remoteAddress);
+            }
+
+            buffer.release();
+            try {
+                handler.failed(queueFull, attachment);
+            } finally {
+                _connection.terminateWithReason(queueFull);
+            }
+        } else {
+            _connection.write(_remoteAddress, buffer, writeHandler);
+        }
     }
 
 
